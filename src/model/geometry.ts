@@ -179,7 +179,7 @@ export interface RelationshipGeometry {
   normal: Point;
 }
 
-export const PARALLEL_SPACING = 40;
+export const PARALLEL_SPACING = 26;
 /** Hur långt från nodens kant parallella relationer hinner böja ut till sitt eget spår. */
 export const PARALLEL_BEND = 30;
 /** Minsta raka mittdel innan vi i stället ritar en enkel båge. */
@@ -212,7 +212,7 @@ export function relationshipGeometry(
   if (pointsEqual(ends.from, ends.to)) {
     return selfLoopGeometry(
       ends.from,
-      ends.fromRadius,
+      (ends.fromRadius + ends.toRadius) / 2,
       bundle,
       options.arrowSize,
       options.directed,

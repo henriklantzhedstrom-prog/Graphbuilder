@@ -59,12 +59,18 @@ export function computeRelationshipGeometry(
   if (!from || !to) return null;
   const style = resolvedRelationshipStyle(doc, rel);
   const bundle: BundleInfo = bundles.get(rel.id) ?? { index: 0, count: 1, reversed: false };
+  const fromStyle = resolvedNodeStyle(doc, from);
+  const toStyle = resolvedNodeStyle(doc, to);
   return relationshipGeometry(
     {
       from: nodePositionWithOverrides(doc, rel.fromId, overrides) ?? from.position,
-      fromRadius: resolvedNodeStyle(doc, from).radius,
+      // Linjen börjar under nodens kant (noden ritas ovanpå) så att ingen linje syns över kanten…
+      fromRadius: Math.max(0, fromStyle.radius - fromStyle.strokeWidth / 2),
       to: nodePositionWithOverrides(doc, rel.toId, overrides) ?? to.position,
-      toRadius: resolvedNodeStyle(doc, to).radius,
+      // …och pilspetsen slutar precis utanför kanten så att den syns helt.
+      toRadius: style.directed
+        ? toStyle.radius + toStyle.strokeWidth / 2
+        : Math.max(0, toStyle.radius - toStyle.strokeWidth / 2),
     },
     bundle,
     { arrowSize: style.arrowSize, directed: style.directed },
@@ -90,10 +96,12 @@ export function Scene({
   const isEditing = (ref: ElementRef) =>
     editing !== null && editing !== undefined && refKey(editing) === refKey(ref);
 
+  // Ritordning: bilder underst, sedan alla relationer, sedan alla noder, sedan anteckningar.
+  // Lagerordningen gäller inom varje sort, så att relationer alltid hamnar bakom noderna.
   return (
     <>
-      {groups.map(({ layer, images, relationships, nodes, notes }) => (
-        <g key={layer.id} data-layer={layer.id}>
+      {groups.map(({ layer, images }) => (
+        <g key={`images:${layer.id}`} data-layer={layer.id} data-kind="images">
           {images.map((image) => {
             const asset = doc.assets[image.assetId];
             if (!asset) return null;
@@ -115,6 +123,10 @@ export function Scene({
               </g>
             );
           })}
+        </g>
+      ))}
+      {groups.map(({ layer, relationships }) => (
+        <g key={`relationships:${layer.id}`} data-layer={layer.id} data-kind="relationships">
           {relationships.map((rel) => {
             const geometry = computeRelationshipGeometry(doc, rel, bundles, overrides);
             if (!geometry) return null;
@@ -131,6 +143,10 @@ export function Scene({
               />
             );
           })}
+        </g>
+      ))}
+      {groups.map(({ layer, nodes }) => (
+        <g key={`nodes:${layer.id}`} data-layer={layer.id} data-kind="nodes">
           {nodes.map((node) => (
             <NodeView
               key={node.id}
@@ -145,6 +161,10 @@ export function Scene({
               zoom={zoom}
             />
           ))}
+        </g>
+      ))}
+      {groups.map(({ layer, notes }) => (
+        <g key={`notes:${layer.id}`} data-layer={layer.id} data-kind="notes">
           {notes.map((note) => {
             const box = overrides?.boxes?.get(`note:${note.id}`) ?? noteBox(note);
             const pos = overrides?.positions?.get(`note:${note.id}`);

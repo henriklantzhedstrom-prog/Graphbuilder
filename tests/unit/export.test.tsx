@@ -221,3 +221,17 @@ describe("arrows.app-import", () => {
     expect(() => importArrowsJson('{"nodes": "nej"}', "x")).toThrow(/arrows/);
   });
 });
+
+describe("ritordning", () => {
+  it("alla relationer ritas före (under) alla noder, även i olika lager", () => {
+    const doc = sampleDoc();
+    const top = createLayer("Topp");
+    doc.layers.push(top);
+    const r1 = doc.relationships.r1;
+    if (r1) r1.layerId = top.id;
+    const result = exportSvg(doc, { onlyVisible: true, transparent: true });
+    const svg = result?.svg ?? "";
+    expect(svg.indexOf("WORKS AT")).toBeGreaterThan(-1);
+    expect(svg.indexOf("WORKS AT")).toBeLessThan(svg.indexOf("Alice Andersson"));
+  });
+});
