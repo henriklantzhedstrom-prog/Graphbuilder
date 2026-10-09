@@ -16,6 +16,19 @@
   - Leverera hela funktioner i ett svep: kod, tester, texter och dokumentation tillsammans.
 - **Låna inga mänskliga arbetssätt.** Inga tidsuppskattningar i dagar eller veckor, inga sprintar,
   inga pauser, inget "vi tar det i nästa iteration". Omfattning och kvalitet är det enda som styr.
+- **Aldrig IT-jargong.** Skriv till kunden som till en person utan teknisk bakgrund. Inga facktermer
+  som repo, branch, merge, commit, deploy, CI, API, backend, PR, Pages, build, lint, test-svit.
+  Säg i stället "koden", "versionen", "lägga ihop", "spara", "publicera", "automatisk kontroll",
+  "inställning". Måste en teknisk sak nämnas, förklara den med en vardaglig liknelse i samma mening.
+  Gäller alla svar, rapporter och frågor till kunden.
+- **Kunden gör aldrig något tekniskt.** Kunden klonar inget, kör inga kommandon, ändrar inga
+  inställningar och lägger inte ihop versioner. Allt sådant sköter Claude och levererar en länk eller
+  ett resultat. Kräver något ett beslut av kunden (t.ex. om koden får vara öppen för alla) ställs det
+  som ett val i vardagsspråk, aldrig som en instruktion att göra något. Får Claude fria händer
+  ("gör som du tycker") tas beslutet och motiveras i en mening.
+- **Leverans = länk.** En funktion räknas som levererad först när kunden kan öppna den i webbläsaren
+  via en länk som Claude ger. Länken till den publicerade appen står i `README.md` under
+  "Testa appen" och uppdateras (samma länk, ny version) vid varje leverans.
 
 ## Vad appen är
 
