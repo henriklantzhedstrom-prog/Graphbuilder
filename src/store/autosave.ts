@@ -22,7 +22,7 @@ export function startAutosave(
     if (!pending) return;
     const doc = pending;
     pending = null;
-    void save(doc);
+    save(doc).catch((err) => console.warn("Autosave failed", err));
   };
 
   const unsubscribe = useDocumentStore.subscribe((state, prev) => {
