@@ -442,15 +442,12 @@ export function Canvas() {
   const onDoubleClick = (e: React.MouseEvent<SVGSVGElement>) => {
     const ui = useUiStore.getState();
     const currentDoc = useDocumentStore.getState().doc;
-    const { ref } = hitTarget(e.target);
+    // Pekarfångst gör att e.target kan vara själva ritytan; slå upp elementet under markören.
+    const { ref } = hitTarget(document.elementFromPoint(e.clientX, e.clientY));
     if (ref && isSelectable(currentDoc, ref)) {
       if (ref.kind === "image") return;
       ui.setSelection([ref]);
       ui.setEditing(ref);
-      return;
-    }
-    if (ui.tool === "select" && !ref) {
-      createNodeAt(toCanvas(e));
     }
   };
 

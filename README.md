@@ -17,7 +17,7 @@ updated automatically with every new version.
 
 ## Features
 
-- Create nodes by double-clicking, drag relationships from a node's ring (drop on empty space to create a node).
+- Create nodes with the **Add node** button in the side panel, drag relationships from a node's ring (drop on empty space to create a node).
 - Caption, labels and properties on nodes; type, direction and properties on relationships.
 - Style per element or for the whole model: colors, radius, border width, text sizes, dashed lines.
 - Select by click, Shift+click or marquee; move by dragging or with the arrow keys; snap guides.

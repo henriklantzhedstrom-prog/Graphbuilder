@@ -1,5 +1,8 @@
-import { cx } from "@/components/ui";
+import { addNodeInView } from "@/canvas/actions";
+import { IconNode } from "@/components/icons";
+import { Button, cx } from "@/components/ui";
 import { t } from "@/i18n";
+import type { Size } from "@/model/types";
 import { type Panel, useUiStore } from "@/store/uiStore";
 import { Inspector } from "./Inspector";
 import { LayersPanel } from "./LayersPanel";
@@ -9,11 +12,22 @@ const TABS: { id: Panel; label: string }[] = [
   { id: "layers", label: t.panels.layers },
 ];
 
-export function SidePanel() {
+export function SidePanel({ getViewportSize }: { getViewportSize: () => Size }) {
   const panel = useUiStore((s) => s.panel);
   const setPanel = useUiStore((s) => s.setPanel);
   return (
     <aside className="flex w-80 shrink-0 flex-col border-border border-l bg-surface">
+      <div className="border-border border-b p-3">
+        <Button
+          variant="primary"
+          data-testid="add-node"
+          className="w-full justify-center"
+          onClick={() => addNodeInView(getViewportSize())}
+        >
+          <IconNode size={16} />
+          {t.tools.addNode}
+        </Button>
+      </div>
       <div role="tablist" className="flex border-border border-b">
         {TABS.map((tab) => (
           <button

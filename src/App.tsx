@@ -116,7 +116,7 @@ export function App() {
         <div ref={canvasHostRef} className="min-w-0 flex-1">
           <Canvas />
         </div>
-        <SidePanel />
+        <SidePanel getViewportSize={getViewportSize} />
         <Toasts />
       </div>
       <ShortcutsDialog />

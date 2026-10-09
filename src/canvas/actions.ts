@@ -167,6 +167,26 @@ export function viewportCenter(viewportSize: Size): Point {
   };
 }
 
+export const NEW_NODE_OFFSET = 40;
+
+/**
+ * Skapar en nod mitt i den synliga ytan (knappen "Add node"). Ligger det redan en nod där
+ * förskjuts den nya snett nedåt så att noderna inte hamnar exakt ovanpå varandra.
+ */
+export function addNodeInView(viewportSize: Size): Id | null {
+  const { doc } = docState();
+  const position = viewportCenter(viewportSize);
+  const taken = (p: Point) =>
+    Object.values(doc.nodes).some(
+      (n) => Math.abs(n.position.x - p.x) < 10 && Math.abs(n.position.y - p.y) < 10,
+    );
+  for (let i = 0; i < 50 && taken(position); i++) {
+    position.x += NEW_NODE_OFFSET;
+    position.y += NEW_NODE_OFFSET;
+  }
+  return createNodeAt(position);
+}
+
 /** Rensa markering/redigering som pekar på borttagna eller dolda element. */
 export function syncSelectionWithDocument(): void {
   const { doc } = docState();
