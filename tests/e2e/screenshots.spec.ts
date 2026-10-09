@@ -36,3 +36,34 @@ test("skärmdump: egenskapspanel och lagerpanel", async ({ page }) => {
   await page.getByLabel("Lagrets namn").press("Enter");
   await page.screenshot({ path: `${SCREENSHOT_DIR}/layers-panel.png` });
 });
+
+test("skärmdump: anteckning och bakgrundsbild i lager", async ({ page }) => {
+  await freshApp(page);
+  const chooser = page.waitForEvent("filechooser");
+  await page.getByRole("button", { name: "Bild…" }).click();
+  await (await chooser).setFiles({
+    name: "karta.png",
+    mimeType: "image/png",
+    buffer: Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+      "base64",
+    ),
+  });
+  await expect(page.locator("[data-ref^='image:'] image")).toHaveCount(1);
+  await page.getByLabel("Bredd").fill("700");
+  await page.getByLabel("Höjd").fill("420");
+  await page.getByLabel("Opacitet").fill("0.25");
+  await page.getByRole("button", { name: "Lägg i lagret Bakgrund" }).click();
+  await page.keyboard.press("Escape");
+  await createNode(page, 300, 300, "Person");
+  await createNode(page, 650, 300, "Company");
+  await dragRelationship(page, { x: 300, y: 300 }, { x: 650, y: 300 }, "WORKS_AT");
+  await page.getByRole("button", { name: "Anteckning" }).click();
+  await page.getByTestId("canvas").click({ position: { x: 420, y: 470 } });
+  await page.getByTestId("inline-editor").fill("Att göra: lägg till adress på Company");
+  await page.getByTestId("canvas").click({ position: { x: 800, y: 650 } });
+  await page.locator("[data-ref^='note:'] > rect").click();
+  await page.getByTitle("#ffcc80").click();
+  await page.getByRole("tab", { name: "Lager" }).click();
+  await page.screenshot({ path: `${SCREENSHOT_DIR}/notes-and-image.png` });
+});
