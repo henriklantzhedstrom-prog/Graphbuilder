@@ -25,7 +25,7 @@ updated automatically with every new version.
 - Models are saved automatically in the browser. "My models" manages several models.
 - Save/open as a JSON file. Import JSON from arrows.app.
 - Export to JSON, Cypher (Neo4j `CREATE` statements), SVG and PNG, optionally visible layers only.
-- Light and dark theme follow the system setting.
+- Light theme by default; a button in the toolbar switches to dark mode.
 
 ## Run locally
 

@@ -13,19 +13,19 @@
   --color-canvas: #fafbfc;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-surface: #1d2029;
-    --color-surface-2: #242834;
-    --color-surface-3: #2d3240;
-    --color-border: #3a4050;
-    --color-text: #e8eaf0;
-    --color-text-muted: #9aa3b5;
-    --color-accent: #6b9cff;
-    --color-accent-soft: #2a3a60;
-    --color-danger: #ff6b6b;
-    --color-canvas: #151821;
-  }
+/* Mörkt läge slås på med knappen i verktygsfältet (data-theme), inte av datorns inställning. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-surface: #1d2029;
+  --color-surface-2: #242834;
+  --color-surface-3: #2d3240;
+  --color-border: #3a4050;
+  --color-text: #e8eaf0;
+  --color-text-muted: #9aa3b5;
+  --color-accent: #6b9cff;
+  --color-accent-soft: #2a3a60;
+  --color-danger: #ff6b6b;
+  --color-canvas: #151821;
 }
 
 html,

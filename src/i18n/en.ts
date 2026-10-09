@@ -20,6 +20,8 @@ export const en = {
     zoomReset: "Reset zoom",
     shortcuts: "Keyboard shortcuts",
     file: "File",
+    darkMode: "Switch to dark mode",
+    lightMode: "Switch to light mode",
   },
   tools: {
     select: "Select",
