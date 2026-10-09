@@ -33,8 +33,12 @@ export interface NodeStyle {
   captionFontSize: number;
   labelColor: string;
   labelBackground: string;
+  labelBorderColor: string;
+  labelBorderWidth: number;
   labelFontSize: number;
   propertyColor: string;
+  /** Bakgrund bakom egenskapsraderna; relationer som passerar hamnar bakom den. */
+  propertyBackground: string;
   propertyFontSize: number;
 }
 
@@ -47,6 +51,8 @@ export interface RelationshipStyle {
   typeFontSize: number;
   typeBackground: string;
   propertyColor: string;
+  /** Bakgrund bakom egenskapsraderna; relationer som passerar hamnar bakom den. */
+  propertyBackground: string;
   propertyFontSize: number;
   /** Rita pilspets? false = oriktad relation */
   directed: boolean;

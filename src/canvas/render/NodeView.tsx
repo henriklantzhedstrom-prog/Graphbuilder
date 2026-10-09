@@ -1,5 +1,6 @@
 import { nodeCaption } from "@/model/caption";
 import type { GraphNode, NodeStyle, Point } from "@/model/types";
+import { PropertyBackground } from "./PropertyBackground";
 import { estimateTextWidth, LINE_HEIGHT, propertyLines, wrapToWidth } from "./text";
 
 export const HALO_WIDTH = 14;
@@ -135,8 +136,8 @@ export function NodeView({
               height={labelHeight}
               rx={labelHeight / 2}
               fill={style.labelBackground}
-              stroke={style.stroke}
-              strokeWidth={1}
+              stroke={style.labelBorderColor}
+              strokeWidth={style.labelBorderWidth}
             />
             <text
               x={lx + w / 2}
@@ -153,6 +154,14 @@ export function NodeView({
           </g>
         );
       })}
+      <PropertyBackground
+        lines={props}
+        centerX={x}
+        firstBaseline={propStartY}
+        fontSize={style.propertyFontSize}
+        lineHeight={propLineHeight}
+        fill={style.propertyBackground}
+      />
       {props.length > 0 && (
         <text
           x={x}

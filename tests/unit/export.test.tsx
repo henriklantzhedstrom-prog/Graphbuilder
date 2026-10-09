@@ -235,3 +235,29 @@ describe("ritordning", () => {
     expect(svg.indexOf("WORKS AT")).toBeLessThan(svg.indexOf("Alice Andersson"));
   });
 });
+
+describe("egenskapsbakgrund och labelkant", () => {
+  it("ritar en bakgrund före egenskapstexten och följer stilinställningarna", () => {
+    const doc = sampleDoc();
+    const svg = exportSvg(doc, { onlyVisible: true, transparent: true })?.svg ?? "";
+    const bgIndex = svg.indexOf('data-part="property-background"');
+    expect(bgIndex).toBeGreaterThan(-1);
+    expect(bgIndex).toBeLessThan(svg.indexOf("name: Alice"));
+    doc.style.node.propertyBackground = "#123456";
+    doc.style.node.labelBorderColor = "#ff0000";
+    doc.style.node.labelBorderWidth = 3;
+    const svg2 = exportSvg(doc, { onlyVisible: true, transparent: true })?.svg ?? "";
+    expect(svg2).toContain('fill="#123456"');
+    expect(svg2).toContain('stroke="#ff0000" stroke-width="3"');
+  });
+
+  it("äldre filer utan de nya inställningarna får standardvärden", () => {
+    const raw = JSON.parse(JSON.stringify(createEmptyDocument("Gammal")));
+    delete raw.style.node.propertyBackground;
+    delete raw.style.node.labelBorderColor;
+    delete raw.style.node.labelBorderWidth;
+    const doc = parseDocument(raw);
+    expect(doc.style.node.propertyBackground).toBe("#ffffff");
+    expect(doc.style.node.labelBorderWidth).toBe(1);
+  });
+});

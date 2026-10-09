@@ -39,6 +39,8 @@ const NODE_STYLE_KEYS: Record<string, keyof NodeStyle> = {
   "caption-font-size": "captionFontSize",
   "label-color": "labelColor",
   "label-background-color": "labelBackground",
+  "label-border-color": "labelBorderColor",
+  "label-border-width": "labelBorderWidth",
   "label-font-size": "labelFontSize",
   "property-color": "propertyColor",
   "property-font-size": "propertyFontSize",

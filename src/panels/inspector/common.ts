@@ -22,8 +22,11 @@ export const NODE_STYLE_FIELDS: StyleFieldSpec<
   | "captionFontSize"
   | "labelColor"
   | "labelBackground"
+  | "labelBorderColor"
+  | "labelBorderWidth"
   | "labelFontSize"
   | "propertyColor"
+  | "propertyBackground"
   | "propertyFontSize"
 >[] = [
   { key: "fill", type: "color" },
@@ -34,8 +37,11 @@ export const NODE_STYLE_FIELDS: StyleFieldSpec<
   { key: "captionFontSize", type: "number", min: 6, max: 100 },
   { key: "labelColor", type: "color" },
   { key: "labelBackground", type: "color" },
+  { key: "labelBorderColor", type: "color" },
+  { key: "labelBorderWidth", type: "number", min: 0, max: 10, step: 0.5 },
   { key: "labelFontSize", type: "number", min: 6, max: 60 },
   { key: "propertyColor", type: "color" },
+  { key: "propertyBackground", type: "color" },
   { key: "propertyFontSize", type: "number", min: 6, max: 60 },
 ];
 
@@ -49,6 +55,7 @@ export const RELATIONSHIP_STYLE_FIELDS: StyleFieldSpec<
   | "typeFontSize"
   | "typeBackground"
   | "propertyColor"
+  | "propertyBackground"
   | "propertyFontSize"
 >[] = [
   { key: "color", type: "color" },
@@ -60,5 +67,6 @@ export const RELATIONSHIP_STYLE_FIELDS: StyleFieldSpec<
   { key: "typeFontSize", type: "number", min: 6, max: 60 },
   { key: "typeBackground", type: "color" },
   { key: "propertyColor", type: "color" },
+  { key: "propertyBackground", type: "color" },
   { key: "propertyFontSize", type: "number", min: 6, max: 60 },
 ];
