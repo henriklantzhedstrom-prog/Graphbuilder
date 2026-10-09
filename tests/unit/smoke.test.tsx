@@ -3,8 +3,9 @@ import { describe, expect, it } from "vitest";
 import { App } from "@/App";
 
 describe("App", () => {
-  it("renderar appens namn", () => {
+  it("startar och visar verktygsfältet", async () => {
     render(<App />);
-    expect(screen.getByText("Graphbuilder")).toBeTruthy();
+    expect(await screen.findByLabelText("Modellens namn")).toBeTruthy();
+    expect(screen.getByTestId("canvas")).toBeTruthy();
   });
 });

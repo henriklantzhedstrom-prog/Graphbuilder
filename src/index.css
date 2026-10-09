@@ -53,3 +53,15 @@ textarea {
   font: inherit;
   color: inherit;
 }
+
+.gb-node:hover .gb-halo,
+.gb-node .gb-halo:hover {
+  stroke-opacity: 0.35;
+  cursor: crosshair;
+}
+
+.gb-node,
+.gb-note,
+.gb-relationship {
+  cursor: pointer;
+}

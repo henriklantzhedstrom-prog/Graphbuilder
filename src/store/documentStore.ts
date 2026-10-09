@@ -1,5 +1,5 @@
 import { temporal } from "zundo";
-import { create } from "zustand";
+import { create, useStore } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import {
   BACKGROUND_LAYER_NAME,
@@ -545,7 +545,11 @@ export const useDocumentStore = create<DocumentState>()(
   ),
 );
 
-export const useTemporal = useDocumentStore.temporal;
+type TemporalState = ReturnType<typeof useDocumentStore.temporal.getState>;
+
+/** Hook för ångra/gör om-historiken (zundo:s temporal store är en vanlig store, inte en hook). */
+export const useTemporal = <T>(selector: (state: TemporalState) => T): T =>
+  useStore(useDocumentStore.temporal, selector);
 
 export const undo = () => useDocumentStore.temporal.getState().undo();
 export const redo = () => useDocumentStore.temporal.getState().redo();
