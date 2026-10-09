@@ -37,7 +37,7 @@ export const en = {
     layerLockedHint: "The active layer is locked – unlock it to add elements",
   },
   panels: {
-    inspector: "Properties",
+    inspector: "Style",
     layers: "Layers",
   },
   inspector: {
