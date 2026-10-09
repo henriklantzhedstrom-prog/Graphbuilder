@@ -81,14 +81,13 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   renderar SVG-exporten via `renderToStaticMarkup`. Inga `foreignObject` i visningsläge.
 - E2e-hjälpare (`freshApp`, `createNode`, `dragRelationship`) ligger i `tests/e2e/helpers.ts`.
   Skärmdumpar från `tests/e2e/screenshots.spec.ts` hamnar i `test-results/screenshots/`.
-- **Publicering till claude.ai** (länk https://claude.ai/artifact/VTPthWmGZ8Sd6ASs3HavKb): kör
-  `npm run build:single` och publicera `dist-single/index.html` med Artifact-verktyget mot samma
-  url. Alltid en fil: separata stödfiler är opålitliga där, och stora inline-`<script>` avvisas av
-  tjänsten, därför bäddas skriptet in som data-URL (`scripts/build-single.mjs`). Verifiera före
-  leverans genom att köra sidan i Chromium inuti ett omslagsdokument (se tidigare `.verify.mjs`-
-  mönster: ladda, skapa nod, ladda om, inga fel).
-- GitHub Pages-adressen https://henriklantzhedstrom-prog.github.io/Graphbuilder/ fungerar först när
-  kodförrådet är publikt (Pages kan inte aktiveras av den automatiska kontrollen på privat förråd),
-  och det får Claude inte ändra själv (säkerhetsspärr). Leveranslänken är därför claude.ai-sidan.
+- **Publicering (GitHub Pages).** Förrådet är publikt. Pages serverar grenen `gh-pages`, som
+  deploy-jobbet i `.github/workflows/ci.yml` fyller på vid varje push till `main` (bygge med
+  `VITE_BASE_PATH=/Graphbuilder/`). Pages-inställningen "Source: GitHub Actions" är INTE påslagen och
+  `actions/configure-pages` kan inte slå på den (därav gren-lösningen). Verifiera en publicering via
+  `gh api repos/.../deployments` + `.../deployments/{id}/statuses` (state `success`); själva
+  github.io-adressen går inte att hämta från den här miljön (egress blockerad).
+- `npm run build:single` ger en fristående `dist-single/index.html` (skript som data-URL) för att
+  skicka appen som fil eller visa den inne i Claude. Kunden föredrar webbadressen ovan.
 - Lokalt pekar `playwright.config.ts` på `/opt/pw-browsers/chromium` när den finns; i CI
   installeras Chromium med `npx playwright install --with-deps chromium`.
