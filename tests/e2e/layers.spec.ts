@@ -1,0 +1,102 @@
+import { expect, test } from "@playwright/test";
+import { createNode, dragRelationship, freshApp } from "./helpers";
+
+test.describe("lager", () => {
+  test("nytt lager blir aktivt och nya noder hamnar där; dölj döljer dem", async ({ page }) => {
+    await freshApp(page);
+    await createNode(page, 250, 300, "Bas");
+    await page.getByRole("tab", { name: "Lager" }).click();
+    await page.getByTestId("add-layer").click();
+    const rows = page.getByTestId("layer-row");
+    await expect(rows).toHaveCount(2);
+    await expect(rows.nth(0)).toHaveAttribute("data-active", "true");
+    await expect(rows.nth(0).getByTestId("layer-name")).toHaveText("Lager 2");
+
+    await createNode(page, 550, 300, "Topp");
+    await expect(rows.nth(0).getByText("1", { exact: true })).toBeVisible();
+
+    await rows.nth(0).getByTestId("layer-visibility").click();
+    await expect(page.locator("svg text", { hasText: "Topp" })).toHaveCount(0);
+    await expect(page.locator("svg text", { hasText: "Bas" })).toHaveCount(1);
+    await rows.nth(0).getByTestId("layer-visibility").click();
+    await expect(page.locator("svg text", { hasText: "Topp" })).toHaveCount(1);
+  });
+
+  test("relation till nod i dolt lager döljs också", async ({ page }) => {
+    await freshApp(page);
+    await createNode(page, 250, 300, "A");
+    await page.getByRole("tab", { name: "Lager" }).click();
+    await page.getByTestId("add-layer").click();
+    await createNode(page, 600, 300, "B");
+    await dragRelationship(page, { x: 250, y: 300 }, { x: 600, y: 300 }, "REL");
+    await expect(page.locator("[data-ref^='relationship:']")).toHaveCount(1);
+    await page.getByTestId("layer-row").nth(0).getByTestId("layer-visibility").click();
+    await expect(page.locator("[data-ref^='relationship:']")).toHaveCount(0);
+  });
+
+  test("låst lager kan inte markeras eller flyttas", async ({ page }) => {
+    await freshApp(page);
+    await createNode(page, 300, 300, "Fast");
+    await page.getByRole("tab", { name: "Lager" }).click();
+    await page.getByTestId("layer-row").nth(0).getByTestId("layer-lock").click();
+    const circle = page.locator("[data-ref^='node:'][data-part='body'] circle").nth(1);
+    const before = await circle.boundingBox();
+    if (!before) throw new Error("nod saknas");
+    await page.mouse.move(before.x + before.width / 2, before.y + before.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(before.x + 200, before.y + 100, { steps: 5 });
+    await page.mouse.up();
+    const after = await circle.boundingBox();
+    expect(after && Math.abs(after.x - before.x)).toBeLessThan(2);
+    await page.getByRole("tab", { name: "Egenskaper" }).click();
+    await expect(page.getByText("Inget markerat")).toBeVisible();
+  });
+
+  test("flytta markering till annat lager via egenskapspanelen", async ({ page }) => {
+    await freshApp(page);
+    await createNode(page, 300, 300, "Flytta");
+    await page.getByRole("tab", { name: "Lager" }).click();
+    await page.getByTestId("add-layer").click();
+    await page.getByRole("tab", { name: "Egenskaper" }).click();
+    await page.getByTestId("canvas").click({ position: { x: 300, y: 300 } });
+    await page.getByTestId("inspector-layer").selectOption({ label: "Lager 2" });
+    await page.getByRole("tab", { name: "Lager" }).click();
+    await expect(
+      page.getByTestId("layer-row").nth(0).getByText("1", { exact: true }),
+    ).toBeVisible();
+  });
+
+  test("byt namn, opacitet och ta bort lager med flytt av innehåll", async ({ page }) => {
+    await freshApp(page);
+    await createNode(page, 300, 300, "Kvar");
+    await page.getByRole("tab", { name: "Lager" }).click();
+    await page.getByTestId("add-layer").click();
+    await createNode(page, 600, 300, "Kvar2");
+    const top = page.getByTestId("layer-row").nth(0);
+    await top.getByTestId("layer-name").dblclick();
+    await page.getByLabel("Lagrets namn").fill("Översikt");
+    await page.getByLabel("Lagrets namn").press("Enter");
+    await expect(top.getByTestId("layer-name")).toHaveText("Översikt");
+
+    await top.getByLabel("Opacitet").fill("0.5");
+    await expect(page.locator("g[data-layer][opacity='0.5']")).toHaveCount(1);
+
+    await top.getByTestId("layer-remove").click();
+    await page.getByTestId("remove-layer-confirm").click();
+    await expect(page.getByTestId("layer-row")).toHaveCount(1);
+    await expect(page.locator("svg text", { hasText: "Kvar2" })).toHaveCount(1);
+    await expect(
+      page.getByTestId("layer-row").nth(0).getByText("2", { exact: true }),
+    ).toBeVisible();
+  });
+});
+
+test("Enter i lagernamnet öppnar inte redigering av markerad nod", async ({ page }) => {
+  await freshApp(page);
+  await createNode(page, 300, 300, "Nod");
+  await page.getByRole("tab", { name: "Lager" }).click();
+  await page.getByTestId("layer-row").nth(0).getByTestId("layer-name").dblclick();
+  await page.getByLabel("Lagrets namn").fill("Bas");
+  await page.getByLabel("Lagrets namn").press("Enter");
+  await expect(page.getByTestId("inline-editor")).toHaveCount(0);
+});
