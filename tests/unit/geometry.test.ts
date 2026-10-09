@@ -86,8 +86,36 @@ describe("relationsgeometri", () => {
       { index: 1, count: 2, reversed: false },
       { arrowSize: 8, directed: true },
     );
-    expect(a.path).toContain("Q");
+    // Böj nära noderna, rak parallell mittdel.
+    expect(a.path).toMatch(/C .* L .* C /);
     expect(Math.sign(a.labelPosition.y)).not.toBe(Math.sign(b.labelPosition.y));
+    expect(Math.abs(a.labelPosition.y)).toBeCloseTo(20);
+    expect(a.labelAngle).toBe(0);
+  });
+
+  it("den raka mittdelen ligger på samma avstånd från mittlinjen hela vägen", () => {
+    const g = relationshipGeometry(
+      ends,
+      { index: 0, count: 2, reversed: false },
+      { arrowSize: 8, directed: true },
+    );
+    const nums = (g.path.match(/-?\d+(\.\d+)?/g) ?? []).map(Number);
+    // M sx sy C 4 tal bendStart(x,y) L bendEnd(x,y) ...
+    const bendStartY = nums[7];
+    const bendEndY = nums[9];
+    expect(bendStartY).toBeCloseTo(bendEndY ?? Number.NaN);
+    expect(Math.abs(bendStartY ?? 0)).toBeCloseTo(20);
+    // Böjen sker nära noderna: rak del börjar senast 30 px utanför nodkanten.
+    expect(nums[6]).toBeCloseTo(50 + 30);
+  });
+
+  it("noder nära varandra får en enkel båge", () => {
+    const g = relationshipGeometry(
+      { from: { x: 0, y: 0 }, fromRadius: 50, to: { x: 150, y: 0 }, toRadius: 50 },
+      { index: 0, count: 2, reversed: false },
+      { arrowSize: 8, directed: true },
+    );
+    expect(g.path).toContain("Q");
   });
   it("självloop ritas som kurva ovanför noden", () => {
     const g = relationshipGeometry(

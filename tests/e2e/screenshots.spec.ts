@@ -95,3 +95,15 @@ test.describe("mörkt tema", () => {
     await page.screenshot({ path: `${SCREENSHOT_DIR}/dark-theme.png` });
   });
 });
+
+test("skärmdump: flera relationer mellan samma två noder", async ({ page }) => {
+  await freshApp(page);
+  await createNode(page, 200, 300, "A");
+  await createNode(page, 700, 300, "B");
+  await dragRelationship(page, { x: 200, y: 300 }, { x: 700, y: 300 }, "KNOWS");
+  await dragRelationship(page, { x: 200, y: 300 }, { x: 700, y: 300 }, "WORKS_WITH");
+  await dragRelationship(page, { x: 200, y: 300 }, { x: 700, y: 300 }, "LIKES");
+  await expect(page.locator("[data-ref^='relationship:']")).toHaveCount(3);
+  await page.keyboard.press("Escape");
+  await page.screenshot({ path: `${SCREENSHOT_DIR}/parallel-relationships.png` });
+});
