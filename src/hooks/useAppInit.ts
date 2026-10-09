@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { t } from "@/i18n";
+import { conflictingNodeIds } from "@/model/labels";
 import { startAutosave } from "@/store/autosave";
 import { clearHistory, useDocumentStore } from "@/store/documentStore";
 import {
@@ -14,6 +15,12 @@ import { getElement, isSelectable, layerById } from "@/store/selectors";
 import { useUiStore } from "@/store/uiStore";
 
 /** Laddar senast öppnade modellen (eller skapar en ny), startar autospar och håller UI-state i synk. */
+/** Äldre filer och importer kan ha noder med samma labels; säg till, men ändra inget. */
+function warnAboutLabelConflicts(): void {
+  const count = conflictingNodeIds(useDocumentStore.getState().doc.nodes).size;
+  if (count > 0) useUiStore.getState().showToast(t.toasts.labelConflictsInModel(count), "error");
+}
+
 export function useAppInit(): boolean {
   const [ready, setReady] = useState(false);
 
@@ -49,6 +56,7 @@ export function useAppInit(): boolean {
       if (isStorageBroken()) useUiStore.getState().showToast(t.toasts.storageUnavailable, "error");
       const top = useDocumentStore.getState().doc.layers.at(-1);
       useUiStore.getState().setActiveLayer(top?.id ?? null);
+      warnAboutLabelConflicts();
       setReady(true);
     })();
     const stopAutosave = startAutosave();
@@ -71,6 +79,7 @@ export function useAppInit(): boolean {
           ui.setActiveLayer(state.doc.layers.at(-1)?.id ?? null);
         }
         if (state.doc.id !== prev.doc.id) {
+          warnAboutLabelConflicts();
           ui.setActiveLayer(state.doc.layers.at(-1)?.id ?? null);
           ui.clearSelection();
           ui.setEditing(null);

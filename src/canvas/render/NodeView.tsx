@@ -13,6 +13,8 @@ export interface NodeViewProps {
   /** Döljer rubriken medan den redigeras på plats. */
   hideCaption?: boolean;
   selected?: boolean;
+  /** Noden har samma labels som en annan nod (röd ring). */
+  conflict?: boolean;
   /** Markeras som mål när en relation dras över noden. */
   highlighted?: boolean;
   zoom?: number;
@@ -26,6 +28,7 @@ export function NodeView({
   hideCaption = false,
   selected = false,
   highlighted = false,
+  conflict = false,
   zoom = 1,
 }: NodeViewProps) {
   const { x, y } = position;
@@ -54,6 +57,19 @@ export function NodeView({
       data-ref={interactive ? `node:${node.id}` : undefined}
       data-part={interactive ? "body" : undefined}
     >
+      {conflict && (
+        <circle
+          data-testid="label-conflict-ring"
+          cx={x}
+          cy={y}
+          r={r + style.strokeWidth / 2 + 9 / zoom}
+          fill="none"
+          stroke="var(--color-danger)"
+          strokeWidth={2.5 / zoom}
+          strokeDasharray={`${4 / zoom} ${3 / zoom}`}
+          style={{ pointerEvents: "none" }}
+        />
+      )}
       {(selected || highlighted) && (
         <circle
           cx={x}

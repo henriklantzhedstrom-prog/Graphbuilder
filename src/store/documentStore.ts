@@ -11,6 +11,7 @@ import {
 } from "@/model/defaults";
 import { add } from "@/model/geometry";
 import { newId } from "@/model/ids";
+import { findLabelConflict, type LabelConflict } from "@/model/labels";
 import type {
   Asset,
   BackgroundImage,
@@ -59,7 +60,12 @@ export interface DocumentState {
 
   // Noder & relationer
   addNode(layerId: Id, position: Point, partial?: Partial<Omit<GraphNode, "id" | "layerId">>): Id;
+  /** Ändrar allt utom labels; labels ändras bara via setNodeLabels så att de förblir unika. */
   updateNode(id: Id, patch: Partial<Omit<GraphNode, "id">>): void;
+  /** Sätter labels på en eller flera noder. Ändrar ingenting om någon kombination skulle krocka. */
+  setNodeLabels(
+    changes: { id: Id; labels: string[] }[],
+  ): { ok: true } | { ok: false; conflict: LabelConflict };
   addRelationship(
     layerId: Id,
     fromId: Id,
@@ -240,6 +246,10 @@ export const useDocumentStore = create<DocumentState>()(
             style: {},
             ...partial,
           };
+          const labels = s.doc.nodes[id]?.labels ?? [];
+          if (findLabelConflict(s.doc.nodes, [{ id, labels }])) {
+            (s.doc.nodes[id] as GraphNode).labels = [];
+          }
           touch(s.doc);
         });
         return id;
@@ -248,10 +258,24 @@ export const useDocumentStore = create<DocumentState>()(
         set((s) => {
           const n = s.doc.nodes[id];
           if (n) {
-            Object.assign(n, patch);
+            const { labels: _ignored, ...rest } = patch;
+            Object.assign(n, rest);
             touch(s.doc);
           }
         }),
+      setNodeLabels: (changes) => {
+        const existing = changes.filter((c) => c.id in get().doc.nodes);
+        const conflict = findLabelConflict(get().doc.nodes, existing);
+        if (conflict) return { ok: false, conflict };
+        set((s) => {
+          for (const c of existing) {
+            const n = s.doc.nodes[c.id];
+            if (n) n.labels = [...new Set(c.labels.map((l) => l.trim()).filter(Boolean))];
+          }
+          touch(s.doc);
+        });
+        return { ok: true };
+      },
       addRelationship: (layerId, fromId, toId, partial) => {
         const id = newId("r");
         set((s) => {
@@ -422,7 +446,17 @@ export const useDocumentStore = create<DocumentState>()(
           for (const node of content.nodes) {
             const id = newId("n");
             idMap.set(node.id, id);
-            s.doc.nodes[id] = { ...node, id, layerId, position: add(node.position, offset) };
+            // En kopia får inte ha samma labels som en befintlig nod; då klistras den in utan labels.
+            const labels = findLabelConflict(s.doc.nodes, [{ id, labels: node.labels }])
+              ? []
+              : node.labels;
+            s.doc.nodes[id] = {
+              ...node,
+              id,
+              layerId,
+              labels,
+              position: add(node.position, offset),
+            };
             created.push({ kind: "node", id });
           }
           for (const rel of content.relationships) {

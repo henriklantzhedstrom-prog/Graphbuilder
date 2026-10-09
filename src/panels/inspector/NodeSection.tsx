@@ -2,38 +2,61 @@ import { useState } from "react";
 import { IconClose, IconPlus } from "@/components/icons";
 import { Button, Field, Section, TextInput } from "@/components/ui";
 import { t } from "@/i18n";
+import { nodeCaption } from "@/model/caption";
+import { conflictingNodeIds, type LabelConflict } from "@/model/labels";
 import type { GraphNode } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
 import { resolvedNodeStyle } from "@/store/selectors";
-import { commonValue, NODE_STYLE_FIELDS } from "./common";
+import { NODE_STYLE_FIELDS } from "./common";
 import { PropertiesEditor } from "./PropertiesEditor";
 import { StyleFields } from "./StyleFields";
 
 export function NodeSection({ nodes }: { nodes: GraphNode[] }) {
   const doc = useDocumentStore((s) => s.doc);
-  const updateNode = useDocumentStore((s) => s.updateNode);
   const setNodeStyle = useDocumentStore((s) => s.setNodeStyle);
   const resetElementStyle = useDocumentStore((s) => s.resetElementStyle);
   const setCaptionKey = useDocumentStore((s) => s.setCaptionKey);
+  const setNodeLabels = useDocumentStore((s) => s.setNodeLabels);
   const [newLabel, setNewLabel] = useState("");
+  const [labelError, setLabelError] = useState<string | null>(null);
   const ids = nodes.map((n) => n.id);
   const refs = ids.map((id) => ({ kind: "node" as const, id }));
   const labels = [...new Set(nodes.flatMap((n) => n.labels))];
   const hasCustomStyle = nodes.some((n) => Object.keys(n.style).length > 0);
 
+  const inConflict = nodes.some((n) => conflictingNodeIds(doc.nodes).has(n.id));
+
+  const describeConflict = (conflict: LabelConflict, labels: string[]) => {
+    const other = doc.nodes[conflict.otherId];
+    return t.inspector.labelConflict(labels.join(", "), other ? nodeCaption(other) : "");
+  };
+
+  const applyLabels = (changes: { id: string; labels: string[] }[]): boolean => {
+    if (changes.length === 0) return true;
+    const result = setNodeLabels(changes);
+    if (result.ok) {
+      setLabelError(null);
+      return true;
+    }
+    const attempted = changes.find((c) => c.id === result.conflict.nodeId)?.labels ?? [];
+    setLabelError(describeConflict(result.conflict, attempted));
+    return false;
+  };
+
   const addLabel = () => {
     const label = newLabel.trim();
     if (!label) return;
-    for (const n of nodes) {
-      if (!n.labels.includes(label)) updateNode(n.id, { labels: [...n.labels, label] });
-    }
-    setNewLabel("");
+    const changes = nodes
+      .filter((n) => !n.labels.includes(label))
+      .map((n) => ({ id: n.id, labels: [...n.labels, label] }));
+    if (applyLabels(changes)) setNewLabel("");
   };
   const removeLabel = (label: string) => {
-    for (const n of nodes) {
-      if (n.labels.includes(label))
-        updateNode(n.id, { labels: n.labels.filter((l) => l !== label) });
-    }
+    applyLabels(
+      nodes
+        .filter((n) => n.labels.includes(label))
+        .map((n) => ({ id: n.id, labels: n.labels.filter((l) => l !== label) })),
+    );
   };
 
   return (
@@ -65,7 +88,10 @@ export function NodeSection({ nodes }: { nodes: GraphNode[] }) {
                   id={id}
                   placeholder={t.inspector.labelPlaceholder}
                   value={newLabel}
-                  onChange={(e) => setNewLabel(e.target.value)}
+                  onChange={(e) => {
+                    setNewLabel(e.target.value);
+                    setLabelError(null);
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") addLabel();
                   }}
@@ -78,6 +104,16 @@ export function NodeSection({ nodes }: { nodes: GraphNode[] }) {
                   <IconPlus size={16} />
                 </Button>
               </div>
+              {labelError && (
+                <p role="alert" data-testid="label-error" className="text-danger text-sm">
+                  {labelError}
+                </p>
+              )}
+              {!labelError && inConflict && (
+                <p data-testid="label-warning" className="text-sm text-amber-600">
+                  {t.inspector.labelConflictExisting}
+                </p>
+              )}
             </div>
           )}
         </Field>

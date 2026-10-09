@@ -1,4 +1,5 @@
 import { type BundleInfo, type RelationshipGeometry, relationshipGeometry } from "@/model/geometry";
+import { conflictingNodeIds } from "@/model/labels";
 import type { Box, ElementRef, GraphDocument, Id, Point, Relationship } from "@/model/types";
 import {
   imageBox,
@@ -82,6 +83,8 @@ export function Scene({
   canResize,
 }: SceneProps) {
   const bundles = relationshipBundles(doc);
+  // Krockande labels markeras bara på ritytan, aldrig i export.
+  const conflicts = interactive ? conflictingNodeIds(doc.nodes) : new Set<Id>();
   const isSelected = (key: string) => selectedKeys?.has(key) ?? false;
   const groups = renderGroups(doc).filter((g) => !layerFilter || layerFilter(g.layer.id));
   const isEditing = (ref: ElementRef) =>
@@ -138,6 +141,7 @@ export function Scene({
               hideCaption={isEditing({ kind: "node", id: node.id })}
               selected={isSelected(`node:${node.id}`)}
               highlighted={highlightNodeId === node.id}
+              conflict={conflicts.has(node.id)}
               zoom={zoom}
             />
           ))}
