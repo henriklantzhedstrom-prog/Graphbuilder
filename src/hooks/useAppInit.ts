@@ -32,7 +32,7 @@ export function useAppInit(): boolean {
           }
         }
       } catch (err) {
-        console.error("Kunde inte läsa sparad modell", err);
+        console.error("Could not read the saved model", err);
       }
       if (cancelled) return;
       if (!loaded) await createAndOpenNewDocument();

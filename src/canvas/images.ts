@@ -1,4 +1,4 @@
-import { t } from "@/i18n/sv";
+import { t } from "@/i18n";
 import type { Id, Point, Size } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
 import { serializeDocument } from "@/store/persistence";

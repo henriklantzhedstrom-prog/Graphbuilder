@@ -5,7 +5,7 @@ import { exportCypher } from "@/export/cypher";
 import { exportJson } from "@/export/json";
 import { exportPng } from "@/export/png";
 import { exportSvg } from "@/export/svg";
-import { t } from "@/i18n/sv";
+import { t } from "@/i18n";
 import { useDocumentStore } from "@/store/documentStore";
 import { safeFileName, saveFile } from "@/store/persistence";
 import { useUiStore } from "@/store/uiStore";

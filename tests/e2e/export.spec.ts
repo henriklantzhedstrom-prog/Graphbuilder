@@ -7,7 +7,7 @@ test.describe("export och import", () => {
     await createNode(page, 300, 300, "Alice");
     await createNode(page, 650, 300, "Bob");
     await dragRelationship(page, { x: 300, y: 300 }, { x: 650, y: 300 }, "KNOWS");
-    await page.getByRole("button", { name: "Exportera…" }).click();
+    await page.getByRole("button", { name: "Export…" }).click();
     const preview = page.getByTestId("export-preview");
     await expect(preview).toContainText('"caption": "Alice"');
 
@@ -27,13 +27,13 @@ test.describe("export och import", () => {
 
     const download = page.waitForEvent("download");
     await page.getByTestId("export-download").click();
-    expect((await download).suggestedFilename()).toBe("Ny modell.png");
+    expect((await download).suggestedFilename()).toBe("New model.png");
   });
 
   test("endast synliga lager påverkar Cypher-exporten", async ({ page }) => {
     await freshApp(page);
     await createNode(page, 300, 300, "Synlig");
-    await page.getByRole("tab", { name: "Lager" }).click();
+    await page.getByRole("tab", { name: "Layers" }).click();
     await page.getByTestId("add-layer").click();
     await createNode(page, 650, 300, "Dold");
     await page.getByTestId("layer-row").nth(0).getByTestId("layer-visibility").click();
@@ -42,23 +42,23 @@ test.describe("export och import", () => {
     const preview = page.getByTestId("export-preview");
     await expect(preview).toContainText("CREATE (Synlig)");
     await expect(preview).not.toContainText("Dold");
-    await page.getByLabel("Endast synliga lager").uncheck();
+    await page.getByLabel("Visible layers only").uncheck();
     await expect(preview).toContainText("CREATE (Dold)");
   });
 
   test("spara som JSON-fil och öppna den igen", async ({ page }) => {
     await freshApp(page);
     await createNode(page, 300, 300, "Sparad");
-    await page.getByRole("button", { name: "Arkiv" }).click();
+    await page.getByRole("button", { name: "File" }).click();
     const download = page.waitForEvent("download");
-    await page.getByRole("menuitem", { name: "Spara som fil…" }).click();
+    await page.getByRole("menuitem", { name: "Save as file…" }).click();
     const path = await (await download).path();
-    await page.getByRole("button", { name: "Arkiv" }).click();
-    await page.getByRole("menuitem", { name: "Ny" }).click();
+    await page.getByRole("button", { name: "File" }).click();
+    await page.getByRole("menuitem", { name: "New" }).click();
     await expect(page.locator("svg text", { hasText: "Sparad" })).toHaveCount(0);
-    await page.getByRole("button", { name: "Arkiv" }).click();
+    await page.getByRole("button", { name: "File" }).click();
     const chooser = page.waitForEvent("filechooser");
-    await page.getByRole("menuitem", { name: "Öppna…" }).click();
+    await page.getByRole("menuitem", { name: "Open…" }).click();
     await (await chooser).setFiles(path);
     await expect(page.locator("svg text", { hasText: "Sparad" })).toBeVisible();
   });
@@ -89,9 +89,9 @@ test.describe("export och import", () => {
         { id: "r0", fromId: "n0", toId: "n1", type: "LIKES", properties: {}, style: {} },
       ],
     });
-    await page.getByRole("button", { name: "Arkiv" }).click();
+    await page.getByRole("button", { name: "File" }).click();
     const chooser = page.waitForEvent("filechooser");
-    await page.getByRole("menuitem", { name: "Importera från arrows.app…" }).click();
+    await page.getByRole("menuitem", { name: "Import from arrows.app…" }).click();
     await (await chooser).setFiles({
       name: "min-graf.json",
       mimeType: "application/json",
@@ -99,7 +99,7 @@ test.describe("export och import", () => {
     });
     await expect(page.locator("svg text", { hasText: "Arrow A" })).toBeVisible();
     await expect(page.locator("svg text", { hasText: "LIKES" })).toBeVisible();
-    await expect(page.getByLabel("Modellens namn")).toHaveValue("min-graf");
+    await expect(page.getByLabel("Model name")).toHaveValue("min-graf");
     await expect(page.locator("[data-ref^='node:'] circle[fill='#ffcc00']")).toHaveCount(2);
   });
 });

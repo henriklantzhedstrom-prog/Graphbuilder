@@ -1,4 +1,4 @@
-import { t } from "@/i18n/sv";
+import { t } from "@/i18n";
 import { fitBoxInViewport, zoomAt } from "@/model/geometry";
 import type { Box, ElementRef, Id, Point, Size } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";

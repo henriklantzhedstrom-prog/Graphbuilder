@@ -5,7 +5,7 @@ import { App } from "@/App";
 describe("App", () => {
   it("startar och visar verktygsfältet", async () => {
     render(<App />);
-    expect(await screen.findByLabelText("Modellens namn")).toBeTruthy();
+    expect(await screen.findByLabelText("Model name")).toBeTruthy();
     expect(screen.getByTestId("canvas")).toBeTruthy();
   });
 });

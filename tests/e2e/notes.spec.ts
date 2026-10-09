@@ -4,7 +4,7 @@ import { freshApp } from "./helpers";
 test.describe("anteckningar", () => {
   test("skapa med verktyget, skriv text, byt färg och ändra storlek", async ({ page }) => {
     await freshApp(page);
-    await page.getByRole("button", { name: "Anteckning" }).click();
+    await page.getByRole("button", { name: "Note" }).click();
     await page.getByTestId("canvas").click({ position: { x: 200, y: 200 } });
     const editor = page.getByTestId("inline-editor");
     await expect(editor).toBeVisible();
@@ -47,7 +47,7 @@ test.describe("anteckningar", () => {
     expect(Number(await rect.getAttribute("width"))).toBeCloseTo(300, 0);
     await page.getByTestId("inspector-note-text").fill("Via panelen");
     await expect(page.locator("svg text", { hasText: "Via panelen" })).toBeVisible();
-    await page.getByRole("button", { name: "Centrerat" }).click();
+    await page.getByRole("button", { name: "Center" }).click();
     await expect(page.locator("[data-ref^='note:'] text[text-anchor='middle']")).toHaveCount(1);
   });
 });

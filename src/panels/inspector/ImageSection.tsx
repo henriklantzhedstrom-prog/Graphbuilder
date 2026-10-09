@@ -1,5 +1,5 @@
 import { Button, CheckboxField, NumberField, Section, SliderField } from "@/components/ui";
-import { t } from "@/i18n/sv";
+import { t } from "@/i18n";
 import type { BackgroundImage } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
 import { useUiStore } from "@/store/uiStore";

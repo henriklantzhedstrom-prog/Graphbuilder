@@ -1,4 +1,5 @@
 import { createStore, del, get, keys, set } from "idb-keyval";
+import { t } from "@/i18n";
 import { DocumentParseError, parseDocument } from "@/model/schema";
 import type { GraphDocument, Id } from "@/model/types";
 
@@ -79,13 +80,13 @@ export function deserializeDocument(text: string): GraphDocument {
   try {
     raw = JSON.parse(text);
   } catch {
-    throw new DocumentParseError("Filen är inte giltig JSON.");
+    throw new DocumentParseError(t.errors.invalidJson);
   }
   return parseDocument(raw);
 }
 
 export const safeFileName = (name: string): string =>
-  (name.trim().replace(/[\\/:*?"<>|]+/g, "-") || "modell").slice(0, 80);
+  (name.trim().replace(/[\\/:*?"<>|]+/g, "-") || t.errors.defaultFileName).slice(0, 80);
 
 export function downloadBlob(blob: Blob, fileName: string): void {
   const url = URL.createObjectURL(blob);

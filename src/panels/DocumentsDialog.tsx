@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Dialog } from "@/components/Dialog";
 import { IconPlus } from "@/components/icons";
 import { Button, cx, TextInput } from "@/components/ui";
-import { t } from "@/i18n/sv";
+import { t } from "@/i18n";
 import { newId } from "@/model/ids";
 import type { GraphDocument, Id } from "@/model/types";
 import { clearHistory, useDocumentStore } from "@/store/documentStore";
@@ -21,7 +21,7 @@ const formatDate = (iso: string): string => {
   const d = new Date(iso);
   return Number.isNaN(d.getTime())
     ? ""
-    : d.toLocaleString("sv-SE", { dateStyle: "short", timeStyle: "short" });
+    : d.toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" });
 };
 
 async function openDocument(doc: GraphDocument) {

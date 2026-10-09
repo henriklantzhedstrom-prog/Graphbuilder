@@ -1,41 +1,45 @@
 # Graphbuilder
 
-Rita grafmodeller (noder och relationer) direkt i webbläsaren, i stil med arrows.app, med tre tillägg:
+Draw graph models (nodes and relationships) in the browser, in the spirit of arrows.app, with three additions:
 
-- **Lager** – lägg noder, relationer, anteckningar och bilder i lager som i ett bildredigeringsprogram.
-  Visa/dölj, lås, justera opacitet och ändra ordning. Nya element hamnar i det aktiva lagret.
-- **Anteckningar** – fritextlappar på ritytan med färg, textstorlek och justering.
-- **Bakgrundsbilder** – lägg in bilder (knapp, drag-och-släpp eller klistra in) som underlag,
-  skala dem proportionellt, ställ in opacitet och lås dem.
+- **Layers** – put nodes, relationships, notes and images in layers like in an image editor.
+  Show/hide, lock, set opacity and reorder. New elements go into the active layer.
+- **Notes** – free-text sticky notes on the canvas with color, text size and alignment.
+- **Background images** – add images (button, drag-and-drop or paste) as a backdrop, scale them
+  proportionally, set opacity and lock them.
+
+## Try the app
+
+The app is published at **https://henriklantzhedstrom-prog.github.io/Graphbuilder/** and is
+updated automatically with every new version.
 
 ![Graphbuilder](docs/screenshot.png)
 
-## Funktioner
+## Features
 
-- Skapa noder med dubbelklick, dra relationer från nodens ring (släpp på tom yta ger en ny nod).
-- Rubrik, labels och egenskaper på noder; typ, riktning och egenskaper på relationer.
-- Stil per element eller för hela modellen: färger, radie, kantbredd, textstorlekar, streckade linjer.
-- Markera med klick, Shift+klick eller ram; flytta med drag eller piltangenter; snapplinjer.
-- Ångra/gör om, duplicera, kopiera/klistra in, tangentbordsgenvägar (tryck `?` i appen).
-- Modeller sparas automatiskt i webbläsaren. "Mina modeller" hanterar flera modeller.
-- Spara/öppna som JSON-fil. Import av JSON från arrows.app.
-- Export till JSON, Cypher (Neo4j `CREATE`-satser), SVG och PNG, valfritt bara synliga lager.
-- Ljust och mörkt tema följer systeminställningen.
+- Create nodes by double-clicking, drag relationships from a node's ring (drop on empty space to create a node).
+- Caption, labels and properties on nodes; type, direction and properties on relationships.
+- Style per element or for the whole model: colors, radius, border width, text sizes, dashed lines.
+- Select by click, Shift+click or marquee; move by dragging or with the arrow keys; snap guides.
+- Undo/redo, duplicate, copy/paste, keyboard shortcuts (press `?` in the app).
+- Models are saved automatically in the browser. "My models" manages several models.
+- Save/open as a JSON file. Import JSON from arrows.app.
+- Export to JSON, Cypher (Neo4j `CREATE` statements), SVG and PNG, optionally visible layers only.
+- Light and dark theme follow the system setting.
 
-## Kör lokalt
+## Run locally
 
 ```
 npm install
 npm run dev
 ```
 
-## Kvalitetskontroll
+## Quality checks
 
 ```
-npm run check   # lint, typkontroll, enhetstester
-npm run e2e     # end-to-end-tester i Chromium (bygger och startar appen själv)
-npm run build   # produktionsbygge till dist/
+npm run check   # lint, type check, unit tests
+npm run e2e     # end-to-end tests in Chromium (builds and serves the app itself)
+npm run build   # production build to dist/
 ```
 
-CI kör samma kontroller på varje push. Push till `main` publicerar appen till GitHub Pages
-(kräver att Pages är aktiverat med källan "GitHub Actions" under repots inställningar).
+CI runs the same checks on every push. A push to `main` publishes the app to GitHub Pages.

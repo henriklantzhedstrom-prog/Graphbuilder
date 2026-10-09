@@ -1,5 +1,5 @@
 import { Dialog } from "@/components/Dialog";
-import { t } from "@/i18n/sv";
+import { t } from "@/i18n";
 import { useUiStore } from "@/store/uiStore";
 
 const GROUPS: Record<keyof typeof t.shortcuts.groups, (keyof typeof t.shortcuts.items)[]> = {

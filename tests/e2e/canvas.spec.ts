@@ -68,7 +68,7 @@ test.describe("rityta", () => {
     await page.mouse.up();
     await page.keyboard.press("Delete");
     await expect(page.locator("[data-ref^='node:'][data-part='body']")).toHaveCount(0);
-    await expect(page.getByText("Dubbelklicka på ytan för att skapa en nod")).toBeVisible();
+    await expect(page.getByText("Double-click the canvas to create a node")).toBeVisible();
   });
 
   test("modellen sparas och finns kvar efter omladdning", async ({ page }) => {

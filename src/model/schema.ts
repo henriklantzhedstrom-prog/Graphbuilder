@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { t } from "@/i18n";
 import { createLayer, DEFAULT_DIAGRAM_STYLE } from "./defaults";
 import { DOCUMENT_VERSION, type GraphDocument } from "./types";
 
@@ -100,7 +101,7 @@ const diagramStyle = z.object({
 export const documentSchemaV1 = z.object({
   version: z.literal(1),
   id: z.string().min(1),
-  name: z.string().default("Ny modell"),
+  name: z.string().default(t.app.untitled),
   createdAt: z.string(),
   updatedAt: z.string(),
   layers: z.array(layer),
@@ -129,27 +130,25 @@ export class DocumentParseError extends Error {
  */
 export function parseDocument(input: unknown): GraphDocument {
   if (typeof input !== "object" || input === null) {
-    throw new DocumentParseError("Filen innehåller inte en grafmodell.");
+    throw new DocumentParseError(t.errors.notAModel);
   }
   const version = (input as { version?: unknown }).version;
   if (version !== DOCUMENT_VERSION) {
-    throw new DocumentParseError(
-      `Filen har version ${String(version)} men appen stöder version ${DOCUMENT_VERSION}.`,
-    );
+    throw new DocumentParseError(t.errors.wrongVersion(String(version), DOCUMENT_VERSION));
   }
   const result = documentSchemaV1.safeParse(input);
   if (!result.success) {
     const issues = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`);
-    throw new DocumentParseError("Filen har ett ogiltigt format.", issues);
+    throw new DocumentParseError(t.errors.invalidFormat, issues);
   }
   return repairDocument(result.data);
 }
 
 function repairDocument(doc: z.infer<typeof documentSchemaV1>): GraphDocument {
-  const layers = doc.layers.length > 0 ? doc.layers : [createLayer("Lager 1")];
+  const layers = doc.layers.length > 0 ? doc.layers : [createLayer(t.layers.defaultName(1))];
   const firstLayer = layers[0];
   if (!firstLayer) {
-    throw new DocumentParseError("Dokumentet saknar lager.");
+    throw new DocumentParseError(t.errors.noLayers);
   }
   const layerIds = new Set(layers.map((l) => l.id));
   const fixLayer = <T extends { layerId: string }>(el: T): T =>

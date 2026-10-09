@@ -61,9 +61,11 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
 
 - Mappstruktur: `src/model` (typer, schema, geometri), `src/store` (Zustand-stores, selectors,
   persistence), `src/canvas` (SVG-rityta och interaktioner), `src/panels` (UI-paneler),
-  `src/export` (import/export), `src/components` (små UI-byggstenar), `src/i18n/sv.ts` (alla texter).
+  `src/export` (import/export), `src/components` (små UI-byggstenar), `src/i18n/en.ts` (alla texter).
 - **Alla ändringar av dokumentet går via `documentStore`** så att ångra/gör om och autospar täcker allt.
-- **Alla UI-texter ligger i `src/i18n/sv.ts`.** Inga hårdkodade strängar i komponenter.
+- **Appen är på engelska. Alla UI-texter ligger i `src/i18n/en.ts`** och importeras via `@/i18n`.
+  Inga hårdkodade strängar i komponenter, modell eller export (felmeddelanden under `t.errors`).
+  Kommunikationen med kunden är på svenska; appen och koden på engelska.
 - Varje element (nod, relation, anteckning, bild) hör till exakt ett lager. Nya element skapas i
   aktivt lager. Dolda lager renderas inte; låsta lager kan inte markeras eller flyttas.
 - Varje ny funktion levereras med enhetstest (`tests/unit`) och, när den har UI, e2e-test (`tests/e2e`).

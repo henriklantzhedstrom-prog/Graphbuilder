@@ -1,6 +1,7 @@
 import { temporal } from "zundo";
 import { create, useStore } from "zustand";
 import { immer } from "zustand/middleware/immer";
+import { t } from "@/i18n";
 import {
   BACKGROUND_LAYER_NAME,
   createEmptyDocument,
@@ -133,7 +134,7 @@ export const useDocumentStore = create<DocumentState>()(
         }),
 
       addLayer: (name, atIndex) => {
-        const layer = createLayer(name ?? `Lager ${get().doc.layers.length + 1}`);
+        const layer = createLayer(name ?? t.layers.defaultName(get().doc.layers.length + 1));
         set((s) => {
           const index = atIndex ?? s.doc.layers.length;
           s.doc.layers.splice(index, 0, layer);
