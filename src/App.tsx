@@ -6,6 +6,7 @@ import { useAppInit } from "@/hooks/useAppInit";
 import { t } from "@/i18n/sv";
 import type { Size } from "@/model/types";
 import { ShortcutsDialog } from "@/panels/ShortcutsDialog";
+import { SidePanel } from "@/panels/SidePanel";
 import { TopBar } from "@/panels/TopBar";
 import { clearHistory, useDocumentStore } from "@/store/documentStore";
 import {
@@ -89,6 +90,7 @@ export function App() {
         <div ref={canvasHostRef} className="min-w-0 flex-1">
           <Canvas />
         </div>
+        <SidePanel />
         <Toasts />
       </div>
       <ShortcutsDialog />

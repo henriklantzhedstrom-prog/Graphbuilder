@@ -34,7 +34,8 @@ export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
     const onKeyDown = (e: KeyboardEvent) => {
       const ui = useUiStore.getState();
       const mod = e.ctrlKey || e.metaKey;
-      const inText = isTextInput(document.activeElement);
+      // e.target i stället för activeElement: ett fält som avmonteras på Enter har redan tappat fokus.
+      const inText = isTextInput(e.target instanceof Element ? e.target : document.activeElement);
 
       if (mod && e.key.toLowerCase() === "s") {
         e.preventDefault();
