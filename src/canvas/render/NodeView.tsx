@@ -1,7 +1,7 @@
 import { nodeCaption } from "@/model/caption";
 import type { GraphNode, NodeStyle, Point } from "@/model/types";
 import { PropertyBackground } from "./PropertyBackground";
-import { estimateTextWidth, LINE_HEIGHT, propertyLines, wrapToWidth } from "./text";
+import { LABEL_PADDING_X, LINE_HEIGHT, measureTextWidth, propertyLines, wrapToWidth } from "./text";
 
 export const HALO_WIDTH = 14;
 
@@ -41,7 +41,9 @@ export function NodeView({
   const captionStartY = y - ((captionLines.length - 1) * captionLineHeight) / 2;
 
   const labelHeight = style.labelFontSize * 1.5;
-  const labelWidths = node.labels.map((l) => estimateTextWidth(l, style.labelFontSize) + 14);
+  const labelWidths = node.labels.map(
+    (l) => measureTextWidth(l, style.labelFontSize) + LABEL_PADDING_X * 2,
+  );
   const labelsTotal =
     labelWidths.reduce((a, b) => a + b, 0) + Math.max(0, node.labels.length - 1) * 4;
   let labelX = x - labelsTotal / 2;

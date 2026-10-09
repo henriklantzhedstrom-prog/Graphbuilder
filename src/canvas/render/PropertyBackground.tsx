@@ -1,4 +1,4 @@
-import { estimateTextWidth } from "./text";
+import { measureTextWidth } from "./text";
 
 export const PROPERTY_PADDING_X = 6;
 export const PROPERTY_PADDING_Y = 3;
@@ -25,7 +25,7 @@ export function PropertyBackground({
 }) {
   if (lines.length === 0) return null;
   const width =
-    Math.max(...lines.map((l) => estimateTextWidth(l, fontSize))) + PROPERTY_PADDING_X * 2;
+    Math.max(...lines.map((l) => measureTextWidth(l, fontSize))) + PROPERTY_PADDING_X * 2;
   const top = firstBaseline - fontSize * 0.9 - PROPERTY_PADDING_Y;
   const height = (lines.length - 1) * lineHeight + fontSize * 1.15 + PROPERTY_PADDING_Y * 2;
   return (

@@ -1,7 +1,7 @@
 import type { RelationshipGeometry } from "@/model/geometry";
 import type { Relationship, RelationshipStyle } from "@/model/types";
 import { PropertyBackground } from "./PropertyBackground";
-import { estimateTextWidth, LINE_HEIGHT, propertyLines } from "./text";
+import { LINE_HEIGHT, measureTextWidth, propertyLines, TYPE_PADDING_X } from "./text";
 
 export interface RelationshipViewProps {
   relationship: Relationship;
@@ -24,7 +24,7 @@ export function RelationshipView({
 }: RelationshipViewProps) {
   const { labelPosition, labelAngle } = geometry;
   const type = hideType ? "" : relationship.type;
-  const typeWidth = estimateTextWidth(type, style.typeFontSize) + 10;
+  const typeWidth = measureTextWidth(type, style.typeFontSize) + TYPE_PADDING_X * 2;
   const typeHeight = style.typeFontSize * 1.4;
   const props = propertyLines(relationship.properties);
   const propLineHeight = style.propertyFontSize * LINE_HEIGHT;

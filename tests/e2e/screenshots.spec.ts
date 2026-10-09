@@ -132,3 +132,17 @@ test("skärmdump: relation passerar bakom egenskaper", async ({ page }) => {
   expect(hit?.startsWith("node:")).toBe(true);
   await page.screenshot({ path: `${SCREENSHOT_DIR}/property-background.png` });
 });
+
+test("skärmdump: labels med olika längd", async ({ page }) => {
+  await freshApp(page);
+  await createNode(page, 450, 300, "Node");
+  for (const label of ["III", "WWW", "Person", "VeryLongLabelName"]) {
+    await page.getByPlaceholder("New label").fill(label);
+    await page.getByPlaceholder("New label").press("Enter");
+  }
+  await page.keyboard.press("Escape");
+  await page.screenshot({
+    path: `${SCREENSHOT_DIR}/label-margins.png`,
+    clip: { x: 150, y: 180, width: 600, height: 120 },
+  });
+});
