@@ -132,6 +132,8 @@ describe("SVG", () => {
     if (!result) return;
     expect(result.svg.startsWith("<svg xmlns=")).toBe(true);
     expect(result.svg).toContain("Alice");
+    // Rubrikegenskapen visas både som rubrik och som rad i listan under noden.
+    expect(result.svg).toContain("fullName: Alice Andersson");
     expect(result.svg).toContain("WORKS AT");
     expect(result.svg).toContain("Hej");
     expect(result.svg).not.toContain("Hidden");

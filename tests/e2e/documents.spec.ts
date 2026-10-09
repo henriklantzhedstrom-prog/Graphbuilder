@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { createNode, freshApp } from "./helpers";
+import { captionText, createNode, freshApp } from "./helpers";
 
 test.describe("mina modeller", () => {
   test("skapa, byta namn, duplicera, växla och ta bort modeller", async ({ page }) => {
@@ -15,7 +15,7 @@ test.describe("mina modeller", () => {
     await expect(rows.nth(0)).toContainText("Open now");
 
     await page.getByTestId("documents-create").click();
-    await expect(page.locator("svg text", { hasText: "Första" })).toHaveCount(0);
+    await expect(captionText(page, "Första")).toHaveCount(0);
     await createNode(page, 300, 300, "Andra");
 
     await page.getByRole("button", { name: "My models" }).click();
@@ -34,7 +34,7 @@ test.describe("mina modeller", () => {
 
     await rows.filter({ hasText: "Kopian" }).getByRole("button", { name: "Open" }).click();
     await expect(page.getByLabel("Model name")).toHaveValue("Kopian");
-    await expect(page.locator("svg text", { hasText: "Första" })).toBeVisible();
+    await expect(captionText(page, "Första")).toBeVisible();
 
     await page.getByRole("button", { name: "My models" }).click();
     await rows.filter({ hasText: "Kopian" }).getByRole("button", { name: "Delete" }).click();
