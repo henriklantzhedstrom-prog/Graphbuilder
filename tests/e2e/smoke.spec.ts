@@ -5,6 +5,9 @@ test("appen startar", async ({ page }) => {
   await expect(page).toHaveTitle("Graphbuilder");
   await expect(page.getByLabel("Model name")).toBeVisible();
   await expect(page.getByTestId("canvas")).toBeVisible();
+  // Sidopanelens flikar heter Style och Layers.
+  await expect(page.getByRole("tab", { name: "Style" })).toBeVisible();
+  await expect(page.getByRole("tab", { name: "Layers" })).toBeVisible();
 });
 
 test("högermenyn har stor, läsbar text", async ({ page }) => {

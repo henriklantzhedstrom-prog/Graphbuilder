@@ -33,7 +33,7 @@ test.describe("lager", () => {
     await expect(rel).toHaveCount(1);
 
     // En markerad relation har ingen lagerväljare.
-    await page.getByRole("tab", { name: "Properties" }).click();
+    await page.getByRole("tab", { name: "Style" }).click();
     await expect(page.getByTestId("inspector")).toBeVisible();
     await expect(page.getByTestId("inspector-layer")).toHaveCount(0);
 
@@ -74,7 +74,7 @@ test.describe("lager", () => {
     await page.mouse.up();
     // Noden flyttas inte i modellen (att dra i ett låst element flyttar bara vyn).
     expect(await circle.getAttribute("cx")).toBe(cxStart);
-    await page.getByRole("tab", { name: "Properties" }).click();
+    await page.getByRole("tab", { name: "Style" }).click();
     await expect(page.getByText("Nothing selected", { exact: true })).toBeVisible();
   });
 
@@ -83,7 +83,7 @@ test.describe("lager", () => {
     await createNode(page, 300, 300, "Flytta");
     await page.getByRole("tab", { name: "Layers" }).click();
     await page.getByTestId("add-layer").click();
-    await page.getByRole("tab", { name: "Properties" }).click();
+    await page.getByRole("tab", { name: "Style" }).click();
     await page.getByTestId("canvas").click({ position: { x: 300, y: 300 } });
     await page.getByTestId("inspector-layer").selectOption({ label: "Layer 2" });
     await page.getByRole("tab", { name: "Layers" }).click();
