@@ -9,3 +9,4 @@ playwright-report
 .DS_Store
 test-results
 dist-single
+Graphbuilder.html
