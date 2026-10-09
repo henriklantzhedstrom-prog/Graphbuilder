@@ -79,3 +79,18 @@ test.describe("bakgrundsbilder", () => {
     await expect(page.locator("[data-ref^='image:'] image")).toHaveCount(1);
   });
 });
+
+test("släpp en bildfil på ritytan", async ({ page }) => {
+  await freshApp(page);
+  await page.getByTestId("canvas-container").evaluate(async (el, b64) => {
+    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    const file = new File([bytes], "slapp.png", { type: "image/png" });
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    el.dispatchEvent(new DragEvent("dragover", { dataTransfer: dt, bubbles: true }));
+    el.dispatchEvent(
+      new DragEvent("drop", { dataTransfer: dt, bubbles: true, clientX: 400, clientY: 300 }),
+    );
+  }, PNG_1x1.toString("base64"));
+  await expect(page.locator("[data-ref^='image:'] image")).toHaveCount(1);
+});

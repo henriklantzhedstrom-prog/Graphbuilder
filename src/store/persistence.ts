@@ -48,6 +48,18 @@ export async function listDocumentsLocally(): Promise<DocumentSummary[]> {
   return summaries.sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1));
 }
 
+/** Skapar en ny modell, sparar den och markerar den som senast öppnad. Returnerar dess id. */
+export async function createAndOpenNewDocument(name?: string): Promise<Id> {
+  const { useDocumentStore, clearHistory } = await import("./documentStore");
+  useDocumentStore.getState().newDocument(name);
+  clearHistory();
+  // Läs dokumentet EFTER mutationen – en tidigare getState()-ögonblicksbild är inaktuell.
+  const doc = useDocumentStore.getState().doc;
+  await saveDocumentLocally(doc);
+  await setLastOpenedId(doc.id);
+  return doc.id;
+}
+
 export async function getLastOpenedId(): Promise<Id | null> {
   return ((await get(LAST_OPENED_KEY, store)) as Id | undefined) ?? null;
 }

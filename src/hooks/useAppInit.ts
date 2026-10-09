@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { startAutosave } from "@/store/autosave";
 import { clearHistory, useDocumentStore } from "@/store/documentStore";
 import {
+  createAndOpenNewDocument,
   getLastOpenedId,
   listDocumentsLocally,
   loadDocumentLocally,
@@ -26,6 +27,7 @@ export function useAppInit(): boolean {
           const doc = await loadDocumentLocally(candidate);
           if (doc) {
             store.loadDocument(doc);
+            await setLastOpenedId(doc.id);
             loaded = true;
           }
         }
@@ -33,10 +35,7 @@ export function useAppInit(): boolean {
         console.error("Kunde inte läsa sparad modell", err);
       }
       if (cancelled) return;
-      if (!loaded) {
-        store.newDocument();
-        await setLastOpenedId(store.doc.id);
-      }
+      if (!loaded) await createAndOpenNewDocument();
       clearHistory();
       const top = useDocumentStore.getState().doc.layers.at(-1);
       useUiStore.getState().setActiveLayer(top?.id ?? null);

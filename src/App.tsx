@@ -15,6 +15,7 @@ import { SidePanel } from "@/panels/SidePanel";
 import { TopBar } from "@/panels/TopBar";
 import { clearHistory, useDocumentStore } from "@/store/documentStore";
 import {
+  createAndOpenNewDocument,
   deserializeDocument,
   pickFile,
   safeFileName,
@@ -34,10 +35,7 @@ export function App() {
   }, []);
 
   const onNew = useCallback(async () => {
-    const store = useDocumentStore.getState();
-    store.newDocument();
-    clearHistory();
-    await setLastOpenedId(store.doc.id);
+    await createAndOpenNewDocument();
   }, []);
 
   const onSave = useCallback(async () => {

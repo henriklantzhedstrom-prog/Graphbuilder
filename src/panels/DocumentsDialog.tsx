@@ -7,6 +7,7 @@ import { newId } from "@/model/ids";
 import type { GraphDocument, Id } from "@/model/types";
 import { clearHistory, useDocumentStore } from "@/store/documentStore";
 import {
+  createAndOpenNewDocument,
   type DocumentSummary,
   deleteDocumentLocally,
   listDocumentsLocally,
@@ -65,11 +66,7 @@ export function DocumentsDialog() {
 
   const onCreate = async () => {
     await saveDocumentLocally(currentDoc);
-    const store = useDocumentStore.getState();
-    store.newDocument();
-    clearHistory();
-    await saveDocumentLocally(store.doc);
-    await setLastOpenedId(store.doc.id);
+    await createAndOpenNewDocument();
     setDialog(null);
   };
 
@@ -106,11 +103,7 @@ export function DocumentsDialog() {
     setConfirmDelete(null);
     if (id === currentId) {
       // Byt modell FÖRE borttagningen så att en väntande autosparning inte återskapar den.
-      const store = useDocumentStore.getState();
-      store.newDocument();
-      clearHistory();
-      await saveDocumentLocally(store.doc);
-      await setLastOpenedId(store.doc.id);
+      await createAndOpenNewDocument();
     }
     await deleteDocumentLocally(id);
     await refresh();

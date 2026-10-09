@@ -38,7 +38,7 @@ describe("filer", () => {
 });
 
 describe("autospar", () => {
-  it("sparar efter ändring med debounce och sätter senast öppnad", async () => {
+  it("sparar efter ändring med debounce utan att röra senast öppnad", async () => {
     vi.useFakeTimers();
     const saved: string[] = [];
     const save = vi.fn(async (doc: { name: string }) => {
@@ -46,7 +46,7 @@ describe("autospar", () => {
     });
     const stop = startAutosave(save, 100);
     useDocumentStore.getState().newDocument("Auto");
-    const id = useDocumentStore.getState().doc.id;
+    const lastBefore = await getLastOpenedId();
     useDocumentStore.getState().renameDocument("Auto 2");
     expect(save).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(150);
@@ -54,6 +54,6 @@ describe("autospar", () => {
     expect(saved).toEqual(["Auto 2"]);
     stop();
     vi.useRealTimers();
-    expect(await getLastOpenedId()).toBe(id);
+    expect(await getLastOpenedId()).toBe(lastBefore);
   });
 });
