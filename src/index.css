@@ -11,7 +11,6 @@
   --color-accent-soft: #dce7ff;
   --color-danger: #d64545;
   --color-canvas: #fafbfc;
-  --color-grid: #e4e7ec;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -26,7 +25,6 @@
     --color-accent-soft: #2a3a60;
     --color-danger: #ff6b6b;
     --color-canvas: #151821;
-    --color-grid: #232736;
   }
 }
 
