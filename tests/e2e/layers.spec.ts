@@ -78,8 +78,8 @@ test.describe("lager", () => {
     await page.getByLabel("Layer name").press("Enter");
     await expect(top.getByTestId("layer-name")).toHaveText("Översikt");
 
-    await top.getByLabel("Opacity").fill("0.5");
-    await expect(page.locator("g[data-layer][opacity='0.5']")).toHaveCount(1);
+    await expect(page.getByTestId("layers-panel").getByLabel("Opacity")).toHaveCount(0);
+    await expect(page.locator("g[data-layer][opacity]")).toHaveCount(0);
 
     await top.getByTestId("layer-remove").click();
     await page.getByTestId("remove-layer-confirm").click();

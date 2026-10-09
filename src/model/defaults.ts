@@ -78,7 +78,7 @@ export const DEFAULT_NOTE: Omit<Note, "id" | "layerId" | "position"> = {
 export const BACKGROUND_LAYER_NAME = t.layers.backgroundName;
 
 export function createLayer(name: string, overrides: Partial<Layer> = {}): Layer {
-  return { id: newId("l"), name, visible: true, locked: false, opacity: 1, ...overrides };
+  return { id: newId("l"), name, visible: true, locked: false, ...overrides };
 }
 
 export function createEmptyDocument(name: string = t.app.untitled): GraphDocument {

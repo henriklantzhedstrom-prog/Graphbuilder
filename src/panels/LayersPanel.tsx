@@ -13,7 +13,7 @@ import {
   IconTrash,
   IconUnlock,
 } from "@/components/icons";
-import { Button, cx, IconButton, SliderField, TextInput } from "@/components/ui";
+import { Button, cx, IconButton, TextInput } from "@/components/ui";
 import { t } from "@/i18n";
 import type { Id, Layer } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
@@ -120,7 +120,6 @@ function LayerRow({
   const renameLayer = useDocumentStore((s) => s.renameLayer);
   const setLayerVisible = useDocumentStore((s) => s.setLayerVisible);
   const setLayerLocked = useDocumentStore((s) => s.setLayerLocked);
-  const setLayerOpacity = useDocumentStore((s) => s.setLayerOpacity);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(layer.name);
 
@@ -212,11 +211,6 @@ function LayerRow({
       </div>
       {active && (
         <div className="flex flex-col gap-2 px-3 pb-2">
-          <SliderField
-            label={t.layers.opacity}
-            value={layer.opacity}
-            onChange={(v) => setLayerOpacity(layer.id, v)}
-          />
           <div className="flex gap-0.5">
             <IconButton label={t.layers.moveUp} onClick={onMoveUp} disabled={isTop}>
               <IconChevronUp size={16} />

@@ -102,11 +102,6 @@ describe("lager", () => {
     expect(store().ensureBackgroundLayer()).toBe(id);
     expect(store().doc.layers).toHaveLength(2);
   });
-
-  it("opacitet begränsas till 0–1", () => {
-    store().setLayerOpacity(firstLayer(), 5);
-    expect(store().doc.layers[0]?.opacity).toBe(1);
-  });
 });
 
 describe("element", () => {

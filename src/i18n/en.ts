@@ -130,7 +130,6 @@ export const en = {
     hide: "Hide layer",
     lock: "Lock layer",
     unlock: "Unlock layer",
-    opacity: "Opacity",
     moveUp: "Move up",
     moveDown: "Move down",
     selectAll: "Select everything in the layer",
