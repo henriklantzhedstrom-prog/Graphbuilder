@@ -43,10 +43,8 @@ export function NodeView({
   let labelX = x - labelsTotal / 2;
   const labelY = y - r - labelHeight - 6;
 
-  // Rubrikegenskapen visas som rubrik i noden, inte en gång till i listan under.
-  const props = propertyLines(
-    Object.fromEntries(Object.entries(node.properties).filter(([k]) => k !== node.captionKey)),
-  );
+  // Alla egenskaper listas under noden, även den som också visas som rubrik.
+  const props = propertyLines(node.properties);
   const propLineHeight = style.propertyFontSize * LINE_HEIGHT;
   const propStartY = y + r + 8 + style.propertyFontSize;
 

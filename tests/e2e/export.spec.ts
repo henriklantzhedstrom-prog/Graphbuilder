@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { createNode, dragRelationship, freshApp } from "./helpers";
+import { captionText, createNode, dragRelationship, freshApp } from "./helpers";
 
 test.describe("export och import", () => {
   test("exportdialogen visar JSON, Cypher, SVG och PNG och laddar ner", async ({ page }) => {
@@ -55,12 +55,12 @@ test.describe("export och import", () => {
     const path = await (await download).path();
     await page.getByRole("button", { name: "File" }).click();
     await page.getByRole("menuitem", { name: "New" }).click();
-    await expect(page.locator("svg text", { hasText: "Sparad" })).toHaveCount(0);
+    await expect(captionText(page, "Sparad")).toHaveCount(0);
     await page.getByRole("button", { name: "File" }).click();
     const chooser = page.waitForEvent("filechooser");
     await page.getByRole("menuitem", { name: "Open…" }).click();
     await (await chooser).setFiles(path);
-    await expect(page.locator("svg text", { hasText: "Sparad" })).toBeVisible();
+    await expect(captionText(page, "Sparad")).toBeVisible();
   });
 
   test("importerar en arrows.app-fil", async ({ page }) => {
@@ -97,7 +97,7 @@ test.describe("export och import", () => {
       mimeType: "application/json",
       buffer: Buffer.from(arrows),
     });
-    await expect(page.locator("svg text", { hasText: "Arrow A" })).toBeVisible();
+    await expect(captionText(page, "Arrow A")).toBeVisible();
     await expect(page.locator("svg text", { hasText: "LIKES" })).toBeVisible();
     await expect(page.getByLabel("Model name")).toHaveValue("min-graf");
     await expect(page.locator("[data-ref^='node:'] circle[fill='#ffcc00']")).toHaveCount(2);

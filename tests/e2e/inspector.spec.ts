@@ -27,8 +27,9 @@ test.describe("egenskapspanel", () => {
     // Kryssa för en annan egenskap som rubrik: den visas i noden, name flyttar till listan.
     await page.getByLabel("Use “ålder” as caption").check();
     await expect(page.getByLabel("Use “name” as caption")).not.toBeChecked();
+    // Både rubrikegenskapen och de andra står kvar i listan under noden.
     await expect(page.locator("svg text", { hasText: "name: Alice Andersson" })).toBeVisible();
-    await expect(page.locator("svg text", { hasText: "ålder: 42" })).toHaveCount(0);
+    await expect(page.locator("svg text", { hasText: "ålder: 42" })).toBeVisible();
     // Avkryssad: ingen rubrik alls.
     await page.getByLabel("Use “ålder” as caption").uncheck();
     await expect(page.locator("svg text", { hasText: "ålder: 42" })).toBeVisible();

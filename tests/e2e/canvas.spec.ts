@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { createNode, freshApp } from "./helpers";
+import { captionText, createNode, freshApp } from "./helpers";
 
 test.describe("rityta", () => {
   test("knappen Add node skapar en nod; dubbelklick på tom yta gör det inte", async ({ page }) => {
@@ -59,7 +59,7 @@ test.describe("rityta", () => {
     await page.getByTestId("canvas").dblclick({ position: { x: 300, y: 300 } });
     await page.getByTestId("inline-editor").fill("Efter");
     await page.getByTestId("inline-editor").press("Enter");
-    await expect(page.locator("svg text", { hasText: "Efter" })).toBeVisible();
+    await expect(captionText(page, "Efter")).toBeVisible();
   });
 
   test("flytta nod, ångra och gör om", async ({ page }) => {
@@ -105,6 +105,6 @@ test.describe("rityta", () => {
     await createNode(page, 300, 300, "Kvar");
     await page.waitForTimeout(800);
     await page.reload();
-    await expect(page.locator("svg text", { hasText: "Kvar" })).toBeVisible();
+    await expect(captionText(page, "Kvar")).toBeVisible();
   });
 });

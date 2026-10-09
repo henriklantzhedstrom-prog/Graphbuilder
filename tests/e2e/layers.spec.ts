@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { createNode, dragRelationship, freshApp } from "./helpers";
+import { captionText, createNode, dragRelationship, freshApp } from "./helpers";
 
 test.describe("lager", () => {
   test("nytt lager blir aktivt och nya noder hamnar där; dölj döljer dem", async ({ page }) => {
@@ -16,10 +16,10 @@ test.describe("lager", () => {
     await expect(rows.nth(0).getByText("1", { exact: true })).toBeVisible();
 
     await rows.nth(0).getByTestId("layer-visibility").click();
-    await expect(page.locator("svg text", { hasText: "Topp" })).toHaveCount(0);
-    await expect(page.locator("svg text", { hasText: "Bas" })).toHaveCount(1);
+    await expect(captionText(page, "Topp")).toHaveCount(0);
+    await expect(captionText(page, "Bas")).toHaveCount(1);
     await rows.nth(0).getByTestId("layer-visibility").click();
-    await expect(page.locator("svg text", { hasText: "Topp" })).toHaveCount(1);
+    await expect(captionText(page, "Topp")).toHaveCount(1);
   });
 
   test("relation till nod i dolt lager döljs också", async ({ page }) => {
@@ -84,7 +84,7 @@ test.describe("lager", () => {
     await top.getByTestId("layer-remove").click();
     await page.getByTestId("remove-layer-confirm").click();
     await expect(page.getByTestId("layer-row")).toHaveCount(1);
-    await expect(page.locator("svg text", { hasText: "Kvar2" })).toHaveCount(1);
+    await expect(captionText(page, "Kvar2")).toHaveCount(1);
     await expect(
       page.getByTestId("layer-row").nth(0).getByText("2", { exact: true }),
     ).toBeVisible();

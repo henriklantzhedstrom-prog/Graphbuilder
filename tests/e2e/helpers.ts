@@ -55,3 +55,10 @@ export async function dragRelationship(
 }
 
 export const SCREENSHOT_DIR = "test-results/screenshots";
+
+/** Nodens rubrik på ritytan (exakt träff, så att raden "name: …" under noden inte räknas). */
+export const captionText = (page: Page, caption: string) =>
+  page
+    .getByTestId("canvas")
+    .locator("text")
+    .filter({ hasText: new RegExp(`^${escapeRegExp(caption)}$`) });
