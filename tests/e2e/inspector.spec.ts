@@ -9,7 +9,10 @@ test.describe("egenskapspanel", () => {
     const inspector = page.getByTestId("inspector");
     await expect(inspector).toBeVisible();
 
-    await page.getByTestId("inspector-caption").fill("Alice Andersson");
+    // Rubriken från ritytan blir egenskapen "name", förkryssad som rubrik.
+    await expect(page.getByTestId("inspector-caption")).toHaveCount(0);
+    await expect(page.getByLabel("Use “name” as caption")).toBeChecked();
+    await page.getByLabel("Value").first().fill("Alice Andersson");
     await expect(page.locator("svg text", { hasText: "Alice" }).first()).toBeVisible();
 
     await page.getByPlaceholder("New label").fill("Person");
@@ -18,8 +21,18 @@ test.describe("egenskapspanel", () => {
 
     await page.getByPlaceholder("Key").fill("ålder");
     await page.getByPlaceholder("Key").press("Enter");
-    await page.getByLabel("Value").fill("42");
+    await page.getByLabel("Value").nth(1).fill("42");
     await expect(page.locator("svg text", { hasText: "ålder: 42" })).toBeVisible();
+
+    // Kryssa för en annan egenskap som rubrik: den visas i noden, name flyttar till listan.
+    await page.getByLabel("Use “ålder” as caption").check();
+    await expect(page.getByLabel("Use “name” as caption")).not.toBeChecked();
+    await expect(page.locator("svg text", { hasText: "name: Alice Andersson" })).toBeVisible();
+    await expect(page.locator("svg text", { hasText: "ålder: 42" })).toHaveCount(0);
+    // Avkryssad: ingen rubrik alls.
+    await page.getByLabel("Use “ålder” as caption").uncheck();
+    await expect(page.locator("svg text", { hasText: "ålder: 42" })).toBeVisible();
+    await page.getByLabel("Use “name” as caption").check();
 
     await page.getByTitle("#fbe7a1").click();
     await expect(page.locator("[data-ref^='node:'] circle[fill='#fbe7a1']")).toHaveCount(1);

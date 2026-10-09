@@ -1,3 +1,4 @@
+import { nodeCaption } from "@/model/caption";
 import type { GraphNode, NodeStyle, Point } from "@/model/types";
 import { estimateTextWidth, LINE_HEIGHT, propertyLines, wrapToWidth } from "./text";
 
@@ -31,7 +32,7 @@ export function NodeView({
   const r = style.radius;
   const captionLines = hideCaption
     ? []
-    : wrapToWidth(node.caption, r * 2 * 0.82, style.captionFontSize);
+    : wrapToWidth(nodeCaption(node), r * 2 * 0.82, style.captionFontSize);
   const captionLineHeight = style.captionFontSize * LINE_HEIGHT;
   const captionStartY = y - ((captionLines.length - 1) * captionLineHeight) / 2;
 
@@ -42,7 +43,10 @@ export function NodeView({
   let labelX = x - labelsTotal / 2;
   const labelY = y - r - labelHeight - 6;
 
-  const props = propertyLines(node.properties);
+  // Rubrikegenskapen visas som rubrik i noden, inte en gång till i listan under.
+  const props = propertyLines(
+    Object.fromEntries(Object.entries(node.properties).filter(([k]) => k !== node.captionKey)),
+  );
   const propLineHeight = style.propertyFontSize * LINE_HEIGHT;
   const propStartY = y + r + 8 + style.propertyFontSize;
 

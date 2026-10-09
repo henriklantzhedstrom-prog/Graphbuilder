@@ -14,10 +14,10 @@ export function NodeSection({ nodes }: { nodes: GraphNode[] }) {
   const updateNode = useDocumentStore((s) => s.updateNode);
   const setNodeStyle = useDocumentStore((s) => s.setNodeStyle);
   const resetElementStyle = useDocumentStore((s) => s.resetElementStyle);
+  const setCaptionKey = useDocumentStore((s) => s.setCaptionKey);
   const [newLabel, setNewLabel] = useState("");
   const ids = nodes.map((n) => n.id);
   const refs = ids.map((id) => ({ kind: "node" as const, id }));
-  const caption = commonValue(nodes.map((n) => n.caption));
   const labels = [...new Set(nodes.flatMap((n) => n.labels))];
   const hasCustomStyle = nodes.some((n) => Object.keys(n.style).length > 0);
 
@@ -39,19 +39,6 @@ export function NodeSection({ nodes }: { nodes: GraphNode[] }) {
   return (
     <>
       <Section title={nodes.length === 1 ? t.inspector.node : t.inspector.nodes(nodes.length)}>
-        <Field label={t.inspector.caption}>
-          {(id) => (
-            <TextInput
-              id={id}
-              data-testid="inspector-caption"
-              value={caption ?? ""}
-              placeholder={caption === null ? t.inspector.mixed : t.inspector.captionPlaceholder}
-              onChange={(e) => {
-                for (const n of nodes) updateNode(n.id, { caption: e.target.value });
-              }}
-            />
-          )}
-        </Field>
         <Field label={t.inspector.labels}>
           {(id) => (
             <div className="flex flex-col gap-1">
@@ -96,7 +83,14 @@ export function NodeSection({ nodes }: { nodes: GraphNode[] }) {
         </Field>
       </Section>
       <Section title={t.inspector.properties}>
-        <PropertiesEditor refs={refs} propertySets={nodes.map((n) => n.properties)} />
+        <PropertiesEditor
+          refs={refs}
+          propertySets={nodes.map((n) => n.properties)}
+          caption={{
+            keys: nodes.map((n) => n.captionKey),
+            onToggle: (key, checked) => setCaptionKey(ids, checked ? key : null),
+          }}
+        />
       </Section>
       <Section title={t.inspector.style}>
         <StyleFields

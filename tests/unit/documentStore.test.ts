@@ -145,7 +145,7 @@ describe("element", () => {
 
   it("duplicerar noder med relationer emellan", () => {
     const l = firstLayer();
-    const a = store().addNode(l, { x: 0, y: 0 }, { caption: "A" });
+    const a = store().addNode(l, { x: 0, y: 0 }, { properties: { name: "A" }, captionKey: "name" });
     const b = store().addNode(l, { x: 10, y: 0 });
     store().addRelationship(l, a, b, { type: "KNOWS" });
     const created = store().duplicateElements([
@@ -212,6 +212,30 @@ describe("element", () => {
     store().setLayerVisible(l2, false);
     expect(contentBounds(store().doc)?.w).toBe(100);
     expect(contentBounds(store().doc, false)?.w).toBeGreaterThan(1000);
+  });
+});
+
+describe("rubrik som egenskap", () => {
+  it("setCaption skapar egenskapen name och markerar den som rubrik", () => {
+    const n = store().addNode(firstLayer(), { x: 0, y: 0 });
+    store().setCaption(n, "Alice");
+    expect(store().doc.nodes[n]?.properties).toEqual({ name: "Alice" });
+    expect(store().doc.nodes[n]?.captionKey).toBe("name");
+    store().setCaption(n, "Bob");
+    expect(store().doc.nodes[n]?.properties.name).toBe("Bob");
+  });
+
+  it("byte, namnbyte och borttagning av rubrikegenskap", () => {
+    const n = store().addNode(firstLayer(), { x: 0, y: 0 }, { properties: { a: "1", b: "2" } });
+    const ref = { kind: "node" as const, id: n };
+    store().setCaptionKey([n], "b");
+    expect(store().doc.nodes[n]?.captionKey).toBe("b");
+    store().setCaptionKey([n], "saknas");
+    expect(store().doc.nodes[n]?.captionKey).toBe("b");
+    store().renameProperty([ref], "b", "title");
+    expect(store().doc.nodes[n]?.captionKey).toBe("title");
+    store().removeProperty([ref], "title");
+    expect(store().doc.nodes[n]?.captionKey).toBeNull();
   });
 });
 

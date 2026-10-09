@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { t } from "@/i18n";
+import { captionKeyFor } from "@/model/caption";
 import { createEmptyDocument } from "@/model/defaults";
 import { newId } from "@/model/ids";
 import { DocumentParseError } from "@/model/schema";
@@ -75,6 +76,13 @@ function mapRelationshipStyle(style: Record<string, unknown>): Partial<Relations
   return out;
 }
 
+/** arrows.app har rubriken som eget fält; här blir den en egenskap som markeras som rubrik. */
+function captionAsProperty(properties: Record<string, string>, caption: string) {
+  if (!caption) return { properties, captionKey: null };
+  const key = captionKeyFor(properties, caption);
+  return { properties: { ...properties, [key]: caption }, captionKey: key };
+}
+
 const stringProps = (props: Record<string, unknown>): Record<string, string> =>
   Object.fromEntries(Object.entries(props).map(([k, v]) => [k, v == null ? "" : String(v)]));
 
@@ -107,9 +115,8 @@ export function importArrowsJson(text: string, name: string): GraphDocument {
       id,
       layerId,
       position: n.position,
-      caption: n.caption,
+      ...captionAsProperty(stringProps(n.properties), n.caption),
       labels: n.labels,
-      properties: stringProps(n.properties),
       style: mapNodeStyle(n.style),
     };
   }

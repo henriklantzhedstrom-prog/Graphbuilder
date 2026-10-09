@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { t } from "@/i18n";
+import { captionKeyFor } from "./caption";
 import { createLayer, DEFAULT_DIAGRAM_STYLE } from "./defaults";
-import { DOCUMENT_VERSION, type GraphDocument } from "./types";
+import { DOCUMENT_VERSION, type GraphDocument, type GraphNode } from "./types";
 
 const point = z.object({ x: z.number(), y: z.number() });
 const size = z.object({ w: z.number().positive(), h: z.number().positive() });
@@ -45,7 +46,9 @@ const graphNode = z.object({
   id: z.string().min(1),
   layerId: z.string().min(1),
   position: point,
-  caption: z.string().default(""),
+  /** Endast version 1: rubrik som eget fält. Flyttas till en egenskap vid inläsning. */
+  caption: z.string().optional(),
+  captionKey: z.string().nullable().optional(),
   labels: z.array(z.string()).default([]),
   properties: stringRecord.default({}),
   style: nodeStyle.partial().default({}),
@@ -98,7 +101,7 @@ const diagramStyle = z.object({
 });
 
 export const documentSchemaV1 = z.object({
-  version: z.literal(1),
+  version: z.union([z.literal(1), z.literal(2)]),
   id: z.string().min(1),
   name: z.string().default(t.app.untitled),
   createdAt: z.string(),
@@ -132,7 +135,7 @@ export function parseDocument(input: unknown): GraphDocument {
     throw new DocumentParseError(t.errors.notAModel);
   }
   const version = (input as { version?: unknown }).version;
-  if (version !== DOCUMENT_VERSION) {
+  if (version !== 1 && version !== DOCUMENT_VERSION) {
     throw new DocumentParseError(t.errors.wrongVersion(String(version), DOCUMENT_VERSION));
   }
   const result = documentSchemaV1.safeParse(input);
@@ -141,6 +144,21 @@ export function parseDocument(input: unknown): GraphDocument {
     throw new DocumentParseError(t.errors.invalidFormat, issues);
   }
   return repairDocument(result.data);
+}
+
+type ParsedNode = z.infer<typeof graphNode>;
+
+/** Version 1 hade rubriken som eget fält; nu är rubriken en markerad egenskap. */
+function migrateNode(node: ParsedNode): GraphNode {
+  const { caption, captionKey, ...rest } = node;
+  const properties = { ...rest.properties };
+  let key: string | null = captionKey ?? null;
+  if (key !== null && !(key in properties)) key = null;
+  if (captionKey === undefined && caption) {
+    key = captionKeyFor(properties, caption);
+    properties[key] = caption;
+  }
+  return { ...rest, properties, captionKey: key };
 }
 
 function repairDocument(doc: z.infer<typeof documentSchemaV1>): GraphDocument {
@@ -153,7 +171,9 @@ function repairDocument(doc: z.infer<typeof documentSchemaV1>): GraphDocument {
   const fixLayer = <T extends { layerId: string }>(el: T): T =>
     layerIds.has(el.layerId) ? el : { ...el, layerId: firstLayer.id };
 
-  const nodes = Object.fromEntries(Object.entries(doc.nodes).map(([k, v]) => [k, fixLayer(v)]));
+  const nodes = Object.fromEntries(
+    Object.entries(doc.nodes).map(([k, v]) => [k, migrateNode(fixLayer(v))]),
+  );
   const relationships = Object.fromEntries(
     Object.entries(doc.relationships)
       .filter(([, r]) => r.fromId in nodes && r.toId in nodes)

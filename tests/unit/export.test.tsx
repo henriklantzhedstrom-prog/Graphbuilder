@@ -17,16 +17,22 @@ function sampleDoc(): GraphDocument {
     id: "a",
     layerId: l1,
     position: { x: 0, y: 0 },
-    caption: "Alice Andersson",
+    captionKey: "fullName",
     labels: ["Person"],
-    properties: { name: "Alice", age: "42", vip: "true", note: 'säger "hej"' },
+    properties: {
+      fullName: "Alice Andersson",
+      name: "Alice",
+      age: "42",
+      vip: "true",
+      note: 'säger "hej"',
+    },
     style: {},
   };
   doc.nodes.b = {
     id: "b",
     layerId: l1,
     position: { x: 300, y: 0 },
-    caption: "",
+    captionKey: null,
     labels: ["Company", "Legal Entity"],
     properties: {},
     style: {},
@@ -35,9 +41,9 @@ function sampleDoc(): GraphDocument {
     id: "c",
     layerId: l2.id,
     position: { x: 600, y: 0 },
-    caption: "Hidden",
+    captionKey: "name",
     labels: [],
-    properties: {},
+    properties: { name: "Hidden" },
     style: {},
   };
   doc.relationships.r1 = {
@@ -76,7 +82,7 @@ describe("Cypher", () => {
   it("skriver CREATE-satser med variabelnamn från rubriken", () => {
     const out = exportCypher(sampleDoc(), { onlyVisible: true });
     expect(out).toContain(
-      'CREATE (AliceAndersson:Person {name: "Alice", age: 42, vip: true, note: "säger \\"hej\\""})',
+      'CREATE (AliceAndersson:Person {fullName: "Alice Andersson", name: "Alice", age: 42, vip: true, note: "säger \\"hej\\""})',
     );
     expect(out).toContain("CREATE (n1:Company:`Legal Entity`)");
     expect(out).toContain("CREATE (AliceAndersson)-[:`WORKS AT` {since: 2020}]->(n1)");
@@ -84,7 +90,7 @@ describe("Cypher", () => {
   });
   it("tar med dolda lager när det begärs, oriktad relation utan pil", () => {
     const out = exportCypher(sampleDoc(), { onlyVisible: false });
-    expect(out).toContain("CREATE (Hidden)");
+    expect(out).toContain('CREATE (Hidden {name: "Hidden"})');
     expect(out).toContain("-[:RELATED]-(Hidden)");
   });
   it("cypherValue", () => {
@@ -190,9 +196,10 @@ describe("arrows.app-import", () => {
     expect(doc.layers).toHaveLength(1);
     const nodes = Object.values(doc.nodes);
     expect(nodes).toHaveLength(2);
-    const alice = nodes.find((n) => n.caption === "Alice");
+    const alice = nodes.find((n) => n.properties.name === "Alice");
     expect(alice?.labels).toEqual(["Person"]);
-    expect(alice?.properties).toEqual({ age: "30" });
+    expect(alice?.properties).toEqual({ age: "30", name: "Alice" });
+    expect(alice?.captionKey).toBe("name");
     expect(alice?.style.fill).toBe("#ff0000");
     expect(alice?.position).toEqual({ x: 10, y: 20 });
     const rels = Object.values(doc.relationships);

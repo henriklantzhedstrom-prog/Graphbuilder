@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import type { Box, ElementRef, GraphDocument } from "@/model/types";
+import { nodeCaption } from "@/model/caption";
+import type { Box, ElementRef, GraphDocument, GraphNode } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
 import { useUiStore } from "@/store/uiStore";
 
@@ -17,7 +18,7 @@ export interface InlineEditorProps {
 function initialText(doc: GraphDocument, ref: ElementRef): string {
   switch (ref.kind) {
     case "node":
-      return doc.nodes[ref.id]?.caption ?? "";
+      return doc.nodes[ref.id] ? nodeCaption(doc.nodes[ref.id] as GraphNode) : "";
     case "relationship":
       return doc.relationships[ref.id]?.type ?? "";
     case "note":
@@ -54,7 +55,7 @@ export function InlineEditor({
     const store = useDocumentStore.getState();
     const trimmed = target.kind === "note" ? text : text.trim();
     if (trimmed !== initialText(doc, target)) {
-      if (target.kind === "node") store.updateNode(target.id, { caption: trimmed });
+      if (target.kind === "node") store.setCaption(target.id, trimmed);
       if (target.kind === "relationship") store.updateRelationship(target.id, { type: trimmed });
       if (target.kind === "note") store.updateNote(target.id, { text: trimmed });
     }

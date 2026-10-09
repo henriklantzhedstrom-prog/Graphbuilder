@@ -9,7 +9,7 @@ test.describe("export och import", () => {
     await dragRelationship(page, { x: 300, y: 300 }, { x: 650, y: 300 }, "KNOWS");
     await page.getByRole("button", { name: "Export…" }).click();
     const preview = page.getByTestId("export-preview");
-    await expect(preview).toContainText('"caption": "Alice"');
+    await expect(preview).toContainText('"name": "Alice"');
 
     await page.getByRole("tab", { name: "Cypher" }).click();
     await expect(preview).toContainText("CREATE (Alice)-[:KNOWS]->(Bob)");
@@ -40,10 +40,10 @@ test.describe("export och import", () => {
     await page.keyboard.press("Control+e");
     await page.getByRole("tab", { name: "Cypher" }).click();
     const preview = page.getByTestId("export-preview");
-    await expect(preview).toContainText("CREATE (Synlig)");
+    await expect(preview).toContainText(`CREATE (Synlig {name: "Synlig"})`);
     await expect(preview).not.toContainText("Dold");
     await page.getByLabel("Visible layers only").uncheck();
-    await expect(preview).toContainText("CREATE (Dold)");
+    await expect(preview).toContainText(`CREATE (Dold {name: "Dold"})`);
   });
 
   test("spara som JSON-fil och öppna den igen", async ({ page }) => {
