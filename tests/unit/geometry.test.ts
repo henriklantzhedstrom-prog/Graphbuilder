@@ -4,6 +4,7 @@ import {
   boxFromPoints,
   circleIntersectsBox,
   fitBoxInViewport,
+  PARALLEL_SPACING,
   relationshipGeometry,
   screenToCanvas,
   snapToPoints,
@@ -89,7 +90,7 @@ describe("relationsgeometri", () => {
     // Böj nära noderna, rak parallell mittdel.
     expect(a.path).toMatch(/C .* L .* C /);
     expect(Math.sign(a.labelPosition.y)).not.toBe(Math.sign(b.labelPosition.y));
-    expect(Math.abs(a.labelPosition.y)).toBeCloseTo(20);
+    expect(Math.abs(a.labelPosition.y)).toBeCloseTo(PARALLEL_SPACING / 2);
     expect(a.labelAngle).toBe(0);
   });
 
@@ -104,7 +105,7 @@ describe("relationsgeometri", () => {
     const bendStartY = nums[7];
     const bendEndY = nums[9];
     expect(bendStartY).toBeCloseTo(bendEndY ?? Number.NaN);
-    expect(Math.abs(bendStartY ?? 0)).toBeCloseTo(20);
+    expect(Math.abs(bendStartY ?? 0)).toBeCloseTo(PARALLEL_SPACING / 2);
     // Böjen sker nära noderna: rak del börjar senast 30 px utanför nodkanten.
     expect(nums[6]).toBeCloseTo(50 + 30);
   });
