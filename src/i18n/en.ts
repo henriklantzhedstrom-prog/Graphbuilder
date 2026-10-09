@@ -24,12 +24,12 @@ export const en = {
   tools: {
     select: "Select",
     pan: "Pan",
-    addNode: "New node",
+    addNode: "Add node",
     note: "Note",
     image: "Image…",
   },
   canvas: {
-    emptyHint: "Double-click the canvas to create a node",
+    emptyHint: "Click “Add node” in the side panel to create a node",
     dropImageHint: "Drop the image to place it on the canvas",
     newNodeCaption: "",
     layerLockedHint: "The active layer is locked – unlock it to add elements",
@@ -200,7 +200,7 @@ export const en = {
       file: "File",
     },
     items: {
-      createNode: ["Double-click the canvas", "New node"],
+      createNode: ["“Add node” button", "New node"],
       createRelationship: [
         "Drag from a node's ring",
         "New relationship (drop on empty space creates a node)",

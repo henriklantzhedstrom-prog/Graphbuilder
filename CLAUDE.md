@@ -79,6 +79,9 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   Access API) så att det fungerar i alla webbläsare och går att testa med Playwright.
 - Ritytans vyer i `src/canvas/render` är rena komponenter utan store-hooks; samma komponenter
   renderar SVG-exporten via `renderToStaticMarkup`. Inga `foreignObject` i visningsläge.
+- Noder skapas med knappen **Add node** överst i sidopanelen (`addNodeInView` i `src/canvas/actions.ts`),
+  aldrig genom dubbelklick på tom yta. Dubbelklick på ett element redigerar det (träffas via
+  `document.elementFromPoint`, eftersom pekarfångst gör `e.target` till ritytan).
 - E2e-hjälpare (`freshApp`, `createNode`, `dragRelationship`) ligger i `tests/e2e/helpers.ts`.
   Skärmdumpar från `tests/e2e/screenshots.spec.ts` hamnar i `test-results/screenshots/`.
 - **Publicering (GitHub Pages).** Förrådet är publikt. Pages serverar grenen `gh-pages`, som

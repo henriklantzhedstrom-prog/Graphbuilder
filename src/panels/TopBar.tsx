@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createNodeAt, fitToContent, resetZoom, viewportCenter, zoomBy } from "@/canvas/actions";
+import { fitToContent, resetZoom, zoomBy } from "@/canvas/actions";
 import {
   IconCursor,
   IconDownload,
@@ -9,7 +9,6 @@ import {
   IconHelp,
   IconImage,
   IconMinus,
-  IconNode,
   IconNote,
   IconPlus,
   IconRedo,
@@ -140,12 +139,6 @@ export function TopBar({
       </IconButton>
       <IconButton label={t.tools.pan} active={tool === "pan"} onClick={() => setTool("pan")}>
         <IconHand />
-      </IconButton>
-      <IconButton
-        label={t.tools.addNode}
-        onClick={() => createNodeAt(viewportCenter(getViewportSize()))}
-      >
-        <IconNode />
       </IconButton>
       <IconButton label={t.tools.note} active={tool === "note"} onClick={() => setTool("note")}>
         <IconNote />

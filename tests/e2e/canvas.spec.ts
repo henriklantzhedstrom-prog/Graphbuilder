@@ -2,7 +2,25 @@ import { expect, test } from "@playwright/test";
 import { createNode, freshApp } from "./helpers";
 
 test.describe("rityta", () => {
-  test("dubbelklick skapar nod med rubrik", async ({ page }) => {
+  test("knappen Add node skapar en nod; dubbelklick på tom yta gör det inte", async ({ page }) => {
+    await freshApp(page);
+    await page.getByTestId("canvas").dblclick({ position: { x: 300, y: 300 } });
+    await expect(page.locator("[data-ref^='node:'][data-part='body']")).toHaveCount(0);
+    await page.getByTestId("add-node").click();
+    await page.getByTestId("inline-editor").fill("Från knappen");
+    await page.getByTestId("inline-editor").press("Enter");
+    await expect(page.locator("[data-ref^='node:'][data-part='body']")).toHaveCount(1);
+    await page.getByTestId("add-node").click();
+    await page.getByTestId("inline-editor").press("Escape");
+    const nodes = page.locator("[data-ref^='node:'][data-part='body']");
+    await expect(nodes).toHaveCount(2);
+    const [a, b] = await nodes.evaluateAll((els) =>
+      els.map((el) => el.querySelector("circle:not(.gb-halo)")?.getAttribute("cx")),
+    );
+    expect(a).not.toBe(b);
+  });
+
+  test("ny nod får rubrik", async ({ page }) => {
     await freshApp(page);
     await createNode(page, 300, 300, "Person");
     await expect(page.locator("[data-ref^='node:']").first()).toBeVisible();
@@ -33,6 +51,15 @@ test.describe("rityta", () => {
     await typeEditor.fill("KNOWS");
     await typeEditor.press("Enter");
     await expect(page.locator("svg text", { hasText: "KNOWS" })).toBeVisible();
+  });
+
+  test("dubbelklick på en nod öppnar redigering av rubriken", async ({ page }) => {
+    await freshApp(page);
+    await createNode(page, 300, 300, "Före");
+    await page.getByTestId("canvas").dblclick({ position: { x: 300, y: 300 } });
+    await page.getByTestId("inline-editor").fill("Efter");
+    await page.getByTestId("inline-editor").press("Enter");
+    await expect(page.locator("svg text", { hasText: "Efter" })).toBeVisible();
   });
 
   test("flytta nod, ångra och gör om", async ({ page }) => {
@@ -68,7 +95,9 @@ test.describe("rityta", () => {
     await page.mouse.up();
     await page.keyboard.press("Delete");
     await expect(page.locator("[data-ref^='node:'][data-part='body']")).toHaveCount(0);
-    await expect(page.getByText("Double-click the canvas to create a node")).toBeVisible();
+    await expect(
+      page.getByText("Click “Add node” in the side panel to create a node"),
+    ).toBeVisible();
   });
 
   test("modellen sparas och finns kvar efter omladdning", async ({ page }) => {
