@@ -81,3 +81,15 @@ test("skärmdump: exportdialog med Cypher", async ({ page }) => {
   await expect(page.getByTestId("export-preview")).toContainText("CREATE");
   await page.screenshot({ path: `${SCREENSHOT_DIR}/export-cypher.png` });
 });
+
+test.describe("mörkt tema", () => {
+  test.use({ colorScheme: "dark" });
+  test("skärmdump: mörkt tema", async ({ page }) => {
+    await freshApp(page);
+    await createNode(page, 300, 300, "Person");
+    await createNode(page, 650, 300, "Company");
+    await dragRelationship(page, { x: 300, y: 300 }, { x: 650, y: 300 }, "WORKS_AT");
+    await page.getByRole("tab", { name: "Lager" }).click();
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/dark-theme.png` });
+  });
+});

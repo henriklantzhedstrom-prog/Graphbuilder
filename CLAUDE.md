@@ -52,3 +52,14 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
 - Varje ny funktion levereras med enhetstest (`tests/unit`) och, när den har UI, e2e-test (`tests/e2e`).
 - Commit-meddelanden: en kort rad i imperativ på engelska (`Add layers panel`), sedan valfri brödtext.
 - Importera med alias `@/` för `src/`.
+- Läs aldrig `doc` från en sparad `getState()`-ögonblicksbild efter en mutation – hämta
+  `useDocumentStore.getState().doc` på nytt. Nya modeller skapas via `createAndOpenNewDocument()`
+  i `src/store/persistence.ts`, som också sparar och sätter "senast öppnad".
+- Filer sparas som nedladdning och öppnas via ett dolt `<input type="file">` (inte File System
+  Access API) så att det fungerar i alla webbläsare och går att testa med Playwright.
+- Ritytans vyer i `src/canvas/render` är rena komponenter utan store-hooks; samma komponenter
+  renderar SVG-exporten via `renderToStaticMarkup`. Inga `foreignObject` i visningsläge.
+- E2e-hjälpare (`freshApp`, `createNode`, `dragRelationship`) ligger i `tests/e2e/helpers.ts`.
+  Skärmdumpar från `tests/e2e/screenshots.spec.ts` hamnar i `test-results/screenshots/`.
+- Lokalt pekar `playwright.config.ts` på `/opt/pw-browsers/chromium` när den finns; i CI
+  installeras Chromium med `npx playwright install --with-deps chromium`.
