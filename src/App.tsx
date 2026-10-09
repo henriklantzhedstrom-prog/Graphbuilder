@@ -4,9 +4,11 @@ import { Canvas } from "@/canvas/Canvas";
 import { ACCEPTED_IMAGE_TYPES, addImageFromFile } from "@/canvas/images";
 import { useKeyboardShortcuts } from "@/canvas/useKeyboardShortcuts";
 import { Toasts } from "@/components/Toasts";
+import { importArrowsJson } from "@/export/arrowsImport";
 import { useAppInit } from "@/hooks/useAppInit";
 import { t } from "@/i18n/sv";
 import type { Size } from "@/model/types";
+import { ExportDialog } from "@/panels/ExportDialog";
 import { ShortcutsDialog } from "@/panels/ShortcutsDialog";
 import { SidePanel } from "@/panels/SidePanel";
 import { TopBar } from "@/panels/TopBar";
@@ -58,7 +60,26 @@ export function App() {
     }
   }, []);
 
-  const onImportArrows = useCallback(() => useUiStore.getState().setDialog("import"), []);
+  const onImportArrows = useCallback(async () => {
+    const file = await pickFile(".json");
+    if (!file) return;
+    try {
+      const doc = importArrowsJson(await file.text(), file.name.replace(/\.json$/i, ""));
+      useDocumentStore.getState().loadDocument(doc);
+      clearHistory();
+      await setLastOpenedId(doc.id);
+      useUiStore
+        .getState()
+        .showToast(
+          t.importDialog.arrowsSuccess(
+            Object.keys(doc.nodes).length,
+            Object.keys(doc.relationships).length,
+          ),
+        );
+    } catch (err) {
+      useUiStore.getState().showToast(t.toasts.fileError((err as Error).message), "error");
+    }
+  }, []);
   const onAddImage = useCallback(async () => {
     const file = await pickFile(ACCEPTED_IMAGE_TYPES.join(","));
     if (!file) return;
@@ -100,6 +121,7 @@ export function App() {
         <Toasts />
       </div>
       <ShortcutsDialog />
+      <ExportDialog />
     </div>
   );
 }

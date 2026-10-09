@@ -86,53 +86,13 @@ export function downloadBlob(blob: Blob, fileName: string): void {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-type SaveFilePicker = (options: {
-  suggestedName?: string;
-  types?: { description: string; accept: Record<string, string[]> }[];
-}) => Promise<{
-  createWritable(): Promise<{ write(b: Blob): Promise<void>; close(): Promise<void> }>;
-}>;
-
-type OpenFilePicker = (options: {
-  multiple?: boolean;
-  types?: { description: string; accept: Record<string, string[]> }[];
-}) => Promise<{ getFile(): Promise<File> }[]>;
-
-const JSON_TYPES = [
-  { description: "Graphbuilder-modell", accept: { "application/json": [".json"] } },
-];
-
-/** Sparar via File System Access API om det finns, annars som nedladdning. */
+/** Sparar som nedladdning. Fungerar i alla webbläsare och kräver ingen dialog som kan fastna. */
 export async function saveFile(blob: Blob, fileName: string): Promise<void> {
-  const picker = (window as unknown as { showSaveFilePicker?: SaveFilePicker }).showSaveFilePicker;
-  if (picker) {
-    try {
-      const handle = await picker({
-        suggestedName: fileName,
-        types: fileName.endsWith(".json") ? JSON_TYPES : undefined,
-      });
-      const writable = await handle.createWritable();
-      await writable.write(blob);
-      await writable.close();
-      return;
-    } catch (err) {
-      if ((err as { name?: string }).name === "AbortError") return;
-    }
-  }
   downloadBlob(blob, fileName);
 }
 
-/** Öppnar en fil via File System Access API om det finns, annars via ett dolt <input>. */
+/** Öppnar en fil via ett dolt <input type="file">. */
 export async function pickFile(accept: string): Promise<File | null> {
-  const picker = (window as unknown as { showOpenFilePicker?: OpenFilePicker }).showOpenFilePicker;
-  if (picker && accept === ".json") {
-    try {
-      const [handle] = await picker({ multiple: false, types: JSON_TYPES });
-      return handle ? await handle.getFile() : null;
-    } catch (err) {
-      if ((err as { name?: string }).name === "AbortError") return null;
-    }
-  }
   return new Promise((resolve) => {
     const input = document.createElement("input");
     input.type = "file";
