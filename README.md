@@ -10,8 +10,9 @@ Draw graph models (nodes and relationships) in the browser, in the spirit of arr
 
 ## Try the app
 
-The app is published at **https://henriklantzhedstrom-prog.github.io/Graphbuilder/** and is
-updated automatically with every new version.
+The app is published at **https://claude.ai/artifact/VTPthWmGZ8Sd6ASs3HavKb** and is updated with
+every new version. (The GitHub Pages address https://henriklantzhedstrom-prog.github.io/Graphbuilder/
+becomes active once the repository is public.)
 
 ![Graphbuilder](docs/screenshot.png)
 
