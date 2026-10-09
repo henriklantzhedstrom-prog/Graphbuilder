@@ -1,5 +1,6 @@
 import type { RelationshipGeometry } from "@/model/geometry";
 import type { Relationship, RelationshipStyle } from "@/model/types";
+import { PropertyBackground } from "./PropertyBackground";
 import { estimateTextWidth, LINE_HEIGHT, propertyLines } from "./text";
 
 export interface RelationshipViewProps {
@@ -90,6 +91,14 @@ export function RelationshipView({
             </text>
           </>
         )}
+        <PropertyBackground
+          lines={props}
+          centerX={0}
+          firstBaseline={(type ? typeHeight / 2 : 0) + style.propertyFontSize + 2}
+          fontSize={style.propertyFontSize}
+          lineHeight={propLineHeight}
+          fill={style.propertyBackground}
+        />
         {props.length > 0 && (
           <text
             x={0}

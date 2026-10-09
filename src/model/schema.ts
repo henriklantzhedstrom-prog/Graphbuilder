@@ -17,8 +17,11 @@ const nodeStyle = z.object({
   captionFontSize: z.number().positive(),
   labelColor: z.string(),
   labelBackground: z.string(),
+  labelBorderColor: z.string(),
+  labelBorderWidth: z.number().min(0),
   labelFontSize: z.number().positive(),
   propertyColor: z.string(),
+  propertyBackground: z.string(),
   propertyFontSize: z.number().positive(),
 });
 
@@ -31,6 +34,7 @@ const relationshipStyle = z.object({
   typeFontSize: z.number().positive(),
   typeBackground: z.string(),
   propertyColor: z.string(),
+  propertyBackground: z.string(),
   propertyFontSize: z.number().positive(),
   directed: z.boolean(),
 });

@@ -19,8 +19,11 @@ export const DEFAULT_NODE_STYLE: NodeStyle = {
   captionFontSize: 20,
   labelColor: "#000000",
   labelBackground: "#ffffff",
+  labelBorderColor: "#000000",
+  labelBorderWidth: 1,
   labelFontSize: 14,
   propertyColor: "#000000",
+  propertyBackground: "#ffffff",
   propertyFontSize: 14,
 };
 
@@ -33,6 +36,7 @@ export const DEFAULT_RELATIONSHIP_STYLE: RelationshipStyle = {
   typeFontSize: 16,
   typeBackground: "#ffffff",
   propertyColor: "#000000",
+  propertyBackground: "#ffffff",
   propertyFontSize: 14,
   directed: true,
 };

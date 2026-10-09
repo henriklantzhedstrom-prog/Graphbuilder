@@ -107,3 +107,28 @@ test("skärmdump: flera relationer mellan samma två noder", async ({ page }) =>
   await page.keyboard.press("Escape");
   await page.screenshot({ path: `${SCREENSHOT_DIR}/parallel-relationships.png` });
 });
+
+test("skärmdump: relation passerar bakom egenskaper", async ({ page }) => {
+  await freshApp(page);
+  await createNode(page, 200, 280, "A");
+  await createNode(page, 650, 280, "B");
+  await createNode(page, 425, 200, "Mitten");
+  await page.getByPlaceholder("Key").fill("description");
+  await page.getByPlaceholder("Key").press("Enter");
+  await page.getByLabel("Value").nth(1).fill("A long property text");
+  await dragRelationship(page, { x: 200, y: 280 }, { x: 650, y: 280 }, "PASSES");
+  await page.keyboard.press("Escape");
+  // Mitt på egenskapsraden ska bakgrunden ligga överst, inte relationen.
+  const box = await page.locator("[data-part='property-background']").nth(2).boundingBox();
+  if (!box) throw new Error("bakgrund saknas");
+  const hit = await page.evaluate(
+    ([x, y]) =>
+      document
+        .elementFromPoint(x ?? 0, y ?? 0)
+        ?.closest("[data-ref]")
+        ?.getAttribute("data-ref"),
+    [box.x + 4, box.y + box.height / 2],
+  );
+  expect(hit?.startsWith("node:")).toBe(true);
+  await page.screenshot({ path: `${SCREENSHOT_DIR}/property-background.png` });
+});
