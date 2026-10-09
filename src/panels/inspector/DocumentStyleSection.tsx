@@ -9,7 +9,7 @@ export function DocumentStyleSection() {
   const setDocumentStyle = useDocumentStore((s) => s.setDocumentStyle);
   return (
     <>
-      <div className="px-3 py-3 text-text-muted text-xs">
+      <div className="px-3 py-3 text-text-muted text-[0.86em]">
         <p className="mb-1 font-medium text-text">{t.inspector.nothingSelected}</p>
         <p>{t.inspector.nothingSelectedHint}</p>
       </div>

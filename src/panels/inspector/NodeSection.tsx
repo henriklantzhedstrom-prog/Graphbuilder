@@ -69,7 +69,7 @@ export function NodeSection({ nodes }: { nodes: GraphNode[] }) {
                 {labels.map((label) => (
                   <span
                     key={label}
-                    className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 py-0.5 pr-1 pl-2 text-xs"
+                    className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 py-0.5 pr-1 pl-2 text-[0.86em]"
                   >
                     {label}
                     <button
@@ -105,12 +105,12 @@ export function NodeSection({ nodes }: { nodes: GraphNode[] }) {
                 </Button>
               </div>
               {labelError && (
-                <p role="alert" data-testid="label-error" className="text-danger text-sm">
+                <p role="alert" data-testid="label-error" className="text-danger text-[1em]">
                   {labelError}
                 </p>
               )}
               {!labelError && inConflict && (
-                <p data-testid="label-warning" className="text-sm text-amber-600">
+                <p data-testid="label-warning" className="text-[1em] text-amber-600">
                   {t.inspector.labelConflictExisting}
                 </p>
               )}

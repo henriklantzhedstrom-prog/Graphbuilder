@@ -38,7 +38,7 @@ export function Inspector() {
             <select
               id={id}
               data-testid="inspector-layer"
-              className="h-7 rounded-md border border-border bg-surface px-1 text-sm"
+              className="h-8 rounded-md border border-border bg-surface px-1 text-[1em]"
               value={layerId ?? ""}
               onChange={(e) => moveElementsToLayer(selection, e.target.value)}
             >

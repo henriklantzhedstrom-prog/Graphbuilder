@@ -33,7 +33,7 @@ export function PropertiesEditor({
   return (
     <div className="flex flex-col gap-1">
       {caption && keys.length > 0 && (
-        <div className="flex items-center gap-1 text-text-muted text-xs">
+        <div className="flex items-center gap-1 text-text-muted text-[0.86em]">
           <span className="w-12 shrink-0 text-center">{t.inspector.captionColumn}</span>
         </div>
       )}
