@@ -180,6 +180,10 @@ export interface RelationshipGeometry {
 }
 
 export const PARALLEL_SPACING = 40;
+/** Hur långt från nodens kant parallella relationer hinner böja ut till sitt eget spår. */
+export const PARALLEL_BEND = 30;
+/** Minsta raka mittdel innan vi i stället ritar en enkel båge. */
+export const PARALLEL_MIN_STRAIGHT = 20;
 export const SELF_LOOP_RADIUS = 60;
 
 const readableAngle = (rad: number): number => {
@@ -234,9 +238,57 @@ export function relationshipGeometry(
     };
   }
 
-  // Kvadratisk Bézier vars mitt ligger `offset` från den raka linjen.
-  const mid = scale(add(ends.from, ends.to), 0.5);
   const normal = perpendicular(dir);
+  const distanceBetween = distance(ends.from, ends.to);
+  const straightRoom =
+    distanceBetween - ends.fromRadius - ends.toRadius - PARALLEL_BEND * 2 - arrowLen;
+
+  // Noderna ligger för nära för en rak mittdel: en mjuk båge räcker.
+  if (straightRoom < PARALLEL_MIN_STRAIGHT) {
+    return curvedGeometry(ends, dir, normal, offset, arrowLen, options);
+  }
+
+  // Böj av direkt vid noden, gå parallellt med mittlinjen och böj in mot målnoden i slutet.
+  const offsetVec = scale(normal, offset);
+  const bendStart = add(add(ends.from, scale(dir, ends.fromRadius + PARALLEL_BEND)), offsetVec);
+  const bendEnd = add(
+    add(ends.to, scale(dir, -(ends.toRadius + PARALLEL_BEND + arrowLen))),
+    offsetVec,
+  );
+  const startDir = normalize(sub(bendStart, ends.from));
+  const start = add(ends.from, scale(startDir, ends.fromRadius));
+  const tipDir = normalize(sub(add(bendEnd, scale(dir, PARALLEL_BEND)), ends.to));
+  const tip = add(ends.to, scale(tipDir, ends.toRadius));
+  const arrowDir = normalize(sub(tip, bendEnd));
+  const lineEnd = sub(tip, scale(arrowDir, arrowLen * 0.9));
+  const k = PARALLEL_BEND * 0.55;
+  const c1 = add(start, scale(startDir, k));
+  const c2 = sub(bendStart, scale(dir, k));
+  const c3 = add(bendEnd, scale(dir, k));
+  const c4 = sub(lineEnd, scale(arrowDir, k));
+  const midpoint = scale(add(bendStart, bendEnd), 0.5);
+  return {
+    path:
+      `M ${start.x} ${start.y} C ${c1.x} ${c1.y} ${c2.x} ${c2.y} ${bendStart.x} ${bendStart.y}` +
+      ` L ${bendEnd.x} ${bendEnd.y} C ${c3.x} ${c3.y} ${c4.x} ${c4.y} ${lineEnd.x} ${lineEnd.y}`,
+    arrow: options.directed ? arrowPolygon(tip, arrowDir, options.arrowSize) : "",
+    labelPosition: midpoint,
+    labelAngle: readableAngle(angleOf(dir)),
+    midpoint,
+    normal: scale(normal, Math.sign(offset) || 1),
+  };
+}
+
+/** Kvadratisk båge vars mitt ligger `offset` från den raka linjen (för noder nära varandra). */
+function curvedGeometry(
+  ends: RelationshipEndpoints,
+  dir: Point,
+  normal: Point,
+  offset: number,
+  arrowLen: number,
+  options: { arrowSize: number; directed: boolean },
+): RelationshipGeometry {
+  const mid = scale(add(ends.from, ends.to), 0.5);
   const control = add(mid, scale(normal, offset * 2));
   const startDir = normalize(sub(control, ends.from));
   const start = add(ends.from, scale(startDir, ends.fromRadius));
@@ -249,7 +301,7 @@ export function relationshipGeometry(
     path: `M ${start.x} ${start.y} Q ${control.x} ${control.y} ${lineEnd.x} ${lineEnd.y}`,
     arrow: options.directed ? arrowPolygon(tip, arrowDir, options.arrowSize) : "",
     labelPosition: curveMid,
-    labelAngle: readableAngle(angleOf(sub(lineEnd, start))),
+    labelAngle: readableAngle(angleOf(dir)),
     midpoint: curveMid,
     normal: scale(normal, Math.sign(offset) || 1),
   };
