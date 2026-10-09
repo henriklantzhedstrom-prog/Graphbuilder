@@ -9,15 +9,18 @@ import {
   IconHelp,
   IconImage,
   IconMinus,
+  IconMoon,
   IconNote,
   IconPlus,
   IconRedo,
+  IconSun,
   IconUndo,
 } from "@/components/icons";
 import { Button, Divider, IconButton, TextInput } from "@/components/ui";
 import { t } from "@/i18n";
 import type { Size } from "@/model/types";
 import { redo, undo, useDocumentStore, useTemporal } from "@/store/documentStore";
+import { useThemeStore } from "@/store/theme";
 import { useUiStore } from "@/store/uiStore";
 
 export interface TopBarProps {
@@ -42,6 +45,8 @@ export function TopBar({
   const tool = useUiStore((s) => s.tool);
   const setTool = useUiStore((s) => s.setTool);
   const setDialog = useUiStore((s) => s.setDialog);
+  const theme = useThemeStore((s) => s.theme);
+  const toggleTheme = useThemeStore((s) => s.toggleTheme);
   const zoom = useUiStore((s) => s.viewport.zoom);
   const canUndo = useTemporal((s) => s.pastStates.length > 0);
   const canRedo = useTemporal((s) => s.futureStates.length > 0);
@@ -169,6 +174,13 @@ export function TopBar({
         <IconDownload size={16} />
         {t.topbar.export}
       </Button>
+      <IconButton
+        label={theme === "dark" ? t.topbar.lightMode : t.topbar.darkMode}
+        data-testid="theme-toggle"
+        onClick={toggleTheme}
+      >
+        {theme === "dark" ? <IconSun /> : <IconMoon />}
+      </IconButton>
       <IconButton label={t.topbar.shortcuts} onClick={() => setDialog("shortcuts")}>
         <IconHelp />
       </IconButton>

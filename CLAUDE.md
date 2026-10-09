@@ -88,7 +88,10 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
 - Noder skapas med knappen **Add node** överst i sidopanelen (`addNodeInView` i `src/canvas/actions.ts`),
   aldrig genom dubbelklick på tom yta. Dubbelklick på ett element redigerar det (träffas via
   `document.elementFromPoint`, eftersom pekarfångst gör `e.target` till ritytan).
-- E2e-hjälpare (`freshApp`, `createNode`, `dragRelationship`) ligger i `tests/e2e/helpers.ts`.
+- **Tema:** appen startar alltid ljust, oberoende av datorns inställning. Mörkt läge slås på med
+  knappen i verktygsfältet (`src/store/theme.ts`, sätter `data-theme` på `<html>`, valet sparas i
+  localStorage). CSS för mörkt läge ligger under `:root[data-theme="dark"]` i `src/index.css`.
+- E2e-hjälpare (`freshApp`, `createNode`, `dragRelationship`, `captionText` för exakt nodrubrik) ligger i `tests/e2e/helpers.ts`.
   Skärmdumpar från `tests/e2e/screenshots.spec.ts` hamnar i `test-results/screenshots/`.
 - **Publicering (GitHub Pages).** Förrådet är publikt. Pages serverar grenen `gh-pages`, som
   deploy-jobbet i `.github/workflows/ci.yml` fyller på vid varje push till `main` (bygge med

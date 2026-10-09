@@ -83,6 +83,7 @@ test("skärmdump: exportdialog med Cypher", async ({ page }) => {
 });
 
 test.describe("mörkt tema", () => {
+  // Datorn i mörkt läge: appen ska ändå starta ljust och bara bli mörk via knappen.
   test.use({ colorScheme: "dark" });
   test("skärmdump: mörkt tema", async ({ page }) => {
     await freshApp(page);
@@ -90,6 +91,7 @@ test.describe("mörkt tema", () => {
     await createNode(page, 650, 300, "Company");
     await dragRelationship(page, { x: 300, y: 300 }, { x: 650, y: 300 }, "WORKS_AT");
     await page.getByRole("tab", { name: "Layers" }).click();
+    await page.getByTestId("theme-toggle").click();
     await page.screenshot({ path: `${SCREENSHOT_DIR}/dark-theme.png` });
   });
 });
