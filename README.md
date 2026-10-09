@@ -10,9 +10,8 @@ Draw graph models (nodes and relationships) in the browser, in the spirit of arr
 
 ## Try the app
 
-The app is published at **https://claude.ai/artifact/VTPthWmGZ8Sd6ASs3HavKb** and is updated with
-every new version. (The GitHub Pages address https://henriklantzhedstrom-prog.github.io/Graphbuilder/
-becomes active once the repository is public.)
+The app is published at **https://henriklantzhedstrom-prog.github.io/Graphbuilder/** and is
+updated automatically with every new version.
 
 ![Graphbuilder](docs/screenshot.png)
 
@@ -43,4 +42,5 @@ npm run e2e     # end-to-end tests in Chromium (builds and serves the app itself
 npm run build   # production build to dist/
 ```
 
-CI runs the same checks on every push. A push to `main` publishes the app to GitHub Pages.
+CI runs the same checks on every push. A push to `main` builds the app and publishes it to the
+`gh-pages` branch, which GitHub Pages serves.
