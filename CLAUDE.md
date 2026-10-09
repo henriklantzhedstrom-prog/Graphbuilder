@@ -89,6 +89,8 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   exakt stavning; noder utan labels undantas). Regeln ligger i `src/model/labels.ts` och spärren i
   `documentStore.setNodeLabels` (`updateNode` ignorerar `labels`; kopior/inklistring tappar krockande
   labels). Äldre filer med krockar laddas oförändrade men markeras med röd ring och en varning.
+- **Dra på tom bakgrund flyttar hela ytan** (panorering); Shift+dra på tom yta = ram-markering.
+  Dra i ett låst element räknas som bakgrund. Klick utan drag på tom yta avmarkerar.
 - Noder skapas med knappen **Add node** överst i sidopanelen (`addNodeInView` i `src/canvas/actions.ts`),
   aldrig genom dubbelklick på tom yta. Dubbelklick på ett element redigerar det (träffas via
   `document.elementFromPoint`, eftersom pekarfångst gör `e.target` till ritytan).

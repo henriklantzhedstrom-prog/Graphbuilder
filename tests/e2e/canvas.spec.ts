@@ -62,6 +62,31 @@ test.describe("rityta", () => {
     await expect(captionText(page, "Efter")).toBeVisible();
   });
 
+  test("dra i bakgrunden flyttar hela ytan utan att ändra modellen", async ({ page }) => {
+    await freshApp(page);
+    await createNode(page, 300, 300, "Fast");
+    const node = page.locator(
+      "[data-ref^='node:'][data-part='body'] > circle:not(.gb-halo):not([fill='none'])",
+    );
+    const before = await node.boundingBox();
+    const model = () =>
+      page.evaluate(() =>
+        document.querySelector("[data-ref^='node:'] > circle:not(.gb-halo)")?.getAttribute("cx"),
+      );
+    const cxBefore = await model();
+    const canvas = await page.getByTestId("canvas").boundingBox();
+    if (!before || !canvas) throw new Error("saknas");
+    await page.mouse.move(canvas.x + 600, canvas.y + 500);
+    await page.mouse.down();
+    await page.mouse.move(canvas.x + 700, canvas.y + 560, { steps: 6 });
+    await page.mouse.up();
+    const after = await node.boundingBox();
+    expect(after && after.x - before.x).toBeCloseTo(100, 0);
+    expect(after && after.y - before.y).toBeCloseTo(60, 0);
+    expect(await model()).toBe(cxBefore);
+    await expect(page.getByText("Nothing selected", { exact: true })).toBeVisible();
+  });
+
   test("flytta nod, ångra och gör om", async ({ page }) => {
     await freshApp(page);
     await createNode(page, 300, 300, "Flytt");
@@ -90,9 +115,11 @@ test.describe("rityta", () => {
     await createNode(page, 450, 250, "Y");
     await page.keyboard.press("Escape");
     await page.mouse.move(150, 150);
+    await page.keyboard.down("Shift");
     await page.mouse.down();
     await page.mouse.move(600, 400, { steps: 5 });
     await page.mouse.up();
+    await page.keyboard.up("Shift");
     await page.keyboard.press("Delete");
     await expect(page.locator("[data-ref^='node:'][data-part='body']")).toHaveCount(0);
     await expect(

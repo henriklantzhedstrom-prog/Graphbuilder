@@ -262,9 +262,17 @@ export function Canvas() {
       return;
     }
 
-    // Tom yta (eller låst element): ram-markering
-    if (!e.shiftKey) ui.clearSelection();
-    gesture.current = { type: "marquee", start: canvasPoint, additive: e.shiftKey };
+    // Tom yta (eller låst element): Shift+dra = ram-markering, annars flyttas hela ytan.
+    if (e.shiftKey) {
+      gesture.current = { type: "marquee", start: canvasPoint, additive: true };
+      return;
+    }
+    ui.clearSelection();
+    gesture.current = {
+      type: "pan",
+      startScreen: screen,
+      startViewport: { x: ui.viewport.x, y: ui.viewport.y },
+    };
   };
 
   const onPointerMove = (e: ReactPointerEvent<SVGSVGElement>) => {

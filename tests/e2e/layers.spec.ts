@@ -42,12 +42,13 @@ test.describe("lager", () => {
     const circle = page.locator("[data-ref^='node:'][data-part='body'] circle").nth(1);
     const before = await circle.boundingBox();
     if (!before) throw new Error("nod saknas");
+    const cxStart = await circle.getAttribute("cx");
     await page.mouse.move(before.x + before.width / 2, before.y + before.height / 2);
     await page.mouse.down();
     await page.mouse.move(before.x + 200, before.y + 100, { steps: 5 });
     await page.mouse.up();
-    const after = await circle.boundingBox();
-    expect(after && Math.abs(after.x - before.x)).toBeLessThan(2);
+    // Noden flyttas inte i modellen (att dra i ett låst element flyttar bara vyn).
+    expect(await circle.getAttribute("cx")).toBe(cxStart);
     await page.getByRole("tab", { name: "Properties" }).click();
     await expect(page.getByText("Nothing selected", { exact: true })).toBeVisible();
   });

@@ -20,7 +20,7 @@ updated automatically with every new version.
 - Create nodes with the **Add node** button in the side panel, drag relationships from a node's ring (drop on empty space to create a node).
 - Labels and properties on nodes (each label or label combination can be used by only one node), with a checkbox to choose which property is shown as the caption; type, direction and properties on relationships.
 - Style per element or for the whole model: colors, radius, border width, text sizes, dashed lines.
-- Select by click, Shift+click or marquee; move by dragging or with the arrow keys; snap guides.
+- Drag the background to move the whole canvas. Select by click, Shift+click or Shift+drag (marquee); move by dragging or with the arrow keys; snap guides.
 - Undo/redo, duplicate, copy/paste, keyboard shortcuts (press `?` in the app).
 - Models are saved automatically in the browser. "My models" manages several models.
 - Save/open as a JSON file. Import JSON from arrows.app.
