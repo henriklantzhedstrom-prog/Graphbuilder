@@ -94,7 +94,9 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   pilspetsen slutar precis utanför den. Parallella relationer: `PARALLEL_SPACING` i `geometry.ts`.
   Egenskapsrader har en bakgrundsruta (`PropertyBackground.tsx`, stil `propertyBackground`, standard
   vit) som relationer passerar bakom och som är klickbar som en del av elementet. Labels har
-  inställbar kant (`labelBorderColor`, `labelBorderWidth`).
+  inställbar kant (`labelBorderColor`, `labelBorderWidth`). Rutor runt text (labels, relationstyp,
+  egenskaper) mäts med `measureTextWidth` i `src/canvas/render/text.ts` (verklig textbredd) plus
+  fast marginal (`LABEL_PADDING_X`, `TYPE_PADDING_X`) – använd aldrig teckenantal för rutbredd.
 - **Dra på tom bakgrund flyttar hela ytan** (panorering); Shift+dra på tom yta = ram-markering.
   Dra i ett låst element räknas som bakgrund. Klick utan drag på tom yta avmarkerar.
 - Noder skapas med knappen **Add node** överst i sidopanelen (`addNodeInView` i `src/canvas/actions.ts`),
