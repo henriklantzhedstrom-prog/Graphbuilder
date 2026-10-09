@@ -4,6 +4,7 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from "react";
 import { useElementSize } from "@/hooks/useElementSize";
 import { t } from "@/i18n/sv";
@@ -36,6 +37,7 @@ import {
 import { type DragState, useUiStore } from "@/store/uiStore";
 import { createNodeAt, createNoteAt, createRelationship, movableSelection } from "./actions";
 import { InlineEditor } from "./InlineEditor";
+import { addImageFromFile, imageFilesFrom } from "./images";
 import { NOTE_PADDING } from "./render/NoteView";
 import { computeRelationshipGeometry, Scene, type SceneOverrides } from "./render/Scene";
 import { type Handle, handlePosition } from "./render/SelectionBox";
@@ -121,6 +123,7 @@ export function Canvas() {
   const tool = useUiStore((s) => s.tool);
   const spacePressed = useUiStore((s) => s.spacePressed);
   const gesture = useRef<Gesture | null>(null);
+  const [dropActive, setDropActive] = useState(false);
 
   const selectedKeys = useMemo(() => new Set(selection.map(refKey)), [selection]);
 
@@ -153,6 +156,37 @@ export function Canvas() {
     svg.addEventListener("wheel", onWheel, { passive: false });
     return () => svg.removeEventListener("wheel", onWheel);
   }, []);
+
+  // ---------- Klistra in bild ----------
+  useEffect(() => {
+    const onPaste = (e: ClipboardEvent) => {
+      const target = e.target;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        (target instanceof HTMLElement && target.isContentEditable)
+      )
+        return;
+      const files = imageFilesFrom(e.clipboardData);
+      if (files.length === 0) return;
+      e.preventDefault();
+      const vp = useUiStore.getState().viewport;
+      const center = screenToCanvas(vp, { x: size.w / 2, y: size.h / 2 });
+      for (const file of files) void addImageFromFile(file, center);
+    };
+    window.addEventListener("paste", onPaste);
+    return () => window.removeEventListener("paste", onPaste);
+  }, [size.w, size.h]);
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDropActive(false);
+    const files = imageFilesFrom(e.dataTransfer);
+    const point = toCanvas(e);
+    files.forEach((file, i) => {
+      void addImageFromFile(file, { x: point.x + i * 30, y: point.y + i * 30 });
+    });
+  };
 
   // ---------- Pekare ----------
   const onPointerDown = (e: ReactPointerEvent<SVGSVGElement>) => {
@@ -511,7 +545,12 @@ export function Canvas() {
           {editing && <EditorHost editing={editing} overrides={overrides} zoom={viewport.zoom} />}
         </g>
       </svg>
-      {isEmpty && !editing && (
+      {dropActive && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center border-4 border-accent border-dashed bg-accent/5 text-accent">
+          {t.canvas.dropImageHint}
+        </div>
+      )}
+      {isEmpty && !editing && !dropActive && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-text-muted">
           {t.canvas.emptyHint}
         </div>

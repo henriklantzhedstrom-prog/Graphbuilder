@@ -1,5 +1,7 @@
 import { useCallback, useMemo, useRef } from "react";
+import { viewportCenter } from "@/canvas/actions";
 import { Canvas } from "@/canvas/Canvas";
+import { ACCEPTED_IMAGE_TYPES, addImageFromFile } from "@/canvas/images";
 import { useKeyboardShortcuts } from "@/canvas/useKeyboardShortcuts";
 import { Toasts } from "@/components/Toasts";
 import { useAppInit } from "@/hooks/useAppInit";
@@ -57,7 +59,11 @@ export function App() {
   }, []);
 
   const onImportArrows = useCallback(() => useUiStore.getState().setDialog("import"), []);
-  const onAddImage = useCallback(() => {}, []);
+  const onAddImage = useCallback(async () => {
+    const file = await pickFile(ACCEPTED_IMAGE_TYPES.join(","));
+    if (!file) return;
+    await addImageFromFile(file, viewportCenter(getViewportSize()));
+  }, [getViewportSize]);
 
   const shortcutHandlers = useMemo(
     () => ({
