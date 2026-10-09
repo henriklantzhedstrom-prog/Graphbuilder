@@ -252,6 +252,8 @@ export const en = {
     nothingToCopy: "Nothing to copy",
     pasted: (n: number) => `Pasted ${n} elements`,
     exported: "Export done",
+    storageUnavailable:
+      "Saving is not available in this view. Export your model as a file to keep it.",
     copied: "Copied to clipboard",
   },
   errors: {

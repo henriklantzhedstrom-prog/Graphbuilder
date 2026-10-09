@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { t } from "@/i18n";
 import { startAutosave } from "@/store/autosave";
 import { clearHistory, useDocumentStore } from "@/store/documentStore";
 import {
   createAndOpenNewDocument,
   getLastOpenedId,
+  isStorageBroken,
   listDocumentsLocally,
   loadDocumentLocally,
   setLastOpenedId,
@@ -35,8 +37,16 @@ export function useAppInit(): boolean {
         console.error("Could not read the saved model", err);
       }
       if (cancelled) return;
-      if (!loaded) await createAndOpenNewDocument();
+      if (!loaded) {
+        try {
+          await createAndOpenNewDocument();
+        } catch (err) {
+          console.error("Could not create a new model", err);
+          store.newDocument();
+        }
+      }
       clearHistory();
+      if (isStorageBroken()) useUiStore.getState().showToast(t.toasts.storageUnavailable, "error");
       const top = useDocumentStore.getState().doc.layers.at(-1);
       useUiStore.getState().setActiveLayer(top?.id ?? null);
       setReady(true);

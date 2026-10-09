@@ -8,6 +8,53 @@ const store = createStore("graphbuilder", "documents");
 const DOC_PREFIX = "doc:";
 const LAST_OPENED_KEY = "meta:lastOpened";
 
+// ---------- Lagring med reservlösning ----------
+// I vissa miljöer (sandlådade ramar, privat läge med blockerad lagring) kastar IndexedDB
+// SecurityError. Då faller vi tillbaka på minnet så att appen ändå fungerar under sessionen.
+
+const memory = new Map<string, unknown>();
+let storageBroken = false;
+
+async function withFallback<T>(idbOp: () => Promise<T>, memoryOp: () => T): Promise<T> {
+  if (!storageBroken) {
+    try {
+      return await idbOp();
+    } catch (err) {
+      storageBroken = true;
+      console.warn("Persistent storage unavailable, keeping models in memory only", err);
+    }
+  }
+  return memoryOp();
+}
+
+const kvGet = (key: string) =>
+  withFallback(
+    () => get(key, store),
+    () => memory.get(key),
+  );
+const kvSet = (key: string, value: unknown) =>
+  withFallback(
+    () => set(key, value, store),
+    () => {
+      memory.set(key, value);
+    },
+  );
+const kvDel = (key: string) =>
+  withFallback(
+    () => del(key, store),
+    () => {
+      memory.delete(key);
+    },
+  );
+const kvKeys = () =>
+  withFallback<IDBValidKey[]>(
+    () => keys(store),
+    () => [...memory.keys()],
+  );
+
+/** Sant när modeller inte kan sparas mellan besök (bara i minnet). Känt först efter första anropet. */
+export const isStorageBroken = (): boolean => storageBroken;
+
 export interface DocumentSummary {
   id: Id;
   name: string;
@@ -17,26 +64,26 @@ export interface DocumentSummary {
 }
 
 export async function saveDocumentLocally(doc: GraphDocument): Promise<void> {
-  await set(`${DOC_PREFIX}${doc.id}`, doc, store);
+  await kvSet(`${DOC_PREFIX}${doc.id}`, doc);
 }
 
 export async function loadDocumentLocally(id: Id): Promise<GraphDocument | null> {
-  const raw = await get(`${DOC_PREFIX}${id}`, store);
+  const raw = await kvGet(`${DOC_PREFIX}${id}`);
   if (!raw) return null;
   return parseDocument(raw);
 }
 
 export async function deleteDocumentLocally(id: Id): Promise<void> {
-  await del(`${DOC_PREFIX}${id}`, store);
+  await kvDel(`${DOC_PREFIX}${id}`);
 }
 
 export async function listDocumentsLocally(): Promise<DocumentSummary[]> {
-  const allKeys = (await keys(store)).filter(
+  const allKeys = (await kvKeys()).filter(
     (k): k is string => typeof k === "string" && k.startsWith(DOC_PREFIX),
   );
   const summaries: DocumentSummary[] = [];
   for (const key of allKeys) {
-    const raw = (await get(key, store)) as Partial<GraphDocument> | undefined;
+    const raw = (await kvGet(key)) as Partial<GraphDocument> | undefined;
     if (!raw || typeof raw.id !== "string") continue;
     summaries.push({
       id: raw.id,
@@ -62,11 +109,11 @@ export async function createAndOpenNewDocument(name?: string): Promise<Id> {
 }
 
 export async function getLastOpenedId(): Promise<Id | null> {
-  return ((await get(LAST_OPENED_KEY, store)) as Id | undefined) ?? null;
+  return ((await kvGet(LAST_OPENED_KEY)) as Id | undefined) ?? null;
 }
 
 export async function setLastOpenedId(id: Id): Promise<void> {
-  await set(LAST_OPENED_KEY, id, store);
+  await kvSet(LAST_OPENED_KEY, id);
 }
 
 // ---------- Filer ----------
