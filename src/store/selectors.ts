@@ -52,7 +52,6 @@ export const isRelationshipVisible = (doc: GraphDocument, rel: Relationship): bo
   const from = doc.nodes[rel.fromId];
   const to = doc.nodes[rel.toId];
   return (
-    isLayerVisible(doc, rel.layerId) &&
     from !== undefined &&
     to !== undefined &&
     isLayerVisible(doc, from.layerId) &&
@@ -64,20 +63,30 @@ export function isElementVisible(doc: GraphDocument, ref: ElementRef): boolean {
   const el = getElement(doc, ref);
   if (!el) return false;
   if (ref.kind === "relationship") return isRelationshipVisible(doc, el as Relationship);
-  return isLayerVisible(doc, el.layerId);
+  return "layerId" in el && isLayerVisible(doc, el.layerId);
 }
 
-/** Låst = ligger i låst lager, eller är en låst bild. Låsta element kan inte markeras/flyttas. */
+/** Lagret som ett element ligger i. Relationer har inget lager och ger undefined. */
+export function elementLayerId(doc: GraphDocument, ref: ElementRef): Id | undefined {
+  if (ref.kind === "relationship") return undefined;
+  const el = getElement(doc, ref);
+  return el && "layerId" in el ? el.layerId : undefined;
+}
+
+/**
+ * Låst = ligger i låst lager, eller är en låst bild. En relation är låst när någon av dess
+ * ändnoder ligger i ett låst lager. Låsta element kan inte markeras/flyttas.
+ */
 export function isElementLocked(doc: GraphDocument, ref: ElementRef): boolean {
   const el = getElement(doc, ref);
   if (!el) return true;
-  if (isLayerLocked(doc, el.layerId)) return true;
   if (ref.kind === "relationship") {
     const rel = el as Relationship;
     const from = doc.nodes[rel.fromId];
     const to = doc.nodes[rel.toId];
     return !from || !to || isLayerLocked(doc, from.layerId) || isLayerLocked(doc, to.layerId);
   }
+  if (!("layerId" in el) || isLayerLocked(doc, el.layerId)) return true;
   if (ref.kind === "image") return (el as BackgroundImage).locked;
   return false;
 }
@@ -94,8 +103,9 @@ export function allElementRefs(doc: GraphDocument): ElementRef[] {
   ];
 }
 
+/** Element i ett lager: noder, anteckningar och bilder. Relationer har inget lager. */
 export const elementsInLayer = (doc: GraphDocument, layerId: Id): ElementRef[] =>
-  allElementRefs(doc).filter((ref) => getElement(doc, ref)?.layerId === layerId);
+  allElementRefs(doc).filter((ref) => elementLayerId(doc, ref) === layerId);
 
 export const countElementsInLayer = (doc: GraphDocument, layerId: Id): number =>
   elementsInLayer(doc, layerId).length;
@@ -178,7 +188,6 @@ export function relationshipBundles(doc: GraphDocument): Map<Id, BundleInfo> {
 export interface LayerRenderGroup {
   layer: Layer;
   images: BackgroundImage[];
-  relationships: Relationship[];
   nodes: GraphNode[];
   notes: Note[];
 }
@@ -188,13 +197,23 @@ export function renderGroups(doc: GraphDocument): LayerRenderGroup[] {
   const groups = new Map<Id, LayerRenderGroup>();
   for (const layer of doc.layers) {
     if (!layer.visible) continue;
-    groups.set(layer.id, { layer, images: [], relationships: [], nodes: [], notes: [] });
+    groups.set(layer.id, { layer, images: [], nodes: [], notes: [] });
   }
   for (const im of Object.values(doc.images)) groups.get(im.layerId)?.images.push(im);
-  for (const rel of Object.values(doc.relationships)) {
-    if (isRelationshipVisible(doc, rel)) groups.get(rel.layerId)?.relationships.push(rel);
-  }
   for (const n of Object.values(doc.nodes)) groups.get(n.layerId)?.nodes.push(n);
   for (const n of Object.values(doc.notes)) groups.get(n.layerId)?.notes.push(n);
   return [...groups.values()];
 }
+
+/** Relationer som syns: båda ändnoderna ligger i synliga lager (valfritt även godkända av filtret). */
+export const visibleRelationships = (
+  doc: GraphDocument,
+  layerFilter?: (layerId: Id) => boolean,
+): Relationship[] =>
+  Object.values(doc.relationships).filter((rel) => {
+    if (!isRelationshipVisible(doc, rel)) return false;
+    if (!layerFilter) return true;
+    const from = doc.nodes[rel.fromId];
+    const to = doc.nodes[rel.toId];
+    return !!from && !!to && layerFilter(from.layerId) && layerFilter(to.layerId);
+  });

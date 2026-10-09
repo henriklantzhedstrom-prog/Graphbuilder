@@ -129,7 +129,6 @@ export function importArrowsJson(text: string, name: string): GraphDocument {
     const id = newId("r");
     doc.relationships[id] = {
       id,
-      layerId,
       fromId,
       toId,
       type: r.type,

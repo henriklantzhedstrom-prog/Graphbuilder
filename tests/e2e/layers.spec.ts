@@ -22,16 +22,41 @@ test.describe("lager", () => {
     await expect(captionText(page, "Topp")).toHaveCount(1);
   });
 
-  test("relation till nod i dolt lager döljs också", async ({ page }) => {
+  test("relationer har inget lager och syns när båda noderna syns", async ({ page }) => {
     await freshApp(page);
     await createNode(page, 250, 300, "A");
     await page.getByRole("tab", { name: "Layers" }).click();
     await page.getByTestId("add-layer").click();
     await createNode(page, 600, 300, "B");
     await dragRelationship(page, { x: 250, y: 300 }, { x: 600, y: 300 }, "REL");
-    await expect(page.locator("[data-ref^='relationship:']")).toHaveCount(1);
-    await page.getByTestId("layer-row").nth(0).getByTestId("layer-visibility").click();
-    await expect(page.locator("[data-ref^='relationship:']")).toHaveCount(0);
+    const rel = page.locator("[data-ref^='relationship:']");
+    await expect(rel).toHaveCount(1);
+
+    // En markerad relation har ingen lagerväljare.
+    await page.getByRole("tab", { name: "Properties" }).click();
+    await expect(page.getByTestId("inspector")).toBeVisible();
+    await expect(page.getByTestId("inspector-layer")).toHaveCount(0);
+
+    // Relationen räknas inte i något lager.
+    await page.getByRole("tab", { name: "Layers" }).click();
+    const rows = page.getByTestId("layer-row");
+    await expect(rows.nth(0).getByText("1", { exact: true })).toBeVisible();
+    await expect(rows.nth(1).getByText("1", { exact: true })).toBeVisible();
+
+    // Ett tredje lager utan noderna påverkar inte relationen.
+    await page.getByTestId("add-layer").click();
+    await rows.nth(0).getByTestId("layer-visibility").click();
+    await expect(rel).toHaveCount(1);
+
+    // Döljs B:s lager eller A:s lager försvinner relationen.
+    await rows.nth(1).getByTestId("layer-visibility").click();
+    await expect(rel).toHaveCount(0);
+    await rows.nth(1).getByTestId("layer-visibility").click();
+    await expect(rel).toHaveCount(1);
+    await rows.nth(2).getByTestId("layer-visibility").click();
+    await expect(rel).toHaveCount(0);
+    await rows.nth(2).getByTestId("layer-visibility").click();
+    await expect(rel).toHaveCount(1);
   });
 
   test("låst lager kan inte markeras eller flyttas", async ({ page }) => {

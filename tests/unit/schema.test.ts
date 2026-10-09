@@ -51,6 +51,24 @@ describe("parseDocument", () => {
     expect(doc.style.relationship.directed).toBe(true);
   });
 
+  it("läser version 2 där relationer hade lager och tar bort fältet", () => {
+    const base = createEmptyDocument("Old");
+    const layerId = base.layers[0]?.id ?? "";
+    const raw = {
+      ...JSON.parse(JSON.stringify(base)),
+      version: 2,
+      nodes: {
+        a: { id: "a", layerId, position: { x: 0, y: 0 }, captionKey: null },
+        b: { id: "b", layerId, position: { x: 1, y: 1 }, captionKey: null },
+      },
+      relationships: { r1: { id: "r1", layerId: "gammalt-lager", fromId: "a", toId: "b" } },
+    };
+    const doc = parseDocument(raw);
+    expect(doc.version).toBe(3);
+    expect(doc.relationships.r1).toBeDefined();
+    expect(doc.relationships.r1).not.toHaveProperty("layerId");
+  });
+
   it("läser äldre modeller med opacitet på lager och tar bort fältet", () => {
     const base = createEmptyDocument("Old");
     const raw = JSON.parse(JSON.stringify(base));
@@ -79,7 +97,7 @@ describe("parseDocument", () => {
       },
     };
     const doc = parseDocument(raw);
-    expect(doc.version).toBe(2);
+    expect(doc.version).toBe(3);
     expect(doc.nodes.a?.properties).toEqual({ name: "Alice" });
     expect(doc.nodes.a?.captionKey).toBe("name");
     expect(doc.nodes.b?.properties).toEqual({ name: "X", caption: "Bob" });

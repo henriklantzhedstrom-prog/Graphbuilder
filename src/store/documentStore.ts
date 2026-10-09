@@ -29,7 +29,7 @@ import type {
   RelationshipStyle,
   Size,
 } from "@/model/types";
-import { getElement } from "./selectors";
+import { elementLayerId, getElement } from "./selectors";
 
 export interface ClipboardContent {
   nodes: GraphNode[];
@@ -67,10 +67,9 @@ export interface DocumentState {
     changes: { id: Id; labels: string[] }[],
   ): { ok: true } | { ok: false; conflict: LabelConflict };
   addRelationship(
-    layerId: Id,
     fromId: Id,
     toId: Id,
-    partial?: Partial<Omit<Relationship, "id" | "layerId" | "fromId" | "toId">>,
+    partial?: Partial<Omit<Relationship, "id" | "fromId" | "toId">>,
   ): Id;
   updateRelationship(id: Id, patch: Partial<Omit<Relationship, "id">>): void;
   reverseRelationships(ids: Id[]): void;
@@ -194,7 +193,8 @@ export const useDocumentStore = create<DocumentState>()(
             moveContentTo && s.doc.layers.some((l) => l.id === moveContentTo && l.id !== id)
               ? moveContentTo
               : undefined;
-          const collections = [s.doc.nodes, s.doc.relationships, s.doc.notes, s.doc.images];
+          // Relationer har inget lager; de försvinner bara om någon av ändnoderna tas bort.
+          const collections = [s.doc.nodes, s.doc.notes, s.doc.images];
           for (const col of collections) {
             for (const [elId, el] of Object.entries(col)) {
               if (el.layerId !== id) continue;
@@ -217,8 +217,9 @@ export const useDocumentStore = create<DocumentState>()(
         set((s) => {
           if (!s.doc.layers.some((l) => l.id === layerId)) return;
           for (const ref of refs) {
+            if (ref.kind === "relationship") continue;
             const el = getElement(s.doc, ref);
-            if (el) el.layerId = layerId;
+            if (el && "layerId" in el) el.layerId = layerId;
           }
           touch(s.doc);
         }),
@@ -276,13 +277,12 @@ export const useDocumentStore = create<DocumentState>()(
         });
         return { ok: true };
       },
-      addRelationship: (layerId, fromId, toId, partial) => {
+      addRelationship: (fromId, toId, partial) => {
         const id = newId("r");
         set((s) => {
           if (!(fromId in s.doc.nodes) || !(toId in s.doc.nodes)) return;
           s.doc.relationships[id] = {
             id,
-            layerId,
             fromId,
             toId,
             type: "",
@@ -464,7 +464,7 @@ export const useDocumentStore = create<DocumentState>()(
             const toId = idMap.get(rel.toId);
             if (!fromId || !toId) continue;
             const id = newId("r");
-            s.doc.relationships[id] = { ...rel, id, layerId, fromId, toId };
+            s.doc.relationships[id] = { ...rel, id, fromId, toId };
             created.push({ kind: "relationship", id });
           }
           for (const note of content.notes) {
@@ -491,8 +491,8 @@ export const useDocumentStore = create<DocumentState>()(
       },
       duplicateElements: (refs, offset = PASTE_OFFSET) => {
         const content = get().copyElements(refs);
-        const first = refs[0];
-        const layerId = first ? getElement(get().doc, first)?.layerId : undefined;
+        const doc = get().doc;
+        const layerId = refs.map((r) => elementLayerId(doc, r)).find((id) => id !== undefined);
         const fallback = get().doc.layers[0]?.id;
         const target = layerId ?? fallback;
         if (!target) return [];

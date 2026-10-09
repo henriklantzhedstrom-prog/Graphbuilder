@@ -9,6 +9,7 @@ import {
   renderGroups,
   resolvedNodeStyle,
   resolvedRelationshipStyle,
+  visibleRelationships,
 } from "@/store/selectors";
 import { ImageView } from "./ImageView";
 import { NodeView } from "./NodeView";
@@ -93,11 +94,13 @@ export function Scene({
   const conflicts = interactive ? conflictingNodeIds(doc.nodes) : new Set<Id>();
   const isSelected = (key: string) => selectedKeys?.has(key) ?? false;
   const groups = renderGroups(doc).filter((g) => !layerFilter || layerFilter(g.layer.id));
+  // Relationer har inget lager: de syns när båda ändnoderna syns.
+  const relationships = visibleRelationships(doc, layerFilter);
   const isEditing = (ref: ElementRef) =>
     editing !== null && editing !== undefined && refKey(editing) === refKey(ref);
 
   // Ritordning: bilder underst, sedan alla relationer, sedan alla noder, sedan anteckningar.
-  // Lagerordningen gäller inom varje sort, så att relationer alltid hamnar bakom noderna.
+  // Lagerordningen gäller för bilder, noder och anteckningar; relationer ligger alltid bakom noderna.
   return (
     <>
       {groups.map(({ layer, images }) => (
@@ -125,26 +128,24 @@ export function Scene({
           })}
         </g>
       ))}
-      {groups.map(({ layer, relationships }) => (
-        <g key={`relationships:${layer.id}`} data-layer={layer.id} data-kind="relationships">
-          {relationships.map((rel) => {
-            const geometry = computeRelationshipGeometry(doc, rel, bundles, overrides);
-            if (!geometry) return null;
-            return (
-              <RelationshipView
-                key={rel.id}
-                relationship={rel}
-                style={resolvedRelationshipStyle(doc, rel)}
-                geometry={geometry}
-                interactive={interactive}
-                hideType={isEditing({ kind: "relationship", id: rel.id })}
-                selected={isSelected(`relationship:${rel.id}`)}
-                zoom={zoom}
-              />
-            );
-          })}
-        </g>
-      ))}
+      <g data-kind="relationships">
+        {relationships.map((rel) => {
+          const geometry = computeRelationshipGeometry(doc, rel, bundles, overrides);
+          if (!geometry) return null;
+          return (
+            <RelationshipView
+              key={rel.id}
+              relationship={rel}
+              style={resolvedRelationshipStyle(doc, rel)}
+              geometry={geometry}
+              interactive={interactive}
+              hideType={isEditing({ kind: "relationship", id: rel.id })}
+              selected={isSelected(`relationship:${rel.id}`)}
+              zoom={zoom}
+            />
+          );
+        })}
+      </g>
       {groups.map(({ layer, nodes }) => (
         <g key={`nodes:${layer.id}`} data-layer={layer.id} data-kind="nodes">
           {nodes.map((node) => (

@@ -48,7 +48,6 @@ function sampleDoc(): GraphDocument {
   };
   doc.relationships.r1 = {
     id: "r1",
-    layerId: l1,
     fromId: "a",
     toId: "b",
     type: "WORKS AT",
@@ -57,7 +56,6 @@ function sampleDoc(): GraphDocument {
   };
   doc.relationships.r2 = {
     id: "r2",
-    layerId: l1,
     fromId: "a",
     toId: "c",
     type: "",
@@ -227,8 +225,8 @@ describe("ritordning", () => {
     const doc = sampleDoc();
     const top = createLayer("Topp");
     doc.layers.push(top);
-    const r1 = doc.relationships.r1;
-    if (r1) r1.layerId = top.id;
+    const alice = doc.nodes.a;
+    if (alice) alice.layerId = top.id;
     const result = exportSvg(doc, { onlyVisible: true, transparent: true });
     const svg = result?.svg ?? "";
     expect(svg.indexOf("WORKS AT")).toBeGreaterThan(-1);
