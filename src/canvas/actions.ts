@@ -77,11 +77,24 @@ export function deleteSelection(): void {
   setEditing(null);
 }
 
+/** Antal kopierade noder som tappade sina labels för att labelkombinationen redan fanns. */
+function strippedLabelCount(sourceNodes: { labels: string[] }[], created: ElementRef[]): number {
+  const { doc } = docState();
+  const copies = created.filter((r) => r.kind === "node").map((r) => doc.nodes[r.id]);
+  return sourceNodes.filter((n, i) => n.labels.length > 0 && copies[i]?.labels.length === 0).length;
+}
+
+function notifyStrippedLabels(count: number): void {
+  if (count > 0) ui().showToast(t.toasts.labelsStrippedOnCopy(count));
+}
+
 export function duplicateSelection(): void {
   const { selection, setSelection } = ui();
   if (selection.length === 0) return;
+  const source = docState().copyElements(selection);
   const created = docState().duplicateElements(selection);
   setSelection(created);
+  notifyStrippedLabels(strippedLabelCount(source.nodes, created));
 }
 
 export function copySelection(): void {
@@ -105,7 +118,9 @@ export function pasteClipboard(): void {
   if (!layerId) return;
   const created = docState().pasteElements(clipboard, layerId);
   setSelection(created);
-  showToast(t.toasts.pasted(created.length));
+  const stripped = strippedLabelCount(clipboard.nodes, created);
+  if (stripped > 0) notifyStrippedLabels(stripped);
+  else showToast(t.toasts.pasted(created.length));
 }
 
 export function selectAll(): void {

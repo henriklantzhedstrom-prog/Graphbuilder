@@ -60,6 +60,12 @@ export const en = {
     addLabel: "Add label",
     labelPlaceholder: "New label",
     removeLabel: "Remove label",
+    labelConflict: (labels: string, other: string) =>
+      other
+        ? `“${other}” already has the labels ${labels}. Each label combination can only be used once.`
+        : `Another node already has the labels ${labels}. Each label combination can only be used once.`,
+    labelConflictExisting:
+      "This node has the same labels as another node. Change the labels so that each combination is used only once.",
     type: "Type",
     typePlaceholder: "E.g. KNOWS",
     direction: "Direction",
@@ -253,6 +259,10 @@ export const en = {
     nothingToCopy: "Nothing to copy",
     pasted: (n: number) => `Pasted ${n} elements`,
     exported: "Export done",
+    labelsStrippedOnCopy: (n: number) =>
+      `Labels were removed from ${n === 1 ? "the copy" : `${n} copies`} – each label combination can only be used once.`,
+    labelConflictsInModel: (n: number) =>
+      `${n} nodes share their labels with another node. They are marked with a red ring.`,
     storageUnavailable:
       "Saving is not available in this view. Export your model as a file to keep it.",
     copied: "Copied to clipboard",

@@ -85,6 +85,10 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   skriv den med `setCaption`/`setCaptionKey` i `documentStore`. Rubrik skriven direkt på ritytan
   sparas i egenskapen `name`. Dokumentversion 2; version 1 (eget `caption`-fält) migreras vid
   inläsning i `src/model/schema.ts`.
+- **Unika labels:** två noder får inte ha samma label eller labelkombination (ordningsoberoende,
+  exakt stavning; noder utan labels undantas). Regeln ligger i `src/model/labels.ts` och spärren i
+  `documentStore.setNodeLabels` (`updateNode` ignorerar `labels`; kopior/inklistring tappar krockande
+  labels). Äldre filer med krockar laddas oförändrade men markeras med röd ring och en varning.
 - Noder skapas med knappen **Add node** överst i sidopanelen (`addNodeInView` i `src/canvas/actions.ts`),
   aldrig genom dubbelklick på tom yta. Dubbelklick på ett element redigerar det (träffas via
   `document.elementFromPoint`, eftersom pekarfångst gör `e.target` till ritytan).
