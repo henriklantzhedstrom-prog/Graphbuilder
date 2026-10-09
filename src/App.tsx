@@ -8,6 +8,7 @@ import { importArrowsJson } from "@/export/arrowsImport";
 import { useAppInit } from "@/hooks/useAppInit";
 import { t } from "@/i18n/sv";
 import type { Size } from "@/model/types";
+import { DocumentsDialog } from "@/panels/DocumentsDialog";
 import { ExportDialog } from "@/panels/ExportDialog";
 import { ShortcutsDialog } from "@/panels/ShortcutsDialog";
 import { SidePanel } from "@/panels/SidePanel";
@@ -122,6 +123,7 @@ export function App() {
       </div>
       <ShortcutsDialog />
       <ExportDialog />
+      <DocumentsDialog />
     </div>
   );
 }
