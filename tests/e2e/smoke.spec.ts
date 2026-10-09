@@ -9,6 +9,7 @@ test("appen startar", async ({ page }) => {
 
 test("högermenyn har stor, läsbar text", async ({ page }) => {
   await page.goto("/");
+  await expect(page.getByTestId("add-node")).toBeVisible();
   const sizes = await page.evaluate(() => {
     const aside = document.querySelector("aside");
     const px = (el: Element | null | undefined) =>
