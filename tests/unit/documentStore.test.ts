@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { redo, undo, useDocumentStore, useTemporal } from "@/store/documentStore";
+import { clearHistory, redo, undo, useDocumentStore } from "@/store/documentStore";
 import {
   contentBounds,
   isElementLocked,
@@ -14,7 +14,7 @@ const firstLayer = () => store().doc.layers[0]?.id ?? "";
 
 beforeEach(() => {
   store().newDocument("Test");
-  useTemporal.getState().clear();
+  clearHistory();
 });
 
 describe("lager", () => {
