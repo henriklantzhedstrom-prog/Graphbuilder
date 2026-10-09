@@ -62,7 +62,8 @@ export interface GraphNode {
   id: Id;
   layerId: Id;
   position: Point;
-  caption: string;
+  /** Nyckeln till den egenskap som visas som nodens rubrik, eller null. */
+  captionKey: string | null;
   labels: string[];
   properties: Record<string, string>;
   style: Partial<NodeStyle>;
@@ -111,7 +112,7 @@ export interface Asset {
   height: number;
 }
 
-export const DOCUMENT_VERSION = 1;
+export const DOCUMENT_VERSION = 2;
 
 export interface GraphDocument {
   version: typeof DOCUMENT_VERSION;

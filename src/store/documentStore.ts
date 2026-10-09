@@ -2,6 +2,7 @@ import { temporal } from "zundo";
 import { create, useStore } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { t } from "@/i18n";
+import { captionKeyFor } from "@/model/caption";
 import {
   BACKGROUND_LAYER_NAME,
   createEmptyDocument,
@@ -92,6 +93,10 @@ export interface DocumentState {
   setProperty(refs: ElementRef[], key: string, value: string): void;
   renameProperty(refs: ElementRef[], oldKey: string, newKey: string): void;
   removeProperty(refs: ElementRef[], key: string): void;
+  /** Markerar vilken egenskap som är nodens rubrik (null = ingen). */
+  setCaptionKey(nodeIds: Id[], key: string | null): void;
+  /** Sätter rubrikens text; skapar rubrikegenskapen om noden saknar en. */
+  setCaption(nodeId: Id, text: string): void;
 
   // Stil
   setDocumentStyle(patch: {
@@ -229,7 +234,7 @@ export const useDocumentStore = create<DocumentState>()(
             id,
             layerId,
             position,
-            caption: "",
+            captionKey: null,
             labels: [],
             properties: {},
             style: {},
@@ -479,6 +484,9 @@ export const useDocumentStore = create<DocumentState>()(
               k === oldKey ? [newKey, v] : [k, v],
             );
             el.properties = Object.fromEntries(entries);
+            if (ref.kind === "node" && (el as GraphNode).captionKey === oldKey) {
+              (el as GraphNode).captionKey = newKey;
+            }
           }
           touch(s.doc);
         }),
@@ -487,8 +495,33 @@ export const useDocumentStore = create<DocumentState>()(
           for (const ref of refs) {
             if (ref.kind !== "node" && ref.kind !== "relationship") continue;
             const el = getElement(s.doc, ref) as GraphNode | Relationship | undefined;
-            if (el) delete el.properties[key];
+            if (!el) continue;
+            delete el.properties[key];
+            if (ref.kind === "node" && (el as GraphNode).captionKey === key) {
+              (el as GraphNode).captionKey = null;
+            }
           }
+          touch(s.doc);
+        }),
+      setCaptionKey: (nodeIds, key) =>
+        set((s) => {
+          for (const id of nodeIds) {
+            const n = s.doc.nodes[id];
+            if (!n) continue;
+            if (key === null) n.captionKey = null;
+            else if (key in n.properties) n.captionKey = key;
+          }
+          touch(s.doc);
+        }),
+      setCaption: (nodeId, text) =>
+        set((s) => {
+          const n = s.doc.nodes[nodeId];
+          if (!n) return;
+          if (!n.captionKey || !(n.captionKey in n.properties)) {
+            if (text === "") return;
+            n.captionKey = captionKeyFor(n.properties, text);
+          }
+          n.properties[n.captionKey] = text;
           touch(s.doc);
         }),
 

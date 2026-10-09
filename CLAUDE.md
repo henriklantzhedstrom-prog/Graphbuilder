@@ -79,6 +79,11 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   Access API) så att det fungerar i alla webbläsare och går att testa med Playwright.
 - Ritytans vyer i `src/canvas/render` är rena komponenter utan store-hooks; samma komponenter
   renderar SVG-exporten via `renderToStaticMarkup`. Inga `foreignObject` i visningsläge.
+- **Nodens rubrik är en egenskap.** `GraphNode.captionKey` pekar ut vilken egenskap som visas som
+  rubrik (kryssruta i egenskapslistan). Läs rubriken med `nodeCaption()` i `src/model/caption.ts`;
+  skriv den med `setCaption`/`setCaptionKey` i `documentStore`. Rubrik skriven direkt på ritytan
+  sparas i egenskapen `name`. Dokumentversion 2; version 1 (eget `caption`-fält) migreras vid
+  inläsning i `src/model/schema.ts`.
 - Noder skapas med knappen **Add node** överst i sidopanelen (`addNodeInView` i `src/canvas/actions.ts`),
   aldrig genom dubbelklick på tom yta. Dubbelklick på ett element redigerar det (träffas via
   `document.elementFromPoint`, eftersom pekarfångst gör `e.target` till ritytan).
