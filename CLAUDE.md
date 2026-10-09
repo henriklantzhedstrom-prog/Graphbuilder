@@ -67,8 +67,13 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
 - **Appen är på engelska. Alla UI-texter ligger i `src/i18n/en.ts`** och importeras via `@/i18n`.
   Inga hårdkodade strängar i komponenter, modell eller export (felmeddelanden under `t.errors`).
   Kommunikationen med kunden är på svenska; appen och koden på engelska.
-- Varje element (nod, relation, anteckning, bild) hör till exakt ett lager. Nya element skapas i
-  aktivt lager. Dolda lager renderas inte; låsta lager kan inte markeras eller flyttas.
+- Varje nod, anteckning och bild hör till exakt ett lager. Nya element skapas i aktivt lager.
+  Dolda lager renderas inte; låsta lager kan inte markeras eller flyttas.
+- **Relationer har inget lager** (inget `layerId`). En relation syns när båda ändnoderna ligger i
+  synliga lager och är låst när någon ändnod ligger i ett låst lager (`isRelationshipVisible`,
+  `visibleRelationships`, `isElementLocked` i `src/store/selectors.ts`). Lagrets antal räknar inte
+  relationer och lagerväljaren i egenskapspanelen gäller bara noder, anteckningar och bilder;
+  använd `elementLayerId()` för att läsa ett elements lager.
 - Varje ny funktion levereras med enhetstest (`tests/unit`) och, när den har UI, e2e-test (`tests/e2e`).
 - Commit-meddelanden: en kort rad i imperativ på engelska (`Add layers panel`), sedan valfri brödtext.
 - Importera med alias `@/` för `src/`.
@@ -83,14 +88,14 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   rubrik (kryssruta i egenskapslistan). Rubrikegenskapen visas både i noden och, som alla andra
   egenskaper, i listan under noden. Läs rubriken med `nodeCaption()` i `src/model/caption.ts`;
   skriv den med `setCaption`/`setCaptionKey` i `documentStore`. Rubrik skriven direkt på ritytan
-  sparas i egenskapen `name`. Dokumentversion 2; version 1 (eget `caption`-fält) migreras vid
+  sparas i egenskapen `name`. Dokumentversion 3; version 1 (eget `caption`-fält) och version 2 (`layerId` på relationer) migreras vid
   inläsning i `src/model/schema.ts`.
 - **Unika labels:** två noder får inte ha samma label eller labelkombination (ordningsoberoende,
   exakt stavning; noder utan labels undantas). Regeln ligger i `src/model/labels.ts` och spärren i
   `documentStore.setNodeLabels` (`updateNode` ignorerar `labels`; kopior/inklistring tappar krockande
   labels). Äldre filer med krockar laddas oförändrade men markeras med röd ring och en varning.
 - **Ritordning** (`Scene.tsx`): alla bilder, sedan alla relationer, sedan alla noder, sedan alla
-  anteckningar; lagerordningen gäller inom varje sort. Relationer börjar under nodens kant och
+  anteckningar; lagerordningen gäller inom bilder, noder och anteckningar (relationer har inget lager). Relationer börjar under nodens kant och
   pilspetsen slutar precis utanför den. Parallella relationer: `PARALLEL_SPACING` i `geometry.ts`.
   Egenskapsrader har en bakgrundsruta (`PropertyBackground.tsx`, stil `propertyBackground`, standard
   vit) som relationer passerar bakom och som är klickbar som en del av elementet. Labels har

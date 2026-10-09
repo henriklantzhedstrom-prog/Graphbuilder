@@ -5,6 +5,7 @@ import { useDocumentStore } from "@/store/documentStore";
 import {
   allElementRefs,
   contentBounds,
+  elementLayerId,
   getElement,
   isElementLocked,
   isSelectable,
@@ -42,10 +43,10 @@ export function createNodeAt(position: Point, edit = true): Id | null {
   return id;
 }
 
+/** Relationer har inget lager, så de kan skapas oavsett vilket lager som är aktivt. */
 export function createRelationship(fromId: Id, toId: Id, edit = true): Id | null {
-  const layerId = resolveActiveLayer();
-  if (!layerId) return null;
-  const id = docState().addRelationship(layerId, fromId, toId);
+  const id = docState().addRelationship(fromId, toId);
+  if (!(id in docState().doc.relationships)) return null;
   const ref: ElementRef = { kind: "relationship", id };
   ui().setSelection([ref]);
   if (edit) ui().setEditing(ref);
@@ -131,9 +132,7 @@ export function selectAll(): void {
 export function selectLayer(layerId: Id): void {
   const { doc } = docState();
   ui().setSelection(
-    allElementRefs(doc).filter(
-      (r) => getElement(doc, r)?.layerId === layerId && isSelectable(doc, r),
-    ),
+    allElementRefs(doc).filter((r) => elementLayerId(doc, r) === layerId && isSelectable(doc, r)),
   );
 }
 

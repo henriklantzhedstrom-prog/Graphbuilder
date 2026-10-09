@@ -58,9 +58,9 @@ const graphNode = z.object({
   style: nodeStyle.partial().default({}),
 });
 
+/** Version 1–2 hade `layerId` även på relationer; fältet ignoreras och rensas bort. */
 const relationship = z.object({
   id: z.string().min(1),
-  layerId: z.string().min(1),
   fromId: z.string().min(1),
   toId: z.string().min(1),
   type: z.string().default(""),
@@ -105,7 +105,7 @@ const diagramStyle = z.object({
 });
 
 export const documentSchemaV1 = z.object({
-  version: z.union([z.literal(1), z.literal(2)]),
+  version: z.union([z.literal(1), z.literal(2), z.literal(3)]),
   id: z.string().min(1),
   name: z.string().default(t.app.untitled),
   createdAt: z.string(),
@@ -139,7 +139,7 @@ export function parseDocument(input: unknown): GraphDocument {
     throw new DocumentParseError(t.errors.notAModel);
   }
   const version = (input as { version?: unknown }).version;
-  if (version !== 1 && version !== DOCUMENT_VERSION) {
+  if (version !== 1 && version !== 2 && version !== DOCUMENT_VERSION) {
     throw new DocumentParseError(t.errors.wrongVersion(String(version), DOCUMENT_VERSION));
   }
   const result = documentSchemaV1.safeParse(input);
@@ -179,9 +179,7 @@ function repairDocument(doc: z.infer<typeof documentSchemaV1>): GraphDocument {
     Object.entries(doc.nodes).map(([k, v]) => [k, migrateNode(fixLayer(v))]),
   );
   const relationships = Object.fromEntries(
-    Object.entries(doc.relationships)
-      .filter(([, r]) => r.fromId in nodes && r.toId in nodes)
-      .map(([k, v]) => [k, fixLayer(v)]),
+    Object.entries(doc.relationships).filter(([, r]) => r.fromId in nodes && r.toId in nodes),
   );
   const notes = Object.fromEntries(Object.entries(doc.notes).map(([k, v]) => [k, fixLayer(v)]));
   const images = Object.fromEntries(

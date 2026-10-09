@@ -1,16 +1,14 @@
 import type { GraphDocument } from "@/model/types";
 import { isRelationshipVisible } from "@/store/selectors";
 
-/** Kopia av dokumentet med bara synliga lager och deras element. */
+/** Kopia av dokumentet med bara synliga lager, deras element och relationer mellan synliga noder. */
 export function visibleDocument(doc: GraphDocument): GraphDocument {
   const visibleIds = new Set(doc.layers.filter((l) => l.visible).map((l) => l.id));
   const keep = <T extends { layerId: string }>(table: Record<string, T>) =>
     Object.fromEntries(Object.entries(table).filter(([, el]) => visibleIds.has(el.layerId)));
   const nodes = keep(doc.nodes);
   const relationships = Object.fromEntries(
-    Object.entries(doc.relationships).filter(
-      ([, r]) => isRelationshipVisible(doc, r) && r.fromId in nodes && r.toId in nodes,
-    ),
+    Object.entries(doc.relationships).filter(([, r]) => isRelationshipVisible(doc, r)),
   );
   const images = keep(doc.images);
   const usedAssets = new Set(Object.values(images).map((im) => im.assetId));

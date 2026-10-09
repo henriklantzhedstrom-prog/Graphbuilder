@@ -75,9 +75,9 @@ export interface GraphNode {
   style: Partial<NodeStyle>;
 }
 
+/** Relationer har inget eget lager: de syns när båda ändnoderna ligger i synliga lager. */
 export interface Relationship {
   id: Id;
-  layerId: Id;
   fromId: Id;
   toId: Id;
   type: string;
@@ -118,7 +118,7 @@ export interface Asset {
   height: number;
 }
 
-export const DOCUMENT_VERSION = 2;
+export const DOCUMENT_VERSION = 3;
 
 export interface GraphDocument {
   version: typeof DOCUMENT_VERSION;
