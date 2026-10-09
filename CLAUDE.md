@@ -50,6 +50,7 @@ Egen SVG-renderare, inget diagrambibliotek.
 
 ```
 npm run dev        # utvecklingsserver
+npm run build:single  # en enda html-fil i dist-single/ för publicering som egen sida
 npm run check      # lint + typecheck + enhetstester – ska vara grönt före varje commit
 npm run e2e        # Playwright (bygger och startar preview själv)
 npm run build      # produktionsbygge till dist/
@@ -80,5 +81,14 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   renderar SVG-exporten via `renderToStaticMarkup`. Inga `foreignObject` i visningsläge.
 - E2e-hjälpare (`freshApp`, `createNode`, `dragRelationship`) ligger i `tests/e2e/helpers.ts`.
   Skärmdumpar från `tests/e2e/screenshots.spec.ts` hamnar i `test-results/screenshots/`.
+- **Publicering till claude.ai** (länk https://claude.ai/artifact/VTPthWmGZ8Sd6ASs3HavKb): kör
+  `npm run build:single` och publicera `dist-single/index.html` med Artifact-verktyget mot samma
+  url. Alltid en fil: separata stödfiler är opålitliga där, och stora inline-`<script>` avvisas av
+  tjänsten, därför bäddas skriptet in som data-URL (`scripts/build-single.mjs`). Verifiera före
+  leverans genom att köra sidan i Chromium inuti ett omslagsdokument (se tidigare `.verify.mjs`-
+  mönster: ladda, skapa nod, ladda om, inga fel).
+- GitHub Pages-adressen https://henriklantzhedstrom-prog.github.io/Graphbuilder/ fungerar först när
+  kodförrådet är publikt (Pages kan inte aktiveras av den automatiska kontrollen på privat förråd),
+  och det får Claude inte ändra själv (säkerhetsspärr). Leveranslänken är därför claude.ai-sidan.
 - Lokalt pekar `playwright.config.ts` på `/opt/pw-browsers/chromium` när den finns; i CI
   installeras Chromium med `npx playwright install --with-deps chromium`.
