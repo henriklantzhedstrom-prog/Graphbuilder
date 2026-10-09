@@ -39,7 +39,6 @@ const layer = z.object({
   name: z.string(),
   visible: z.boolean().default(true),
   locked: z.boolean().default(false),
-  opacity: z.number().min(0).max(1).default(1),
 });
 
 const graphNode = z.object({

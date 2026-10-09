@@ -51,6 +51,15 @@ describe("parseDocument", () => {
     expect(doc.style.relationship.directed).toBe(true);
   });
 
+  it("läser äldre modeller med opacitet på lager och tar bort fältet", () => {
+    const base = createEmptyDocument("Old");
+    const raw = JSON.parse(JSON.stringify(base));
+    raw.layers[0].opacity = 0.5;
+    const doc = parseDocument(raw);
+    expect(doc.layers[0]).not.toHaveProperty("opacity");
+    expect(doc.layers[0]?.name).toBe(base.layers[0]?.name);
+  });
+
   it("ger ett lager om listan är tom", () => {
     const doc = parseDocument({ ...createEmptyDocument(), layers: [] });
     expect(doc.layers).toHaveLength(1);

@@ -22,8 +22,6 @@ export interface Layer {
   name: string;
   visible: boolean;
   locked: boolean;
-  /** 0–1 */
-  opacity: number;
 }
 
 export interface NodeStyle {

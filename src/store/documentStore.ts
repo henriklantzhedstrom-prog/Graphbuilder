@@ -49,7 +49,6 @@ export interface DocumentState {
   renameLayer(id: Id, name: string): void;
   setLayerVisible(id: Id, visible: boolean): void;
   setLayerLocked(id: Id, locked: boolean): void;
-  setLayerOpacity(id: Id, opacity: number): void;
   moveLayer(id: Id, toIndex: number): void;
   /** Tar bort lagret. Innehåll flyttas till `moveContentTo` eller tas bort om det utelämnas. */
   removeLayer(id: Id, moveContentTo?: Id): void;
@@ -163,14 +162,6 @@ export const useDocumentStore = create<DocumentState>()(
           const l = s.doc.layers.find((x) => x.id === id);
           if (l) {
             l.locked = locked;
-            touch(s.doc);
-          }
-        }),
-      setLayerOpacity: (id, opacity) =>
-        set((s) => {
-          const l = s.doc.layers.find((x) => x.id === id);
-          if (l) {
-            l.opacity = Math.min(1, Math.max(0, opacity));
             touch(s.doc);
           }
         }),

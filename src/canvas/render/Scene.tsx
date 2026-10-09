@@ -90,7 +90,7 @@ export function Scene({
   return (
     <>
       {groups.map(({ layer, images, relationships, nodes, notes }) => (
-        <g key={layer.id} data-layer={layer.id} opacity={layer.opacity}>
+        <g key={layer.id} data-layer={layer.id}>
           {images.map((image) => {
             const asset = doc.assets[image.assetId];
             if (!asset) return null;
