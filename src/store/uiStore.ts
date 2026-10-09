@@ -6,7 +6,7 @@ import { refKey } from "./selectors";
 
 export type Tool = "select" | "pan" | "note";
 export type Panel = "inspector" | "layers";
-export type Dialog = "export" | "documents" | "shortcuts" | "import" | null;
+export type Dialog = "export" | "documents" | "shortcuts" | null;
 
 export type DragState =
   | { kind: "move"; delta: Point; guides: { axis: "x" | "y"; value: number }[] }
