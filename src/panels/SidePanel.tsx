@@ -16,7 +16,7 @@ export function SidePanel({ getViewportSize }: { getViewportSize: () => Size }) 
   const panel = useUiStore((s) => s.panel);
   const setPanel = useUiStore((s) => s.setPanel);
   return (
-    <aside className="flex w-80 shrink-0 flex-col border-border border-l bg-surface">
+    <aside className="flex w-[23rem] shrink-0 flex-col border-border border-l bg-surface text-[17px]">
       <div className="border-border border-b p-3">
         <Button
           variant="primary"
@@ -37,7 +37,7 @@ export function SidePanel({ getViewportSize }: { getViewportSize: () => Size }) 
             aria-selected={panel === tab.id}
             onClick={() => setPanel(tab.id)}
             className={cx(
-              "flex-1 border-b-2 px-3 py-2 text-sm",
+              "flex-1 border-b-2 px-3 py-2 text-[1em]",
               panel === tab.id
                 ? "border-accent font-medium text-text"
                 : "border-transparent text-text-muted hover:text-text",

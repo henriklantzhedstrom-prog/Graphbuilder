@@ -15,7 +15,7 @@ export function Button({
     <button
       type="button"
       className={cx(
-        "inline-flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-sm transition-colors",
+        "inline-flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-[1em] transition-colors",
         "disabled:cursor-not-allowed disabled:opacity-40",
         "focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-1",
         variant === "default" && "border-border bg-surface hover:bg-surface-2 active:bg-surface-3",
@@ -61,7 +61,7 @@ export function TextInput({ className, ...props }: InputHTMLAttributes<HTMLInput
   return (
     <input
       className={cx(
-        "h-8 w-full rounded-md border border-border bg-surface px-2 text-sm",
+        "h-8 w-full rounded-md border border-border bg-surface px-2 text-[1em]",
         "focus:border-accent focus:outline-none",
         className,
       )}
@@ -82,7 +82,7 @@ export function Field({
   const id = useId();
   return (
     <div className={cx(inline ? "flex items-center justify-between gap-3" : "flex flex-col gap-1")}>
-      <label htmlFor={id} className="text-xs text-text-muted">
+      <label htmlFor={id} className="text-[0.86em] text-text-muted">
         {label}
       </label>
       {children(id)}
@@ -113,7 +113,7 @@ export function NumberField({
         <input
           id={id}
           type="number"
-          className="h-7 w-24 rounded-md border border-border bg-surface px-2 text-right text-sm focus:border-accent focus:outline-none"
+          className="h-8 w-24 rounded-md border border-border bg-surface px-2 text-right text-[1em] focus:border-accent focus:outline-none"
           value={value ?? ""}
           placeholder={placeholder}
           min={min}
@@ -202,7 +202,7 @@ export function SliderField({
             onChange={(e) => onChange(Number(e.target.value))}
             className="w-full accent-accent"
           />
-          <span className="w-12 text-right text-xs tabular-nums text-text-muted">
+          <span className="w-14 text-right text-[0.86em] tabular-nums text-text-muted">
             {format(value)}
           </span>
         </span>
@@ -222,7 +222,7 @@ export function CheckboxField({
 }) {
   const id = useId();
   return (
-    <label htmlFor={id} className="flex cursor-pointer items-center gap-2 text-sm">
+    <label htmlFor={id} className="flex cursor-pointer items-center gap-2 text-[1em]">
       <input
         id={id}
         type="checkbox"
@@ -238,7 +238,9 @@ export function CheckboxField({
 export function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-2 border-border border-b px-3 py-3">
-      <h3 className="font-semibold text-text-muted text-xs uppercase tracking-wide">{title}</h3>
+      <h3 className="font-semibold text-[0.8em] text-text-muted uppercase tracking-wide">
+        {title}
+      </h3>
       {children}
     </section>
   );

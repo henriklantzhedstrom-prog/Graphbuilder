@@ -42,7 +42,7 @@ export function LayersPanel() {
   return (
     <div className="flex flex-col" data-testid="layers-panel">
       <div className="flex items-center justify-between px-3 py-2">
-        <span className="text-text-muted text-xs">{t.layers.hint}</span>
+        <span className="text-text-muted text-[0.86em]">{t.layers.hint}</span>
       </div>
       <div className="px-3 pb-2">
         <Button onClick={onAdd} data-testid="add-layer">
@@ -194,7 +194,7 @@ function LayerRow({
           <button
             type="button"
             data-testid="layer-name"
-            className={cx("min-w-0 flex-1 truncate text-left text-sm", active && "font-medium")}
+            className={cx("min-w-0 flex-1 truncate text-left text-[1em]", active && "font-medium")}
             title={`${layer.name} – ${t.layers.rename}`}
             onClick={onActivate}
             onDoubleClick={() => {
@@ -205,7 +205,10 @@ function LayerRow({
             {layer.name}
           </button>
         )}
-        <span className="text-text-muted text-xs tabular-nums" title={t.layers.elementCount(count)}>
+        <span
+          className="text-text-muted text-[0.86em] tabular-nums"
+          title={t.layers.elementCount(count)}
+        >
           {count}
         </span>
       </div>
@@ -273,9 +276,9 @@ function RemoveLayerDialog({ layer, onClose }: { layer: Layer; onClose: () => vo
         </>
       }
     >
-      <p className="mb-3 text-sm">{t.layers.removeBody(count)}</p>
+      <p className="mb-3 text-[1em]">{t.layers.removeBody(count)}</p>
       {count > 0 && (
-        <label className="flex items-center gap-2 text-sm">
+        <label className="flex items-center gap-2 text-[1em]">
           {t.layers.removeMoveTo}
           <select
             className="h-8 rounded-md border border-border bg-surface px-1"
