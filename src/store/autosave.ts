@@ -1,11 +1,13 @@
 import type { GraphDocument } from "@/model/types";
 import { useDocumentStore } from "./documentStore";
-import { saveDocumentLocally, setLastOpenedId } from "./persistence";
+import { saveDocumentLocally } from "./persistence";
 
 export const AUTOSAVE_DELAY_MS = 500;
 
 /**
  * Sparar dokumentet till IndexedDB efter varje ändring (debounce).
+ * Sätter inte "senast öppnad" – det görs där modeller öppnas/skapas, annars kan en
+ * fördröjd sparning peka ut en modell som hunnit tas bort.
  * Returnerar en funktion som stänger av autospar.
  */
 export function startAutosave(
@@ -20,7 +22,7 @@ export function startAutosave(
     if (!pending) return;
     const doc = pending;
     pending = null;
-    void save(doc).then(() => setLastOpenedId(doc.id));
+    void save(doc);
   };
 
   const unsubscribe = useDocumentStore.subscribe((state, prev) => {

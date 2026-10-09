@@ -498,9 +498,19 @@ export function Canvas() {
         : "default";
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: släppyta för filer; samma funktion finns via knappen "Bild…"
     <div
       className="relative h-full w-full overflow-hidden bg-canvas"
       data-testid="canvas-container"
+      onDragOver={(e) => {
+        if (e.dataTransfer.types.includes("Files")) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "copy";
+          if (!dropActive) setDropActive(true);
+        }
+      }}
+      onDragLeave={() => setDropActive(false)}
+      onDrop={onDrop}
     >
       <svg
         ref={svgRef}
