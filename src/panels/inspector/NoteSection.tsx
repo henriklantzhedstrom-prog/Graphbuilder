@@ -1,5 +1,5 @@
 import { Button, ColorField, Field, NumberField, Section } from "@/components/ui";
-import { t } from "@/i18n/sv";
+import { t } from "@/i18n";
 import { NOTE_COLORS } from "@/model/defaults";
 import type { Note } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";

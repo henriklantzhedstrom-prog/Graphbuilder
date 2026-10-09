@@ -9,7 +9,7 @@ const PNG_1x1 = Buffer.from(
 
 async function addImage(page: import("@playwright/test").Page) {
   const chooser = page.waitForEvent("filechooser");
-  await page.getByRole("button", { name: "Bild…" }).click();
+  await page.getByRole("button", { name: "Image…" }).click();
   await (await chooser).setFiles({ name: "bild.png", mimeType: "image/png", buffer: PNG_1x1 });
   await expect(page.locator("[data-ref^='image:'] image")).toHaveCount(1);
 }
@@ -23,9 +23,9 @@ test.describe("bakgrundsbilder", () => {
     const image = page.locator("[data-ref^='image:'] image");
     expect(Number(await image.getAttribute("width"))).toBe(1);
     // Bilden blir markerad direkt; sätt storlek via panelen
-    await page.getByLabel("Bredd").fill("300");
-    await page.getByLabel("Höjd").fill("100");
-    await page.getByRole("button", { name: "Återställ proportioner" }).click();
+    await page.getByLabel("Width").fill("300");
+    await page.getByLabel("Height").fill("100");
+    await page.getByRole("button", { name: "Reset proportions" }).click();
     expect(Number(await image.getAttribute("height"))).toBe(300);
 
     const handle = page.locator("[data-part='handle'][data-handle='se']");
@@ -40,25 +40,25 @@ test.describe("bakgrundsbilder", () => {
     expect(w / h).toBeCloseTo(1, 1);
     expect(w).toBeGreaterThan(400);
 
-    await page.getByLabel("Opacitet").fill("0.4");
+    await page.getByLabel("Opacity").fill("0.4");
     await expect(page.locator("[data-ref^='image:'][opacity='0.4']")).toHaveCount(1);
 
     // click i stället för check: kryssrutan avmonteras när markeringen släpps.
-    await page.getByLabel("Lås bilden (kan inte markeras av misstag)").click();
-    await expect(page.getByText("Inget markerat")).toBeVisible();
+    await page.getByLabel("Lock image (cannot be selected by accident)").click();
+    await expect(page.getByText("Nothing selected", { exact: true })).toBeVisible();
     await image.click({ force: true });
-    await expect(page.getByText("Inget markerat")).toBeVisible();
+    await expect(page.getByText("Nothing selected", { exact: true })).toBeVisible();
   });
 
   test("skicka bild till lagret Bakgrund som ligger underst", async ({ page }) => {
     await freshApp(page);
     await createNode(page, 300, 300, "Nod");
     await addImage(page);
-    await page.getByRole("button", { name: "Lägg i lagret Bakgrund" }).click();
-    await page.getByRole("tab", { name: "Lager" }).click();
+    await page.getByRole("button", { name: "Move to the Background layer" }).click();
+    await page.getByRole("tab", { name: "Layers" }).click();
     const rows = page.getByTestId("layer-row");
     await expect(rows).toHaveCount(2);
-    await expect(rows.nth(1).getByTestId("layer-name")).toHaveText("Bakgrund");
+    await expect(rows.nth(1).getByTestId("layer-name")).toHaveText("Background");
     await expect(rows.nth(1).getByText("1", { exact: true })).toBeVisible();
     const layerIds = await page
       .locator("g[data-layer]")

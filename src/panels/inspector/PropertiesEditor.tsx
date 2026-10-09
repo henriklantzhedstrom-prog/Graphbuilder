@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { IconPlus, IconTrash } from "@/components/icons";
 import { Button, IconButton, TextInput } from "@/components/ui";
-import { t } from "@/i18n/sv";
+import { t } from "@/i18n";
 import type { ElementRef } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
 import { commonValue } from "./common";

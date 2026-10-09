@@ -1,7 +1,7 @@
 import { deleteSelection, duplicateSelection } from "@/canvas/actions";
 import { IconCopy, IconTrash } from "@/components/icons";
 import { Button, Field, Section } from "@/components/ui";
-import { t } from "@/i18n/sv";
+import { t } from "@/i18n";
 import { useDocumentStore } from "@/store/documentStore";
 import { getElement } from "@/store/selectors";
 import { useUiStore } from "@/store/uiStore";

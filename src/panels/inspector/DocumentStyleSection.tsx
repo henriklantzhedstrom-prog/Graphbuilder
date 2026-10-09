@@ -1,5 +1,5 @@
 import { ColorField, Section } from "@/components/ui";
-import { t } from "@/i18n/sv";
+import { t } from "@/i18n";
 import { useDocumentStore } from "@/store/documentStore";
 import { NODE_STYLE_FIELDS, RELATIONSHIP_STYLE_FIELDS } from "./common";
 import { StyleFields } from "./StyleFields";

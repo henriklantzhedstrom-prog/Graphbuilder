@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { IconClose, IconPlus } from "@/components/icons";
 import { Button, Field, Section, TextInput } from "@/components/ui";
-import { t } from "@/i18n/sv";
+import { t } from "@/i18n";
 import type { GraphNode } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
 import { resolvedNodeStyle } from "@/store/selectors";

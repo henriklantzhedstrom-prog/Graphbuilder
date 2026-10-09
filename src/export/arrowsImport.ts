@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { t } from "@/i18n";
 import { createEmptyDocument } from "@/model/defaults";
 import { newId } from "@/model/ids";
 import { DocumentParseError } from "@/model/schema";
@@ -82,12 +83,12 @@ export function importArrowsJson(text: string, name: string): GraphDocument {
   try {
     raw = JSON.parse(text);
   } catch {
-    throw new DocumentParseError("Filen är inte giltig JSON.");
+    throw new DocumentParseError(t.errors.invalidJson);
   }
   const parsed = arrowsSchema.safeParse(raw);
   if (!parsed.success) {
     throw new DocumentParseError(
-      "Filen ser inte ut som en arrows.app-export.",
+      t.errors.notArrows,
       parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`),
     );
   }

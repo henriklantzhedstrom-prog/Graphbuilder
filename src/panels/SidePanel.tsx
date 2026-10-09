@@ -1,5 +1,5 @@
 import { cx } from "@/components/ui";
-import { t } from "@/i18n/sv";
+import { t } from "@/i18n";
 import { type Panel, useUiStore } from "@/store/uiStore";
 import { Inspector } from "./Inspector";
 import { LayersPanel } from "./LayersPanel";

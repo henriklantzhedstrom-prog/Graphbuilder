@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect, useRef } from "react";
-import { t } from "@/i18n/sv";
+import { t } from "@/i18n";
 import { IconClose } from "./icons";
 import { cx, IconButton } from "./ui";
 

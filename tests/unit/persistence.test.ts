@@ -33,7 +33,7 @@ describe("filer", () => {
   });
   it("gör filnamn säkra", () => {
     expect(safeFileName("  a/b:c  ")).toBe("a-b-c");
-    expect(safeFileName("   ")).toBe("modell");
+    expect(safeFileName("   ")).toBe("model");
   });
 });
 

@@ -20,7 +20,7 @@ beforeEach(() => {
 describe("lager", () => {
   it("nytt dokument har ett lager", () => {
     expect(store().doc.layers).toHaveLength(1);
-    expect(store().doc.layers[0]?.name).toBe("Lager 1");
+    expect(store().doc.layers[0]?.name).toBe("Layer 1");
   });
 
   it("lägger till, byter namn, flyttar och tar bort lager", () => {

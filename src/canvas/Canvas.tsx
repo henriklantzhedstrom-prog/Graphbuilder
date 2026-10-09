@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import { useElementSize } from "@/hooks/useElementSize";
-import { t } from "@/i18n/sv";
+import { t } from "@/i18n";
 import { DEFAULT_NOTE } from "@/model/defaults";
 import {
   boxesIntersect,

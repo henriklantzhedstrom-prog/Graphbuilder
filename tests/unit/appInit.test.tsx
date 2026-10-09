@@ -12,7 +12,7 @@ import {
 describe("appstart och nya modeller", () => {
   it("skapar och sparar en ny modell vid första start och pekar ut den som senast öppnad", async () => {
     render(<App />);
-    await screen.findByLabelText("Modellens namn");
+    await screen.findByLabelText("Model name");
     const current = useDocumentStore.getState().doc;
     expect(await getLastOpenedId()).toBe(current.id);
     expect(await loadDocumentLocally(current.id)).not.toBeNull();

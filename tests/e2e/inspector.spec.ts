@@ -12,18 +12,18 @@ test.describe("egenskapspanel", () => {
     await page.getByTestId("inspector-caption").fill("Alice Andersson");
     await expect(page.locator("svg text", { hasText: "Alice" }).first()).toBeVisible();
 
-    await page.getByPlaceholder("Ny label").fill("Person");
-    await page.getByPlaceholder("Ny label").press("Enter");
+    await page.getByPlaceholder("New label").fill("Person");
+    await page.getByPlaceholder("New label").press("Enter");
     await expect(page.locator("svg text", { hasText: "Person" })).toBeVisible();
 
-    await page.getByPlaceholder("Nyckel").fill("ålder");
-    await page.getByPlaceholder("Nyckel").press("Enter");
-    await page.getByLabel("Värde").fill("42");
+    await page.getByPlaceholder("Key").fill("ålder");
+    await page.getByPlaceholder("Key").press("Enter");
+    await page.getByLabel("Value").fill("42");
     await expect(page.locator("svg text", { hasText: "ålder: 42" })).toBeVisible();
 
     await page.getByTitle("#fbe7a1").click();
     await expect(page.locator("[data-ref^='node:'] circle[fill='#fbe7a1']")).toHaveCount(1);
-    await page.getByRole("button", { name: "Återställ till modellens stil" }).click();
+    await page.getByRole("button", { name: "Reset to model style" }).click();
     await expect(page.locator("[data-ref^='node:'] circle[fill='#ffffff']")).toHaveCount(1);
   });
 
@@ -38,7 +38,7 @@ test.describe("egenskapspanel", () => {
     const arrowBefore = await page
       .locator("[data-ref^='relationship:'] polygon")
       .getAttribute("points");
-    await page.getByRole("button", { name: "Vänd riktning" }).click();
+    await page.getByRole("button", { name: "Reverse direction" }).click();
     const arrowAfter = await page
       .locator("[data-ref^='relationship:'] polygon")
       .getAttribute("points");
@@ -50,8 +50,8 @@ test.describe("egenskapspanel", () => {
     await createNode(page, 300, 300, "A");
     await createNode(page, 650, 300, "B");
     await page.keyboard.press("Escape");
-    await expect(page.getByRole("heading", { name: "Modellens standardstil" })).toBeVisible();
-    await page.getByLabel("Radie").fill("30");
+    await expect(page.getByRole("heading", { name: "Model default style" })).toBeVisible();
+    await page.getByLabel("Radius").fill("30");
     await expect(page.locator("[data-ref^='node:'] circle[r='30']")).toHaveCount(2);
   });
 });

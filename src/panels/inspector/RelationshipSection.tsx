@@ -1,6 +1,6 @@
 import { IconSwap } from "@/components/icons";
 import { Button, Field, Section, TextInput } from "@/components/ui";
-import { t } from "@/i18n/sv";
+import { t } from "@/i18n";
 import type { Relationship } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
 import { resolvedRelationshipStyle } from "@/store/selectors";

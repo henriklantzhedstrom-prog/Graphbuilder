@@ -1,3 +1,4 @@
+import { t } from "@/i18n";
 import { newId } from "./ids";
 import {
   type DiagramStyle,
@@ -74,13 +75,13 @@ export const DEFAULT_NOTE: Omit<Note, "id" | "layerId" | "position"> = {
   align: "left",
 };
 
-export const BACKGROUND_LAYER_NAME = "Bakgrund";
+export const BACKGROUND_LAYER_NAME = t.layers.backgroundName;
 
 export function createLayer(name: string, overrides: Partial<Layer> = {}): Layer {
   return { id: newId("l"), name, visible: true, locked: false, opacity: 1, ...overrides };
 }
 
-export function createEmptyDocument(name = "Ny modell"): GraphDocument {
+export function createEmptyDocument(name: string = t.app.untitled): GraphDocument {
   const now = new Date().toISOString();
   return {
     version: DOCUMENT_VERSION,
@@ -88,7 +89,7 @@ export function createEmptyDocument(name = "Ny modell"): GraphDocument {
     name,
     createdAt: now,
     updatedAt: now,
-    layers: [createLayer("Lager 1")],
+    layers: [createLayer(t.layers.defaultName(1))],
     nodes: {},
     relationships: {},
     notes: {},

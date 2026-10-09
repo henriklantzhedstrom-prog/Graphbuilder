@@ -16,7 +16,7 @@ import {
   IconUndo,
 } from "@/components/icons";
 import { Button, Divider, IconButton, TextInput } from "@/components/ui";
-import { t } from "@/i18n/sv";
+import { t } from "@/i18n";
 import type { Size } from "@/model/types";
 import { redo, undo, useDocumentStore, useTemporal } from "@/store/documentStore";
 import { useUiStore } from "@/store/uiStore";

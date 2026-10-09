@@ -5,12 +5,12 @@ test.describe("lager", () => {
   test("nytt lager blir aktivt och nya noder hamnar där; dölj döljer dem", async ({ page }) => {
     await freshApp(page);
     await createNode(page, 250, 300, "Bas");
-    await page.getByRole("tab", { name: "Lager" }).click();
+    await page.getByRole("tab", { name: "Layers" }).click();
     await page.getByTestId("add-layer").click();
     const rows = page.getByTestId("layer-row");
     await expect(rows).toHaveCount(2);
     await expect(rows.nth(0)).toHaveAttribute("data-active", "true");
-    await expect(rows.nth(0).getByTestId("layer-name")).toHaveText("Lager 2");
+    await expect(rows.nth(0).getByTestId("layer-name")).toHaveText("Layer 2");
 
     await createNode(page, 550, 300, "Topp");
     await expect(rows.nth(0).getByText("1", { exact: true })).toBeVisible();
@@ -25,7 +25,7 @@ test.describe("lager", () => {
   test("relation till nod i dolt lager döljs också", async ({ page }) => {
     await freshApp(page);
     await createNode(page, 250, 300, "A");
-    await page.getByRole("tab", { name: "Lager" }).click();
+    await page.getByRole("tab", { name: "Layers" }).click();
     await page.getByTestId("add-layer").click();
     await createNode(page, 600, 300, "B");
     await dragRelationship(page, { x: 250, y: 300 }, { x: 600, y: 300 }, "REL");
@@ -37,7 +37,7 @@ test.describe("lager", () => {
   test("låst lager kan inte markeras eller flyttas", async ({ page }) => {
     await freshApp(page);
     await createNode(page, 300, 300, "Fast");
-    await page.getByRole("tab", { name: "Lager" }).click();
+    await page.getByRole("tab", { name: "Layers" }).click();
     await page.getByTestId("layer-row").nth(0).getByTestId("layer-lock").click();
     const circle = page.locator("[data-ref^='node:'][data-part='body'] circle").nth(1);
     const before = await circle.boundingBox();
@@ -48,19 +48,19 @@ test.describe("lager", () => {
     await page.mouse.up();
     const after = await circle.boundingBox();
     expect(after && Math.abs(after.x - before.x)).toBeLessThan(2);
-    await page.getByRole("tab", { name: "Egenskaper" }).click();
-    await expect(page.getByText("Inget markerat")).toBeVisible();
+    await page.getByRole("tab", { name: "Properties" }).click();
+    await expect(page.getByText("Nothing selected", { exact: true })).toBeVisible();
   });
 
   test("flytta markering till annat lager via egenskapspanelen", async ({ page }) => {
     await freshApp(page);
     await createNode(page, 300, 300, "Flytta");
-    await page.getByRole("tab", { name: "Lager" }).click();
+    await page.getByRole("tab", { name: "Layers" }).click();
     await page.getByTestId("add-layer").click();
-    await page.getByRole("tab", { name: "Egenskaper" }).click();
+    await page.getByRole("tab", { name: "Properties" }).click();
     await page.getByTestId("canvas").click({ position: { x: 300, y: 300 } });
-    await page.getByTestId("inspector-layer").selectOption({ label: "Lager 2" });
-    await page.getByRole("tab", { name: "Lager" }).click();
+    await page.getByTestId("inspector-layer").selectOption({ label: "Layer 2" });
+    await page.getByRole("tab", { name: "Layers" }).click();
     await expect(
       page.getByTestId("layer-row").nth(0).getByText("1", { exact: true }),
     ).toBeVisible();
@@ -69,16 +69,16 @@ test.describe("lager", () => {
   test("byt namn, opacitet och ta bort lager med flytt av innehåll", async ({ page }) => {
     await freshApp(page);
     await createNode(page, 300, 300, "Kvar");
-    await page.getByRole("tab", { name: "Lager" }).click();
+    await page.getByRole("tab", { name: "Layers" }).click();
     await page.getByTestId("add-layer").click();
     await createNode(page, 600, 300, "Kvar2");
     const top = page.getByTestId("layer-row").nth(0);
     await top.getByTestId("layer-name").dblclick();
-    await page.getByLabel("Lagrets namn").fill("Översikt");
-    await page.getByLabel("Lagrets namn").press("Enter");
+    await page.getByLabel("Layer name").fill("Översikt");
+    await page.getByLabel("Layer name").press("Enter");
     await expect(top.getByTestId("layer-name")).toHaveText("Översikt");
 
-    await top.getByLabel("Opacitet").fill("0.5");
+    await top.getByLabel("Opacity").fill("0.5");
     await expect(page.locator("g[data-layer][opacity='0.5']")).toHaveCount(1);
 
     await top.getByTestId("layer-remove").click();
@@ -94,9 +94,9 @@ test.describe("lager", () => {
 test("Enter i lagernamnet öppnar inte redigering av markerad nod", async ({ page }) => {
   await freshApp(page);
   await createNode(page, 300, 300, "Nod");
-  await page.getByRole("tab", { name: "Lager" }).click();
+  await page.getByRole("tab", { name: "Layers" }).click();
   await page.getByTestId("layer-row").nth(0).getByTestId("layer-name").dblclick();
-  await page.getByLabel("Lagrets namn").fill("Bas");
-  await page.getByLabel("Lagrets namn").press("Enter");
+  await page.getByLabel("Layer name").fill("Bas");
+  await page.getByLabel("Layer name").press("Enter");
   await expect(page.getByTestId("inline-editor")).toHaveCount(0);
 });

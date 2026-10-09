@@ -14,7 +14,7 @@ import {
   IconUnlock,
 } from "@/components/icons";
 import { Button, cx, IconButton, SliderField, TextInput } from "@/components/ui";
-import { t } from "@/i18n/sv";
+import { t } from "@/i18n";
 import type { Id, Layer } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
 import { countElementsInLayer } from "@/store/selectors";

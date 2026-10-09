@@ -6,7 +6,7 @@ import { useKeyboardShortcuts } from "@/canvas/useKeyboardShortcuts";
 import { Toasts } from "@/components/Toasts";
 import { importArrowsJson } from "@/export/arrowsImport";
 import { useAppInit } from "@/hooks/useAppInit";
-import { t } from "@/i18n/sv";
+import { t } from "@/i18n";
 import type { Size } from "@/model/types";
 import { DocumentsDialog } from "@/panels/DocumentsDialog";
 import { ExportDialog } from "@/panels/ExportDialog";
