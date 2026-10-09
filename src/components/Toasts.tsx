@@ -16,7 +16,7 @@ export function Toasts() {
           key={toast.id}
           onClick={() => dismiss(toast.id)}
           className={cx(
-            "pointer-events-auto rounded-md border px-3 py-2 text-sm shadow-lg",
+            "pointer-events-auto rounded-xl border px-3.5 py-2 text-sm shadow-float",
             toast.kind === "error"
               ? "border-danger/50 bg-surface text-danger"
               : "border-border bg-surface text-text",

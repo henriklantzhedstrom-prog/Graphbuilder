@@ -38,15 +38,15 @@ export function Dialog({
         if (e.key === "Escape") e.stopPropagation();
       }}
       className={cx(
-        "m-auto w-[calc(100%-2rem)] rounded-xl border border-border bg-surface p-0 text-text shadow-2xl",
-        "backdrop:bg-black/40",
+        "m-auto w-[calc(100%-2rem)] rounded-2xl border border-border bg-surface p-0 text-text shadow-2xl",
+        "backdrop:bg-black/35 backdrop:backdrop-blur-[2px]",
         width,
       )}
     >
       {open && (
         <div className="flex max-h-[85vh] flex-col">
           <header className="flex items-center justify-between border-border border-b px-4 py-3">
-            <h2 className="font-semibold text-base">{title}</h2>
+            <h2 className="font-semibold text-base tracking-tight">{title}</h2>
             <IconButton label={t.common.close} onClick={onClose}>
               <IconClose />
             </IconButton>

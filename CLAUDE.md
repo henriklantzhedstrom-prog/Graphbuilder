@@ -110,6 +110,16 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
 - **Textstorlek i högermenyn:** sidopanelen har grundstorlek 17px (`text-[17px]` på `<aside>` i
   `SidePanel.tsx`); komponenterna i `src/components/ui.tsx` och panelerna använder storlekar i `em`
   så att de följer den. Använd inte `text-xs`/`text-sm`/`text-base` där (roten är 14px).
+- **Utseende:** färger, skuggor och typsnitt är tokens i `@theme` i `src/index.css` (ljust) och
+  `:root[data-theme="dark"]` (mörkt): `surface*`, `border`/`border-strong`, `text`/`text-muted`,
+  `accent`/`accent-soft`/`on-accent`, `strong`/`on-strong` (svart exportknapp), `shadow-float`.
+  Använd aldrig hårdkodade färger som `text-white` i UI. Gränssnittets typsnitt är Geist
+  (`@fontsource-variable/geist`, importeras i `main.tsx`); ritytans text och exporten använder
+  fortfarande `system-ui` (`CANVAS_FONT_FAMILY`). Verktygen och zoomen är flytande listor ovanpå
+  ritytan (`src/canvas/CanvasToolbar.tsx`); övre listen har logga, modellnamn, File, ångra/gör om,
+  tema, hjälp och Export. Prickrutnätet (`DotGrid` i `Canvas.tsx`) ritas bara på ritytan, aldrig i
+  exporten. Grundstilar i `index.css` ligger i `@layer base` så att Tailwinds klasser vinner.
+  `dark:` i Tailwind följer `data-theme` (egen `@custom-variant`).
 - **Tema:** appen startar alltid ljust, oberoende av datorns inställning. Mörkt läge slås på med
   knappen i verktygsfältet (`src/store/theme.ts`, sätter `data-theme` på `<html>`, valet sparas i
   localStorage). CSS för mörkt läge ligger under `:root[data-theme="dark"]` i `src/index.css`.

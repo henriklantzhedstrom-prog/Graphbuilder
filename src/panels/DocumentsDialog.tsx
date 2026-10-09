@@ -156,7 +156,7 @@ export function DocumentsDialog() {
                   >
                     {d.name}
                     {d.id === currentId && (
-                      <span className="ml-2 rounded-full bg-accent px-2 py-0.5 text-white text-xs">
+                      <span className="ml-2 rounded-full bg-accent px-2 py-0.5 text-on-accent text-xs">
                         {t.documents.current}
                       </span>
                     )}

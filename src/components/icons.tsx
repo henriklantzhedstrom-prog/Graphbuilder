@@ -192,3 +192,12 @@ export const IconMoon = ({ size = 18, ...p }: IconProps) => (
     <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
   </svg>
 );
+export const IconLogo = ({ size = 18, ...p }: IconProps) => (
+  <svg {...base(size, { strokeWidth: 2.2, ...p })}>
+    <title>Graphbuilder</title>
+    <circle cx="6" cy="6" r="3" />
+    <circle cx="18" cy="9" r="3" />
+    <circle cx="9" cy="18.5" r="3" />
+    <path d="m8.9 6.8 6.2 1.4M7.6 15.6l-1-6.6M16.3 11.5l-5.4 4.6" />
+  </svg>
+);

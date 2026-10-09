@@ -8,21 +8,25 @@ export function Button({
   active = false,
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "default" | "primary" | "ghost" | "danger";
+  variant?: "default" | "primary" | "strong" | "ghost" | "danger";
   active?: boolean;
 }) {
   return (
     <button
       type="button"
       className={cx(
-        "inline-flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-[1em] transition-colors",
+        "inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-[1em] transition-colors",
         "disabled:cursor-not-allowed disabled:opacity-40",
         "focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-1",
-        variant === "default" && "border-border bg-surface hover:bg-surface-2 active:bg-surface-3",
-        variant === "primary" && "border-accent bg-accent text-white hover:brightness-110",
+        variant === "default" &&
+          "border-border bg-surface shadow-xs hover:bg-surface-2 active:bg-surface-3",
+        variant === "primary" &&
+          "border-accent bg-accent font-medium text-on-accent shadow-xs hover:brightness-110",
+        variant === "strong" &&
+          "border-strong bg-strong font-medium text-on-strong hover:opacity-90",
         variant === "ghost" && "border-transparent hover:bg-surface-2 active:bg-surface-3",
-        variant === "danger" && "border-danger/40 text-danger hover:bg-danger/10",
-        active && "border-accent bg-accent-soft text-accent",
+        variant === "danger" && "border-border bg-surface text-danger shadow-xs hover:bg-danger/10",
+        active && "border-transparent bg-accent-soft text-accent",
         className,
       )}
       {...props}
@@ -44,10 +48,11 @@ export function IconButton({
       title={label}
       aria-pressed={active || undefined}
       className={cx(
-        "inline-flex h-8 w-8 items-center justify-center rounded-md border border-transparent transition-colors",
-        "hover:bg-surface-2 active:bg-surface-3 disabled:cursor-not-allowed disabled:opacity-40",
+        "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-text-muted transition-colors",
+        "hover:bg-surface-2 hover:text-text active:bg-surface-3",
+        "disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent",
         "focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-1",
-        active && "border-accent bg-accent-soft text-accent",
+        active && "bg-accent-soft text-accent hover:bg-accent-soft hover:text-accent",
         className,
       )}
       {...props}
@@ -61,8 +66,8 @@ export function TextInput({ className, ...props }: InputHTMLAttributes<HTMLInput
   return (
     <input
       className={cx(
-        "h-8 w-full rounded-md border border-border bg-surface px-2 text-[1em]",
-        "focus:border-accent focus:outline-none",
+        "h-8 w-full rounded-lg border border-border bg-surface px-2.5 text-[1em] placeholder:text-text-muted/70",
+        "focus:border-accent focus:outline-none focus:ring-3 focus:ring-accent/15",
         className,
       )}
       {...props}
@@ -82,7 +87,7 @@ export function Field({
   const id = useId();
   return (
     <div className={cx(inline ? "flex items-center justify-between gap-3" : "flex flex-col gap-1")}>
-      <label htmlFor={id} className="text-[0.86em] text-text-muted">
+      <label htmlFor={id} className="text-[0.9em] text-text-muted">
         {label}
       </label>
       {children(id)}
@@ -113,7 +118,7 @@ export function NumberField({
         <input
           id={id}
           type="number"
-          className="h-8 w-24 rounded-md border border-border bg-surface px-2 text-right text-[1em] focus:border-accent focus:outline-none"
+          className="h-8 w-24 rounded-lg border border-border bg-surface px-2.5 text-right text-[1em] tabular-nums focus:border-accent focus:outline-none focus:ring-3 focus:ring-accent/15"
           value={value ?? ""}
           placeholder={placeholder}
           min={min}
@@ -152,8 +157,10 @@ export function ColorField({
               title={c}
               onClick={() => onChange(c)}
               className={cx(
-                "h-5 w-5 rounded-full border",
-                value === c ? "border-accent ring-2 ring-accent/40" : "border-border",
+                "h-5 w-5 rounded-full border border-black/10 dark:border-white/15",
+                value === c
+                  ? "ring-2 ring-accent ring-offset-2 ring-offset-surface"
+                  : "hover:ring-2 hover:ring-border-strong hover:ring-offset-1 hover:ring-offset-surface",
               )}
               style={{ background: c }}
             />
@@ -161,7 +168,7 @@ export function ColorField({
           <input
             id={id}
             type="color"
-            className="h-7 w-9 cursor-pointer rounded-md border border-border bg-surface p-0.5"
+            className="h-7 w-9 cursor-pointer rounded-lg border border-border bg-surface p-0.5"
             value={toHex(value)}
             onChange={(e) => onChange(e.target.value)}
           />
@@ -237,17 +244,15 @@ export function CheckboxField({
 
 export function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="flex flex-col gap-2 border-border border-b px-3 py-3">
-      <h3 className="font-semibold text-[0.8em] text-text-muted uppercase tracking-wide">
-        {title}
-      </h3>
+    <section className="flex flex-col gap-2.5 border-border border-b px-4 py-4 last:border-b-0">
+      <h3 className="font-semibold text-[0.82em] text-text">{title}</h3>
       {children}
     </section>
   );
 }
 
 export function Divider() {
-  return <span className="mx-1 h-5 w-px bg-border" aria-hidden />;
+  return <span className="mx-1.5 h-5 w-px shrink-0 bg-border" aria-hidden />;
 }
 
 /** Normaliserar färg till #rrggbb för <input type="color">. */

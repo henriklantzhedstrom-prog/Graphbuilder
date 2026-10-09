@@ -110,6 +110,8 @@ function resizeBox(start: Box, handle: Handle, delta: Point, aspect: number | nu
   return { x, y, w, h };
 }
 
+/** Avstånd mellan prickarna i bakgrundsrutnätet vid 100 % zoom. */
+const GRID_SPACING = 20;
 export function Canvas() {
   const svgRef = useRef<SVGSVGElement>(null);
   const size = useElementSize(svgRef);
@@ -532,6 +534,7 @@ export function Canvas() {
       >
         <title>{doc.name}</title>
         <rect width="100%" height="100%" fill={doc.style.background} />
+        <DotGrid x={viewport.x} y={viewport.y} zoom={viewport.zoom} />
         <g transform={`translate(${viewport.x} ${viewport.y}) scale(${viewport.zoom})`}>
           <Scene
             doc={doc}
@@ -558,6 +561,36 @@ export function Canvas() {
         </div>
       )}
     </div>
+  );
+}
+
+/** Prickrutnät som hjälp för ögat; följer panorering och zoom men ingår aldrig i exporten. */
+function DotGrid({ x, y, zoom }: { x: number; y: number; zoom: number }) {
+  let spacing = GRID_SPACING * zoom;
+  while (spacing < GRID_SPACING / 2) spacing *= 2;
+  while (spacing > GRID_SPACING * 2) spacing /= 2;
+  return (
+    <>
+      <defs>
+        <pattern
+          id="gb-dot-grid"
+          patternUnits="userSpaceOnUse"
+          x={x}
+          y={y}
+          width={spacing}
+          height={spacing}
+        >
+          <circle cx={spacing / 2} cy={spacing / 2} r={1} fill="rgb(128 136 150 / 0.32)" />
+        </pattern>
+      </defs>
+      <rect
+        width="100%"
+        height="100%"
+        fill="url(#gb-dot-grid)"
+        pointerEvents="none"
+        data-testid="dot-grid"
+      />
+    </>
   );
 }
 

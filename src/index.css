@@ -1,55 +1,82 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 @theme {
   --color-surface: #ffffff;
-  --color-surface-2: #f5f6f8;
-  --color-surface-3: #e9ebef;
-  --color-border: #d6d9df;
-  --color-text: #1b1f27;
-  --color-text-muted: #5d6573;
-  --color-accent: #2f6fed;
-  --color-accent-soft: #dce7ff;
-  --color-danger: #d64545;
-  --color-canvas: #fafbfc;
+  --color-surface-2: #f4f5f7;
+  --color-surface-3: #e9ebf0;
+  --color-border: #e3e6eb;
+  --color-border-strong: #d0d5dd;
+  --color-text: #101828;
+  --color-text-muted: #5f6b7d;
+  --color-accent: #4f5bd5;
+  --color-accent-soft: #eceefc;
+  --color-on-accent: #ffffff;
+  --color-strong: #101828;
+  --color-on-strong: #ffffff;
+  --color-danger: #d92d20;
+  --color-success: #12b76a;
+  --color-canvas: #f8f9fb;
+  --shadow-float: 0 1px 2px rgb(16 24 40 / 0.06), 0 4px 14px rgb(16 24 40 / 0.07);
+  --font-sans: "Geist Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 /* Mörkt läge slås på med knappen i verktygsfältet (data-theme), inte av datorns inställning. */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --color-surface: #1d2029;
-  --color-surface-2: #242834;
-  --color-surface-3: #2d3240;
-  --color-border: #3a4050;
-  --color-text: #e8eaf0;
-  --color-text-muted: #9aa3b5;
-  --color-accent: #6b9cff;
-  --color-accent-soft: #2a3a60;
-  --color-danger: #ff6b6b;
-  --color-canvas: #151821;
+  --color-surface: #16181d;
+  --color-surface-2: #1f2229;
+  --color-surface-3: #282c35;
+  --color-border: #2a2e37;
+  --color-border-strong: #3a3f4b;
+  --color-text: #eceef2;
+  --color-text-muted: #98a2b3;
+  --color-accent: #8b93ff;
+  --color-accent-soft: #252846;
+  --color-on-accent: #0f1115;
+  --color-strong: #eceef2;
+  --color-on-strong: #101828;
+  --color-danger: #f97066;
+  --color-success: #32d583;
+  --color-canvas: #0f1115;
+  --shadow-float: 0 4px 16px rgb(0 0 0 / 0.4);
 }
 
-html,
-body,
-#root {
-  height: 100%;
-  margin: 0;
-  overflow: hidden;
-  background: var(--color-surface);
-  color: var(--color-text);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  font-size: 14px;
+/* Grundstilar i lagret base så att Tailwinds klasser (t.ex. textfärg på knappar) vinner. */
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    font-size: 14px;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+  }
 }
 
-* {
-  box-sizing: border-box;
-}
-
-button,
-input,
-select,
-textarea {
-  font: inherit;
-  color: inherit;
+/* Ingen övergångsanimation i själva temabytet, så att allt byter färg på en gång.
+   Regeln ligger utanför lagren och slår därför Tailwinds transition-klasser. */
+:root.gb-theme-switching *,
+:root.gb-theme-switching *::before,
+:root.gb-theme-switching *::after {
+  transition: none;
 }
 
 .gb-node:hover .gb-halo,

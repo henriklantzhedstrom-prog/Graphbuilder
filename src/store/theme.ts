@@ -14,8 +14,12 @@ function readStoredTheme(): Theme {
 
 export function applyTheme(theme: Theme): void {
   const root = document.documentElement;
+  root.classList.add("gb-theme-switching");
   root.dataset.theme = theme;
   root.style.colorScheme = theme;
+  // Tvinga fram omritning innan övergångarna slås på igen.
+  void root.offsetHeight;
+  root.classList.remove("gb-theme-switching");
 }
 
 interface ThemeState {

@@ -21,7 +21,7 @@ export function NoteSection({ notes }: { notes: Note[] }) {
           <textarea
             id={id}
             data-testid="inspector-note-text"
-            className="min-h-24 w-full resize-y rounded-md border border-border bg-surface px-2 py-1 text-[1em] focus:border-accent focus:outline-none"
+            className="min-h-24 w-full resize-y rounded-lg border border-border bg-surface px-2 py-1 text-[1em] focus:border-accent focus:outline-none focus:ring-3 focus:ring-accent/15"
             value={text ?? ""}
             placeholder={text === null ? t.inspector.mixed : t.inspector.textPlaceholder}
             onChange={(e) => setAll({ text: e.target.value })}

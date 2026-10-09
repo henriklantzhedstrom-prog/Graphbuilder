@@ -41,16 +41,16 @@ export function LayersPanel() {
 
   return (
     <div className="flex flex-col" data-testid="layers-panel">
-      <div className="flex items-center justify-between px-3 py-2">
-        <span className="text-text-muted text-[0.86em]">{t.layers.hint}</span>
+      <div className="px-4 pt-3 pb-2">
+        <p className="m-0 text-[0.82em] text-text-muted leading-relaxed">{t.layers.hint}</p>
       </div>
-      <div className="px-3 pb-2">
+      <div className="px-4 pb-3">
         <Button onClick={onAdd} data-testid="add-layer">
           <IconPlus size={16} />
           {t.layers.add}
         </Button>
       </div>
-      <ul className="flex flex-col">
+      <ul className="flex flex-col gap-0.5 px-2 pb-3">
         {layersTopFirst.map((layer, visualIndex) => (
           <LayerRow
             key={layer.id}
@@ -150,14 +150,17 @@ function LayerRow({
       }}
       onDragEnd={onDragEnd}
       className={cx(
-        "border-border border-b",
-        active ? "bg-accent-soft/60" : "hover:bg-surface-2",
+        "rounded-[10px]",
+        active ? "bg-accent-soft ring-1 ring-accent/25 ring-inset" : "hover:bg-surface-2",
         dropHighlight && "outline-2 outline-accent -outline-offset-2",
         !layer.visible && "opacity-60",
       )}
     >
-      <div className="flex items-center gap-1 px-2 py-1.5">
-        <span className="cursor-grab text-text-muted" title={t.layers.moveUp}>
+      <div className="flex items-center gap-0.5 py-1 pr-2 pl-1">
+        <span
+          className="cursor-grab text-text-muted/60 hover:text-text-muted"
+          title={t.layers.moveUp}
+        >
           <IconGrip size={16} />
         </span>
         <IconButton
@@ -171,7 +174,7 @@ function LayerRow({
           label={layer.locked ? t.layers.unlock : t.layers.lock}
           data-testid="layer-lock"
           onClick={() => setLayerLocked(layer.id, !layer.locked)}
-          className={layer.locked ? "text-accent" : ""}
+          className={layer.locked ? "text-accent hover:text-accent" : ""}
         >
           {layer.locked ? <IconLock size={16} /> : <IconUnlock size={16} />}
         </IconButton>
@@ -194,7 +197,10 @@ function LayerRow({
           <button
             type="button"
             data-testid="layer-name"
-            className={cx("min-w-0 flex-1 truncate text-left text-[1em]", active && "font-medium")}
+            className={cx(
+              "min-w-0 flex-1 truncate pl-1.5 text-left text-[0.94em]",
+              active && "font-medium",
+            )}
             title={`${layer.name} – ${t.layers.rename}`}
             onClick={onActivate}
             onDoubleClick={() => {
@@ -206,14 +212,14 @@ function LayerRow({
           </button>
         )}
         <span
-          className="text-text-muted text-[0.86em] tabular-nums"
+          className="min-w-6 rounded-full bg-surface-2 px-2 py-0.5 text-center text-[0.76em] text-text-muted tabular-nums dark:bg-surface-3"
           title={t.layers.elementCount(count)}
         >
           {count}
         </span>
       </div>
       {active && (
-        <div className="flex flex-col gap-2 px-3 pb-2">
+        <div className="flex flex-col gap-2 pr-2 pb-1.5 pl-1">
           <div className="flex gap-0.5">
             <IconButton label={t.layers.moveUp} onClick={onMoveUp} disabled={isTop}>
               <IconChevronUp size={16} />
@@ -230,7 +236,7 @@ function LayerRow({
               data-testid="layer-remove"
               onClick={onRemove}
               disabled={!canRemove}
-              className="text-danger"
+              className="text-danger hover:bg-danger/10 hover:text-danger"
             >
               <IconTrash size={16} />
             </IconButton>
@@ -281,7 +287,7 @@ function RemoveLayerDialog({ layer, onClose }: { layer: Layer; onClose: () => vo
         <label className="flex items-center gap-2 text-[1em]">
           {t.layers.removeMoveTo}
           <select
-            className="h-8 rounded-md border border-border bg-surface px-1"
+            className="h-8 rounded-lg border border-border bg-surface px-1.5"
             value={target}
             onChange={(e) => setTarget(e.target.value)}
           >

@@ -130,7 +130,7 @@ export function ExportDialog() {
               aria-selected={format === f.id}
               onClick={() => setFormat(f.id)}
               className={cx(
-                "rounded-md border px-3 py-1 text-sm",
+                "rounded-lg border px-3 py-1 text-sm",
                 format === f.id
                   ? "border-accent bg-accent-soft text-accent"
                   : "border-border hover:bg-surface-2",
@@ -158,7 +158,7 @@ export function ExportDialog() {
             <label className="flex items-center gap-2 text-sm">
               {t.export.scale}
               <select
-                className="h-7 rounded-md border border-border bg-surface px-1"
+                className="h-7 rounded-lg border border-border bg-surface px-1"
                 value={scale}
                 onChange={(e) => setScale(Number(e.target.value))}
               >
@@ -172,7 +172,7 @@ export function ExportDialog() {
           )}
         </div>
         <div
-          className="max-h-[50vh] overflow-auto rounded-md border border-border bg-surface-2 p-2"
+          className="max-h-[50vh] overflow-auto rounded-lg border border-border bg-surface-2 p-2"
           data-testid="export-preview"
         >
           {isEmpty ? (
