@@ -526,21 +526,8 @@ export function Canvas() {
         aria-label={t.app.title}
       >
         <title>{doc.name}</title>
-        <defs>
-          <pattern id="gb-grid" width={20} height={20} patternUnits="userSpaceOnUse">
-            <circle cx={1} cy={1} r={0.8} fill="var(--color-grid)" />
-          </pattern>
-        </defs>
         <rect width="100%" height="100%" fill={doc.style.background} />
         <g transform={`translate(${viewport.x} ${viewport.y}) scale(${viewport.zoom})`}>
-          <rect
-            x={visibleCanvasBox.x}
-            y={visibleCanvasBox.y}
-            width={visibleCanvasBox.w}
-            height={visibleCanvasBox.h}
-            fill="url(#gb-grid)"
-            style={{ pointerEvents: "none" }}
-          />
           <Scene
             doc={doc}
             overrides={overrides}
