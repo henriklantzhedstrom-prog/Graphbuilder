@@ -26,6 +26,10 @@
   ett resultat. Kräver något ett beslut av kunden (t.ex. om koden får vara öppen för alla) ställs det
   som ett val i vardagsspråk, aldrig som en instruktion att göra något. Får Claude fria händer
   ("gör som du tycker") tas beslutet och motiveras i en mening.
+- **Inga frågor om publicering, synlighet eller verktygsval.** Kunden har sagt ifrån: Claude
+  beslutar sådant själv, genomför, och nämner beslutet i en mening i rapporten. Det enda som får
+  stoppa är en teknisk spärr som Claude inte råder över; då beskrivs det enda klick kunden behöver
+  göra, i vardagsspråk, utan alternativ att välja mellan.
 - **Leverans = länk.** En funktion räknas som levererad först när kunden kan öppna den i webbläsaren
   via en länk som Claude ger. Länken till den publicerade appen står i `README.md` under
   "Testa appen" och uppdateras (samma länk, ny version) vid varje leverans.
