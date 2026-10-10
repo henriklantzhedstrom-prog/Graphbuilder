@@ -86,6 +86,8 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   `isRelationshipVisible`, `visibleRelationships`, `isElementLocked` och `elementLayerId` i
   `src/store/selectors.ts`. Den allmänna lagerväljaren i egenskapspanelen gäller bara noder,
   anteckningar och bilder.
+- **Show all / Hide all** överst i lagerpanelen visar eller döljer alla lager i ett steg
+  (`setAllLayersVisible`). Det fasta lagret "Properties" påverkas inte.
 - **Lagret "Properties"** är ett fast lager överst i lagerlistan (`PropertiesRow` i
   `LayersPanel.tsx`), inte ett vanligt lager i `doc.layers`: det kan bara visas/döljas
   (`doc.propertiesVisible`, `setPropertiesVisible`) och styr egenskapsraderna under alla noder och
@@ -97,6 +99,9 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   dem alla. Dolda element som följde standarden får det gamla värdet som egen stil och ser därför
   likadana ut när de visas igen (`applyToVisible` i `documentStore.ts`). Med markering ändras bara
   de markerade (`setNodeStyle`/`setRelationshipStyle`).
+- **Alla färgval har färgprickar** under fältet, som Fill: `ColorField` visar `NODE_PALETTE` om
+  inget annat anges (anteckningars Color har `NOTE_COLORS`). Radius ligger först bland nodens
+  inställningar (`NODE_STYLE_FIELDS`), före Fill.
 - **Alla tal i sidopanelen ställs in med skjutreglage** (`SliderField`): nodens storlek (10–250),
   kant- och linjebredder, textstorlekar, pilstorlek samt bredd och höjd på anteckningar och bilder
   (20–2000). Bredvid varje reglage finns ett litet fält där samma tal kan skrivas in exakt; det

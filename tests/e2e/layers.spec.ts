@@ -145,6 +145,48 @@ test.describe("lager", () => {
     await expect(canvas.locator("text").filter({ hasText: "name: A" })).toHaveCount(0);
   });
 
+  test("Hide all och Show all döljer och visar alla lager på en gång", async ({ page }) => {
+    await freshApp(page);
+    await createNode(page, 250, 300, "A");
+    await page.getByRole("tab", { name: "Layers" }).click();
+    await page.getByTestId("add-layer").click();
+    await createNode(page, 600, 300, "B");
+    await page.getByTestId("add-layer").click();
+    const rows = page.getByTestId("layer-row");
+    const showAll = page.getByTestId("show-all-layers");
+    const hideAll = page.getByTestId("hide-all-layers");
+    await expect(rows).toHaveCount(3);
+    // Allt syns redan: Show all har inget att göra.
+    await expect(showAll).toBeDisabled();
+    await expect(hideAll).toBeEnabled();
+
+    await hideAll.click();
+    await expect(captionText(page, "A")).toHaveCount(0);
+    await expect(captionText(page, "B")).toHaveCount(0);
+    await expect(rows.getByRole("button", { name: "Show layer" })).toHaveCount(3);
+    await expect(hideAll).toBeDisabled();
+    // Lagret Properties är ett eget val och påverkas inte.
+    await expect(page.getByRole("button", { name: "Hide properties" })).toBeVisible();
+
+    // Visa ett lager för sig: båda knapparna går att använda.
+    await rows.nth(2).getByTestId("layer-visibility").click();
+    await expect(captionText(page, "A")).toHaveCount(1);
+    await expect(captionText(page, "B")).toHaveCount(0);
+    await expect(showAll).toBeEnabled();
+    await expect(hideAll).toBeEnabled();
+
+    await showAll.click();
+    await expect(captionText(page, "A")).toHaveCount(1);
+    await expect(captionText(page, "B")).toHaveCount(1);
+    await expect(rows.getByRole("button", { name: "Hide layer" })).toHaveCount(3);
+
+    // Hela ändringen är ett enda steg att ångra.
+    await hideAll.click();
+    await page.getByRole("button", { name: "Undo" }).click();
+    await expect(captionText(page, "A")).toHaveCount(1);
+    await expect(captionText(page, "B")).toHaveCount(1);
+  });
+
   test("låst lager kan inte markeras eller flyttas", async ({ page }) => {
     await freshApp(page);
     await createNode(page, 300, 300, "Fast");

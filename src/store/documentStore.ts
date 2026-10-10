@@ -50,6 +50,8 @@ export interface DocumentState {
   addLayer(name?: string, atIndex?: number): Id;
   renameLayer(id: Id, name: string): void;
   setLayerVisible(id: Id, visible: boolean): void;
+  /** Visar eller döljer alla lager på en gång (det fasta lagret "Properties" rörs inte). */
+  setAllLayersVisible(visible: boolean): void;
   setLayerLocked(id: Id, locked: boolean): void;
   /** Visar eller döljer det fasta lagret "Properties" (egenskapsraderna på ritytan). */
   setPropertiesVisible(visible: boolean): void;
@@ -192,6 +194,12 @@ export const useDocumentStore = create<DocumentState>()(
             l.visible = visible;
             touch(s.doc);
           }
+        }),
+      setAllLayersVisible: (visible) =>
+        set((s) => {
+          if (s.doc.layers.every((l) => l.visible === visible)) return;
+          for (const l of s.doc.layers) l.visible = visible;
+          touch(s.doc);
         }),
       setPropertiesVisible: (visible) =>
         set((s) => {

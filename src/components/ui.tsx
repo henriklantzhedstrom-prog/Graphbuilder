@@ -8,6 +8,7 @@ import {
   useState,
 } from "react";
 import { t } from "@/i18n";
+import { NODE_PALETTE } from "@/model/defaults";
 import { beginHistoryGroup, endHistoryGroup } from "@/store/documentStore";
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(" ");
@@ -161,17 +162,18 @@ export function ColorField({
   label,
   value,
   onChange,
-  swatches,
+  swatches = NODE_PALETTE,
 }: {
   label: string;
   value: string | null;
   onChange: (v: string) => void;
+  /** Färgprickar för snabbval under fältet. Alla färgfält har dem; standard är nodpaletten. */
   swatches?: readonly string[];
 }) {
   const id = useId();
   const hex = toHex(value);
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 pb-1.5" data-field={label}>
       <div className="flex min-h-9 items-center justify-between gap-3">
         <label htmlFor={id} className="text-[0.88em] text-text-muted">
           {label}
@@ -206,7 +208,7 @@ export function ColorField({
           />
         </span>
       </div>
-      {swatches && (
+      {swatches.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {swatches.map((c) => (
             <button

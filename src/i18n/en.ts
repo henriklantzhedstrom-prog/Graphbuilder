@@ -150,6 +150,8 @@ export const en = {
     add: "New layer",
     rename: "Rename",
     namePlaceholder: "Layer name",
+    showAll: "Show all",
+    hideAll: "Hide all",
     show: "Show layer",
     hide: "Hide layer",
     lock: "Lock layer",

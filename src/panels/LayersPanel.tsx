@@ -25,6 +25,7 @@ export function LayersPanel() {
   const doc = useDocumentStore((s) => s.doc);
   const addLayer = useDocumentStore((s) => s.addLayer);
   const moveLayer = useDocumentStore((s) => s.moveLayer);
+  const setAllLayersVisible = useDocumentStore((s) => s.setAllLayersVisible);
   const activeLayerId = useUiStore((s) => s.activeLayerId);
   const setActiveLayer = useUiStore((s) => s.setActiveLayer);
   const [dragId, setDragId] = useState<Id | null>(null);
@@ -49,6 +50,26 @@ export function LayersPanel() {
         <Button onClick={onAdd} data-testid="add-layer" className="h-8 px-2.5">
           <IconPlus size={16} />
           {t.layers.add}
+        </Button>
+      </div>
+      <div className="flex gap-1.5 px-4 pb-2">
+        <Button
+          className="h-8 flex-1 px-2.5 font-normal"
+          data-testid="show-all-layers"
+          disabled={doc.layers.every((l) => l.visible)}
+          onClick={() => setAllLayersVisible(true)}
+        >
+          <IconEye size={16} />
+          {t.layers.showAll}
+        </Button>
+        <Button
+          className="h-8 flex-1 px-2.5 font-normal"
+          data-testid="hide-all-layers"
+          disabled={doc.layers.every((l) => !l.visible)}
+          onClick={() => setAllLayersVisible(false)}
+        >
+          <IconEyeOff size={16} />
+          {t.layers.hideAll}
         </Button>
       </div>
       <ul className="flex flex-col gap-1 px-2 pb-2">

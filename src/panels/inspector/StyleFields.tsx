@@ -1,5 +1,4 @@
 import { CheckboxField, ColorField, SliderField } from "@/components/ui";
-import { NODE_PALETTE } from "@/model/defaults";
 import { commonValue, type StyleFieldSpec } from "./common";
 
 /**
@@ -28,7 +27,6 @@ export function StyleFields<K extends string, S extends Record<K, string | numbe
                 key={field.key}
                 label={labels[field.key]}
                 value={typeof common === "string" ? common : null}
-                swatches={field.key === "fill" ? NODE_PALETTE : undefined}
                 onChange={(v) => onChange(field.key, v)}
               />
             );

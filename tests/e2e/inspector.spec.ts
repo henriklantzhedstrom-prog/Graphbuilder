@@ -35,7 +35,7 @@ test.describe("egenskapspanel", () => {
     await expect(page.locator("svg text", { hasText: "ålder: 42" })).toBeVisible();
     await page.getByLabel("Use “name” as caption").check();
 
-    await page.getByTitle("#ff3b30").click();
+    await page.locator("[data-field='Fill']").getByTitle("#ff3b30").click();
     await expect(page.locator("[data-ref^='node:'] circle[fill='#ff3b30']")).toHaveCount(1);
     await page.getByRole("button", { name: "Reset to model style" }).click();
     await expect(page.locator("[data-ref^='node:'] circle[fill='#ffffff']")).toHaveCount(1);
@@ -74,7 +74,7 @@ test.describe("egenskapspanel", () => {
   }) => {
     await freshApp(page);
     await createNode(page, 250, 300, "A");
-    await page.getByTitle("#ff3b30").click();
+    await page.locator("[data-field='Fill']").getByTitle("#ff3b30").click();
     await createNode(page, 600, 300, "B");
     await page.getByRole("tab", { name: "Layers" }).click();
     await page.getByTestId("add-layer").click();
@@ -86,7 +86,7 @@ test.describe("egenskapspanel", () => {
     await page.keyboard.press("Escape");
     await page.getByRole("tab", { name: "Style" }).click();
     await expect(page.getByText("Nothing selected", { exact: true })).toBeVisible();
-    await page.getByTitle("#34c759").click();
+    await page.locator("[data-field='Fill']").getByTitle("#34c759").click();
     // Båda synliga noderna blir gröna, även A som hade en egen röd färg.
     await expect(page.locator("[data-ref^='node:'] > circle[fill='#34c759']")).toHaveCount(2);
     await expect(page.locator("[data-ref^='node:'] > circle[fill='#ff3b30']")).toHaveCount(0);
@@ -245,14 +245,14 @@ test.describe("egenskapspanel", () => {
     const caption = captionText(page, "Mörk");
     await expect(caption).toHaveAttribute("fill", "#000000");
     // Svart fyllning med svart rubrik syns inte: rubriken blir vit.
-    await page.getByTitle("#000000").click();
+    await page.locator("[data-field='Fill']").getByTitle("#000000").click();
     await expect(page.locator("[data-ref^='node:'] > circle[fill='#000000']")).toHaveCount(1);
     await expect(caption).toHaveAttribute("fill", "#ffffff");
     // Tillbaka till vit fyllning: rubriken blir svart igen.
-    await page.getByTitle("#ffffff").click();
+    await page.locator("[data-field='Fill']").getByTitle("#ffffff").click();
     await expect(caption).toHaveAttribute("fill", "#000000");
     // En klar färg går att läsa med svart text och ändrar inte rubriken.
-    await page.getByTitle("#ffd60a").click();
+    await page.locator("[data-field='Fill']").getByTitle("#ffd60a").click();
     await expect(caption).toHaveAttribute("fill", "#000000");
   });
 
@@ -380,5 +380,45 @@ test.describe("egenskapspanel", () => {
     const after = await label.boundingBox();
     if (!before || !after) throw new Error("label saknas");
     expect(before.y - after.y).toBeCloseTo(16, 0);
+  });
+
+  test("alla färgval har färgprickar, och Radius ligger överst", async ({ page }) => {
+    await freshApp(page);
+    await createNode(page, 250, 300, "A");
+    await page.getByPlaceholder("New label").fill("Person");
+    await page.getByPlaceholder("New label").press("Enter");
+    await createNode(page, 600, 300, "B");
+    await dragRelationship(page, { x: 250, y: 300 }, { x: 600, y: 300 }, "REL");
+    await page.keyboard.press("Escape");
+    const panel = page.locator("aside");
+    // Inget markerat: bakgrund, åtta nodfärger och fem relationsfärger – alla med nio prickar.
+    const colorFields = panel.locator("[data-field]:has(input[type='color'])");
+    await expect(colorFields).toHaveCount(14);
+    for (let i = 0; i < 14; i++) {
+      await expect(colorFields.nth(i).locator("button[title^='#']")).toHaveCount(9);
+    }
+    // Radius är första inställningen under Nodes, före Fill.
+    const nodeFields = panel
+      .locator("section", { has: page.getByRole("heading", { name: "Nodes" }) })
+      .locator("[data-field]");
+    await expect(nodeFields.first()).toHaveAttribute("data-field", "Radius");
+    await expect(nodeFields.nth(1)).toHaveAttribute("data-field", "Fill");
+
+    // Prickarna fungerar för varje färg, inte bara fyllningen.
+    await panel.locator("[data-field='Border color']").getByTitle("#ff3b30").click();
+    await expect(page.locator("[data-part='node-circle'][stroke='#ff3b30']")).toHaveCount(2);
+    await panel.locator("[data-field='Label background']").getByTitle("#ffd60a").click();
+    await expect(page.locator("[data-part='label-box'][fill='#ffd60a']")).toHaveCount(1);
+    await panel.locator("[data-field='Line color']").getByTitle("#0a84ff").click();
+    await expect(page.locator("[data-ref^='relationship:'] path[stroke='#0a84ff']")).toHaveCount(1);
+    await panel.locator("[data-field='Background color']").getByTitle("#8e8e93").click();
+    await expect(page.getByTestId("canvas-container")).toHaveCSS(
+      "background-color",
+      "rgb(142, 142, 147)",
+    );
+    // Den valda pricken är markerad.
+    await expect(panel.locator("[data-field='Border color']").getByTitle("#ff3b30")).toHaveClass(
+      /ring-accent/,
+    );
   });
 });

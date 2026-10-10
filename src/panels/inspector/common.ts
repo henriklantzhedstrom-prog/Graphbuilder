@@ -47,10 +47,10 @@ export const NODE_STYLE_FIELDS: StyleFieldSpec<
   | "propertyBackground"
   | "propertyFontSize"
 >[] = [
+  { key: "radius", type: "number", min: 10, max: 250 },
   { key: "fill", type: "color" },
   { key: "stroke", type: "color" },
   { key: "strokeWidth", type: "number", min: 0, max: 30 },
-  { key: "radius", type: "number", min: 10, max: 250 },
   { key: "captionColor", type: "color" },
   { key: "captionFontSize", type: "number", min: 6, max: 100 },
   { key: "labelColor", type: "color" },

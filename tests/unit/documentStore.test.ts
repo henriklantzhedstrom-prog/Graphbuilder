@@ -390,6 +390,22 @@ describe("element", () => {
     expect(useDocumentStore.temporal.getState().pastStates).toHaveLength(4);
   });
 
+  it("visa och dölj alla lager i ett steg", () => {
+    const l2 = store().addLayer();
+    store().setPropertiesVisible(true);
+    clearHistory();
+    store().setAllLayersVisible(false);
+    expect(store().doc.layers.every((l) => !l.visible)).toBe(true);
+    expect(store().doc.propertiesVisible).toBe(true);
+    expect(useDocumentStore.temporal.getState().pastStates).toHaveLength(1);
+    // Redan dolt: ingenting ändras och inget nytt ångra-steg skapas.
+    store().setAllLayersVisible(false);
+    expect(useDocumentStore.temporal.getState().pastStates).toHaveLength(1);
+    store().setLayerVisible(l2, true);
+    store().setAllLayersVisible(true);
+    expect(store().doc.layers.every((l) => l.visible)).toBe(true);
+  });
+
   it("parallella relationer grupperas", () => {
     const l = firstLayer();
     const a = store().addNode(l, { x: 0, y: 0 });
