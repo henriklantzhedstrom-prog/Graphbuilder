@@ -90,8 +90,13 @@ function start(next: Target): void {
   }
 }
 
-/** Avbryter en pågående glidning, t.ex. när användaren börjar panorera själv. */
+/**
+ * Avbryter en pågående glidning till en hel vy ("Fit to content"), t.ex. när användaren börjar
+ * panorera själv. En pågående zoom får gå klart: den håller punkten under pekaren still och
+ * krockar inte med panorering eller klick.
+ */
 export function cancelViewportAnimation(): void {
+  if (target?.kind !== "viewport") return;
   target = null;
   if (frame !== null) cancelAnimationFrame(frame);
   frame = null;

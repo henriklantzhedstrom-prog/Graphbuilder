@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { type BundleInfo, type RelationshipGeometry, relationshipGeometry } from "@/model/geometry";
 import { conflictingNodeIds } from "@/model/labels";
 import type { Box, ElementRef, GraphDocument, Id, Point, Relationship } from "@/model/types";
@@ -78,7 +79,8 @@ export function computeRelationshipGeometry(
   );
 }
 
-export function Scene({
+/** Ritas bara om när något av det som visas ändras, inte när vyn flyttas eller zoomas. */
+export const Scene = memo(function Scene({
   doc,
   overrides,
   interactive = false,
@@ -196,4 +198,4 @@ export function Scene({
       ))}
     </>
   );
-}
+});

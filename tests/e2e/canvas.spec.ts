@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { captionText, createNode, freshApp } from "./helpers";
+import { captionText, createNode, freshApp, SCREENSHOT_DIR } from "./helpers";
 
 test.describe("rityta", () => {
   test("knappen Add node skapar en nod; dubbelklick på tom yta gör det inte", async ({ page }) => {
@@ -169,5 +169,50 @@ test.describe("rityta", () => {
     });
     expect(seen.length).toBeGreaterThan(2);
     await expect(level).toHaveText("144 %");
+  });
+
+  test("under zoom flyttas den färdiga ytan; innehållet ritas om när vyn landat", async ({
+    page,
+  }) => {
+    await freshApp(page);
+    await createNode(page, 400, 300, "Mitten");
+    await page.keyboard.press("Escape");
+    const canvas = page.getByTestId("canvas");
+    const box = await canvas.boundingBox();
+    if (!box) throw new Error("canvas saknas");
+    // Zooma in med pekaren på noden och klicka direkt, mitt i glidningen: noden ligger kvar
+    // under pekaren och går att markera.
+    await page.mouse.move(box.x + 400, box.y + 300);
+    await page.keyboard.down("Control");
+    await page.mouse.wheel(0, -100);
+    await page.keyboard.up("Control");
+    await page.mouse.click(box.x + 400, box.y + 300);
+    await expect(page.getByTestId("inspector")).toContainText("1 element selected");
+    // När vyn landat är ytan tillbaka på plats och innehållet ritat i den nya skalan.
+    await expect(page.getByTitle("Reset zoom")).toHaveText("125 %");
+    await expect(canvas).toHaveCSS("transform", "none");
+    await expect(canvas.locator("> g")).toHaveAttribute("transform", /scale\(1\.2[45]/);
+    const node = await captionText(page, "Mitten").boundingBox();
+    if (!node) throw new Error("nod saknas");
+    expect(Math.abs(node.x + node.width / 2 - (box.x + 400))).toBeLessThan(3);
+    expect(Math.abs(node.y + node.height / 2 - (box.y + 300))).toBeLessThan(3);
+  });
+
+  test("testmodellen med 200 noder öppnas via länk och visas i sin helhet", async ({ page }) => {
+    await freshApp(page);
+    await page.goto("/?open=test-model-200.json");
+    await expect(page.getByLabel("Model name")).toHaveValue("Test model – 200 nodes");
+    await expect(page).toHaveURL(/\/$/);
+    await page.getByRole("tab", { name: "Layers" }).click();
+    await expect(page.getByTestId("layer-row")).toHaveCount(10);
+    await expect(page.getByTestId("layer-row").first()).toContainText("Customers");
+    // Hela modellen ryms i vyn: zoomen har anpassats (under 100 %).
+    await expect(page.getByTitle("Reset zoom")).not.toHaveText("100 %");
+    await expect(page.getByTestId("canvas")).toHaveCSS("transform", "none");
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/test-model-200.png`, animations: "disabled" });
+    // Modellen ligger bland "My models" och finns kvar efter omladdning.
+    await page.waitForTimeout(900);
+    await page.reload();
+    await expect(page.getByLabel("Model name")).toHaveValue("Test model – 200 nodes");
   });
 });

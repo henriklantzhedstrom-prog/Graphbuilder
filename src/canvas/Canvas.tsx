@@ -8,6 +8,7 @@ import {
 } from "react";
 import { IconPlus } from "@/components/icons";
 import { useElementSize } from "@/hooks/useElementSize";
+import { useSettledValue } from "@/hooks/useSettledValue";
 import { t } from "@/i18n";
 import { DEFAULT_NOTE } from "@/model/defaults";
 import {
@@ -114,10 +115,15 @@ function resizeBox(start: Box, handle: Handle, delta: Point, aspect: number | nu
 /** Zoomhastighet per pixel hjulrörelse, och största rörelse som räknas per hjulhändelse. */
 const WHEEL_ZOOM_SPEED = 0.01;
 const WHEEL_ZOOM_MAX_DELTA = 22;
+/** Så länge ska vyn ha stått still innan innehållet ritas om i den nya skalan. */
+const VIEW_SETTLE_MS = 120;
 
 export function Canvas() {
   const svgRef = useRef<SVGSVGElement>(null);
-  const size = useElementSize(svgRef);
+  // Ritytans plats och storlek mäts på behållaren: själva svg-elementet kan tillfälligt vara
+  // förskjutet och skalat medan vyn rör sig (se `committed` nedan).
+  const containerRef = useRef<HTMLDivElement>(null);
+  const size = useElementSize(containerRef);
   const doc = useDocumentStore((s) => s.doc);
   const viewport = useUiStore((s) => s.viewport);
   const setViewport = useUiStore((s) => s.setViewport);
@@ -131,9 +137,20 @@ export function Canvas() {
   const [dropActive, setDropActive] = useState(false);
 
   const selectedKeys = useMemo(() => new Set(selection.map(refKey)), [selection]);
+  // Medan vyn rör sig (zoom, panorering) ritas innehållet inte om alls: webbläsaren flyttar och
+  // skalar bara den färdigritade ytan, vilket går på grafikkortet. Först när vyn stått still en
+  // kort stund "landar" den (`committed`) och innehållet ritas om skarpt i den nya skalan. Annars
+  // räknar webbläsaren om all text på ritytan i varje bildruta, och zoomen hackar i stora modeller.
+  const committed = useSettledValue(viewport, VIEW_SETTLE_MS);
+  const moving = committed !== viewport;
+  const scale = viewport.zoom / committed.zoom;
+  const glide = moving
+    ? `translate(${viewport.x - scale * committed.x}px, ${viewport.y - scale * committed.y}px) scale(${scale})`
+    : undefined;
+  const canResize = useCallback((ref: ElementRef) => !isElementLocked(doc, ref), [doc]);
 
   const toCanvas = useCallback((e: { clientX: number; clientY: number }): Point => {
-    const rect = svgRef.current?.getBoundingClientRect();
+    const rect = containerRef.current?.getBoundingClientRect();
     const vp = useUiStore.getState().viewport;
     return screenToCanvas(vp, {
       x: e.clientX - (rect?.left ?? 0),
@@ -143,7 +160,8 @@ export function Canvas() {
 
   // ---------- Hjul: zoom (ctrl/cmd) eller panorering ----------
   useEffect(() => {
-    const svg = svgRef.current;
+    // Lyssnar på behållaren: svg-elementet täcker inte hela ytan medan en utzoomning glider.
+    const svg = containerRef.current;
     if (!svg) return;
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
@@ -206,7 +224,7 @@ export function Canvas() {
 
   // ---------- Pekare ----------
   const onPointerDown = (e: ReactPointerEvent<SVGSVGElement>) => {
-    // Ett eget grepp tar över från en pågående glidning (zoom eller "Fit to content").
+    // Ett eget grepp tar över från en pågående glidning till en hel vy ("Fit to content").
     cancelViewportAnimation();
     const ui = useUiStore.getState();
     const docState = useDocumentStore.getState();
@@ -523,7 +541,9 @@ export function Canvas() {
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: släppyta för filer; samma funktion finns via knappen "Bild…"
     <div
-      className="relative h-full w-full overflow-hidden bg-canvas"
+      ref={containerRef}
+      className="relative h-full w-full overflow-hidden"
+      style={{ background: doc.style.background }}
       data-testid="canvas-container"
       onDragOver={(e) => {
         if (e.dataTransfer.types.includes("Files")) {
@@ -538,8 +558,8 @@ export function Canvas() {
       <svg
         ref={svgRef}
         data-testid="canvas"
-        className="block h-full w-full touch-none select-none"
-        style={{ cursor }}
+        className="block h-full w-full touch-none select-none overflow-visible"
+        style={{ cursor, transform: glide, transformOrigin: "0 0" }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -550,7 +570,7 @@ export function Canvas() {
       >
         <title>{doc.name}</title>
         <rect width="100%" height="100%" fill={doc.style.background} />
-        <g transform={`translate(${viewport.x} ${viewport.y}) scale(${viewport.zoom})`}>
+        <g transform={`translate(${committed.x} ${committed.y}) scale(${committed.zoom})`}>
           <Scene
             doc={doc}
             overrides={overrides}
@@ -558,11 +578,11 @@ export function Canvas() {
             editing={editing}
             selectedKeys={selectedKeys}
             highlightNodeId={drag?.kind === "relationship" ? drag.targetId : null}
-            zoom={viewport.zoom}
-            canResize={(ref) => !isElementLocked(doc, ref)}
+            zoom={committed.zoom}
+            canResize={canResize}
           />
-          <DragOverlay drag={drag} zoom={viewport.zoom} visible={visibleCanvasBox} />
-          {editing && <EditorHost editing={editing} overrides={overrides} zoom={viewport.zoom} />}
+          <DragOverlay drag={drag} zoom={committed.zoom} visible={visibleCanvasBox} />
+          {editing && <EditorHost editing={editing} overrides={overrides} zoom={committed.zoom} />}
         </g>
       </svg>
       {dropActive && (

@@ -101,7 +101,8 @@ export interface Viewport {
   zoom: number;
 }
 
-export const MIN_ZOOM = 0.1;
+/** Lågt nog för att en modell med ett par hundra noder ska rymmas i vyn. */
+export const MIN_ZOOM = 0.05;
 export const MAX_ZOOM = 8;
 
 export const clampZoom = (z: number): number => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));

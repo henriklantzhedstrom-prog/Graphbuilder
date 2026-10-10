@@ -1,12 +1,12 @@
-import { useCallback, useMemo, useRef } from "react";
-import { viewportCenter } from "@/canvas/actions";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { fitToContent, viewportCenter } from "@/canvas/actions";
 import { Canvas } from "@/canvas/Canvas";
 import { ToolBar, ZoomControls } from "@/canvas/CanvasToolbar";
 import { ACCEPTED_IMAGE_TYPES, addImageFromFile } from "@/canvas/images";
 import { useKeyboardShortcuts } from "@/canvas/useKeyboardShortcuts";
 import { Toasts } from "@/components/Toasts";
 import { importArrowsJson } from "@/export/arrowsImport";
-import { useAppInit } from "@/hooks/useAppInit";
+import { consumeFitRequest, useAppInit } from "@/hooks/useAppInit";
 import { t } from "@/i18n";
 import type { Size } from "@/model/types";
 import { DocumentsDialog } from "@/panels/DocumentsDialog";
@@ -34,6 +34,11 @@ export function App() {
     const rect = canvasHostRef.current?.getBoundingClientRect();
     return { w: rect?.width ?? 0, h: rect?.height ?? 0 };
   }, []);
+
+  // En modell som öppnats via länk visas i sin helhet från början.
+  useEffect(() => {
+    if (ready && consumeFitRequest()) fitToContent(getViewportSize());
+  }, [ready, getViewportSize]);
 
   const onNew = useCallback(async () => {
     await createAndOpenNewDocument();

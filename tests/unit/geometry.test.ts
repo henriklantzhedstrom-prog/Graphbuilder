@@ -45,7 +45,7 @@ describe("viewport", () => {
   });
   it("zoomAt begränsas till min/max", () => {
     expect(zoomAt({ x: 0, y: 0, zoom: 1 }, { x: 0, y: 0 }, 1000).zoom).toBe(8);
-    expect(zoomAt({ x: 0, y: 0, zoom: 1 }, { x: 0, y: 0 }, 0.0001).zoom).toBe(0.1);
+    expect(zoomAt({ x: 0, y: 0, zoom: 1 }, { x: 0, y: 0 }, 0.0001).zoom).toBe(0.05);
   });
   it("fitBoxInViewport centrerar innehållet", () => {
     const vp = fitBoxInViewport({ x: 0, y: 0, w: 200, h: 100 }, { w: 800, h: 600 }, 0);

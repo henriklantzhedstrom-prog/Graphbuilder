@@ -119,6 +119,17 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   still). Sätt aldrig zoomen direkt med `setViewport`; använd `zoomBy`/`resetZoom`/`fitToContent`
   eller `zoomSmoothlyBy`. Hjulrörelsen per händelse har ett tak (`WHEEL_ZOOM_MAX_DELTA`) så att ett
   hack på ett mushjul ger ca 25 %. Vid "minskad rörelse" i datorn hoppar zoomen direkt.
+- **Medan vyn rör sig ritas innehållet inte om.** `Canvas.tsx` håller en "landad" vy (`committed`,
+  `useSettledValue`) som den inre gruppen ritas med; under zoom/panorering flyttas och skalas hela
+  svg-elementet med CSS-transform (`glide`) och landar ca 120 ms efter sista rörelsen. Ändra aldrig
+  gruppens `transform` per bildruta: då räknar webbläsaren om all svg-text varje gång (uppmätt
+  ca 16 ms per bildruta med testmodellen). `Scene` är `memo` – håll dess props stabila. Ritytans
+  plats och storlek mäts på behållaren (`containerRef`), inte på svg-elementet.
+- **Testmodell:** `public/test-model-200.json` (200 noder, 10–50 egenskaper var, tio lager, 293
+  sammankopplade par varav de flesta har en relation och några upp till tio). Skapas med
+  `node scripts/generate-test-model.mjs` och vaktas av `tests/unit/testModel.test.ts`. Öppnas med
+  länken `?open=test-model-200.json` (`openLinkedModel` i `useAppInit.ts`; bara filnamn som ligger
+  bredvid appen tillåts). Använd den för att mäta prestanda före och efter ändringar i ritytan.
 - Noder skapas med knappen **Add node** överst i sidopanelen (`addNodeInView` i `src/canvas/actions.ts`),
   aldrig genom dubbelklick på tom yta. Dubbelklick på ett element redigerar det (träffas via
   `document.elementFromPoint`, eftersom pekarfångst gör `e.target` till ritytan).
