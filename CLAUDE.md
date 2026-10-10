@@ -122,6 +122,16 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   `dark:`-klasser följer appens tema (`@custom-variant dark` i `index.css`), inte datorns.
   Egna regler för `button`/`input` ska ligga i `@layer base`, annars slår de ut Tailwind-klasserna.
   Ikonerna i `icons.tsx` är dekorativa och har ingen `<title>`; knappen runt ger namnet.
+  Färgtokens: `surface*`, `border`/`border-strong`, `text`/`text-muted`,
+  `accent`/`accent-soft`/`on-accent`, `strong`/`on-strong` (svart exportknapp och aviseringar),
+  `danger`, `warning`, `success`. Använd aldrig hårdkodade färger som `text-white` i UI.
+  Gränssnittets typsnitt är Geist (`@fontsource-variable/geist`, importeras i `main.tsx`); ritytans
+  text och exporten använder fortfarande `system-ui` (`CANVAS_FONT_FAMILY`). Verktygen och zoomen är
+  flytande listor ovanpå ritytan (`src/canvas/CanvasToolbar.tsx`); övre listen har logga,
+  modellnamn, File-menyn (ikoner + kortkommandon), ångra/gör om, tema, hjälp och Export.
+  Prickrutnätet (`DotGrid` i `Canvas.tsx`) ritas bara på ritytan, aldrig i exporten.
+- **Färgval för noder och anteckningar** (`NODE_PALETTE`, `NOTE_COLORS` i `src/model/defaults.ts`)
+  är klara grundfärger med stor inbördes skillnad. Kunden vill inte ha pastell eller dämpade toner.
 - **Tema:** appen startar alltid ljust, oberoende av datorns inställning. Mörkt läge slås på med
   knappen i verktygsfältet (`src/store/theme.ts`, sätter `data-theme` på `<html>`, valet sparas i
   localStorage). CSS för mörkt läge ligger under `:root[data-theme="dark"]` i `src/index.css`.

@@ -19,7 +19,7 @@ export function Button({
   active = false,
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "default" | "primary" | "ghost" | "danger";
+  variant?: "default" | "primary" | "strong" | "ghost" | "danger";
   active?: boolean;
 }) {
   return (
@@ -32,7 +32,9 @@ export function Button({
         variant === "default" &&
           "border-border-strong bg-surface shadow-control hover:bg-surface-2 active:bg-surface-3",
         variant === "primary" &&
-          "border-transparent bg-accent text-white shadow-control hover:brightness-110 active:brightness-95 dark:text-surface",
+          "border-transparent bg-accent text-on-accent shadow-control hover:brightness-110 active:brightness-95",
+        variant === "strong" &&
+          "border-transparent bg-strong text-on-strong shadow-control hover:opacity-90",
         variant === "ghost" && "border-transparent hover:bg-surface-2 active:bg-surface-3",
         variant === "danger" &&
           "border-danger/35 bg-surface text-danger shadow-control hover:bg-danger/10",

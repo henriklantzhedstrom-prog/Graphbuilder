@@ -209,3 +209,11 @@ export const IconPalette = ({ size = 18, ...p }: IconProps) => (
     <path d="M7.500 12h.01M9.500 8h.01M14.500 7.500h.01" strokeWidth="2.6" />
   </svg>
 );
+export const IconLogo = ({ size = 18, ...p }: IconProps) => (
+  <svg {...base(size, { strokeWidth: 2.2, ...p })}>
+    <circle cx="6" cy="6" r="3" />
+    <circle cx="18" cy="9" r="3" />
+    <circle cx="9" cy="18.5" r="3" />
+    <path d="m8.9 6.8 6.2 1.4M7.6 15.6l-1-6.6M16.3 11.5l-5.4 4.6" />
+  </svg>
+);

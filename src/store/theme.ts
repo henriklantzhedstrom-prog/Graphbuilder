@@ -14,12 +14,12 @@ function readStoredTheme(): Theme {
 
 export function applyTheme(theme: Theme): void {
   const root = document.documentElement;
-  // Hela appen byter färg i ett svep, utan att knappar och fält tonar över var för sig.
   root.classList.add("gb-theme-switching");
   root.dataset.theme = theme;
   root.style.colorScheme = theme;
-  void root.offsetWidth;
-  requestAnimationFrame(() => root.classList.remove("gb-theme-switching"));
+  // Tvinga fram omritning innan övergångarna slås på igen.
+  void root.offsetHeight;
+  root.classList.remove("gb-theme-switching");
 }
 
 interface ThemeState {

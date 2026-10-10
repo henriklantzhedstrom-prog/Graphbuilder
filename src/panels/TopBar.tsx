@@ -1,21 +1,14 @@
 import { type ReactNode, useEffect, useState } from "react";
-import { fitToContent, resetZoom, zoomBy } from "@/canvas/actions";
 import {
   IconChevronDown,
-  IconCursor,
   IconExport,
   IconFilePlus,
-  IconFit,
   IconFolder,
   IconFolderOpen,
-  IconHand,
   IconHelp,
-  IconImage,
   IconImport,
-  IconMinus,
+  IconLogo,
   IconMoon,
-  IconNote,
-  IconPlus,
   IconRedo,
   IconSave,
   IconSun,
@@ -23,7 +16,6 @@ import {
 } from "@/components/icons";
 import { Button, cx, Divider, IconButton } from "@/components/ui";
 import { t } from "@/i18n";
-import type { Size } from "@/model/types";
 import { redo, undo, useDocumentStore, useTemporal } from "@/store/documentStore";
 import { useThemeStore } from "@/store/theme";
 import { useUiStore } from "@/store/uiStore";
@@ -31,31 +23,26 @@ import { useUiStore } from "@/store/uiStore";
 /** Tangenten för kortkommandon skrivs som på användarens dator. */
 const MOD = /Mac|iPhone|iPad/.test(navigator.platform) ? t.keys.modMac : t.keys.modOther;
 
+interface MenuEntry {
+  label: string;
+  icon: ReactNode;
+  action: () => void;
+  keys?: string;
+}
+
 export interface TopBarProps {
-  getViewportSize: () => Size;
   onNew: () => void;
   onOpen: () => void;
   onSave: () => void;
   onImportArrows: () => void;
-  onAddImage: () => void;
 }
 
-export function TopBar({
-  getViewportSize,
-  onNew,
-  onOpen,
-  onSave,
-  onImportArrows,
-  onAddImage,
-}: TopBarProps) {
+export function TopBar({ onNew, onOpen, onSave, onImportArrows }: TopBarProps) {
   const name = useDocumentStore((s) => s.doc.name);
   const renameDocument = useDocumentStore((s) => s.renameDocument);
-  const tool = useUiStore((s) => s.tool);
-  const setTool = useUiStore((s) => s.setTool);
   const setDialog = useUiStore((s) => s.setDialog);
   const theme = useThemeStore((s) => s.theme);
   const toggleTheme = useThemeStore((s) => s.toggleTheme);
-  const zoom = useUiStore((s) => s.viewport.zoom);
   const canUndo = useTemporal((s) => s.pastStates.length > 0);
   const canRedo = useTemporal((s) => s.futureStates.length > 0);
   const [draftName, setDraftName] = useState(name);
@@ -86,13 +73,19 @@ export function TopBar({
   ];
 
   return (
-    <header className="relative z-20 flex h-[52px] shrink-0 items-center gap-1 border-border border-b bg-surface px-3 text-[15px]">
-      <IconButton label={t.topbar.documents} onClick={() => setDialog("documents")}>
-        <IconFolder size={20} />
-      </IconButton>
+    <header className="relative z-20 flex h-13 shrink-0 items-center gap-1 border-border border-b bg-surface px-3 text-[15px]">
+      <div className="mr-1 flex items-center gap-2.5">
+        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent text-on-accent">
+          <IconLogo size={16} />
+        </span>
+        <span className="font-semibold tracking-tight">{t.app.title}</span>
+      </div>
+      <span className="text-[18px] text-border-strong" aria-hidden>
+        /
+      </span>
       <input
         aria-label={t.topbar.documentName}
-        className="field-sizing-content h-9 min-w-24 max-w-80 truncate rounded-lg border border-transparent bg-transparent px-2 font-semibold text-[1.04em] transition-colors hover:bg-surface-2 focus:border-accent focus:bg-surface focus:outline-none"
+        className="field-sizing-content h-8 min-w-24 max-w-80 truncate rounded-lg border border-transparent bg-transparent px-2 font-medium hover:bg-surface-2 focus:border-accent focus:bg-surface focus:outline-none focus:ring-3 focus:ring-accent/15"
         value={draftName}
         onChange={(e) => setDraftName(e.target.value)}
         onBlur={commitName}
@@ -104,6 +97,10 @@ export function TopBar({
           }
         }}
       />
+      <IconButton label={t.topbar.documents} onClick={() => setDialog("documents")}>
+        <IconFolder />
+      </IconButton>
+      <div className="flex-1" />
       <div className="relative">
         <Button
           variant="ghost"
@@ -127,7 +124,7 @@ export function TopBar({
             />
             <div
               role="menu"
-              className="gb-menu absolute top-[42px] left-0 z-40 w-72 rounded-xl bg-surface p-1.5 shadow-pop"
+              className="gb-menu absolute top-[42px] right-0 z-40 w-72 origin-top-right rounded-xl bg-surface p-1.5 shadow-pop"
               onKeyDown={(e) => e.key === "Escape" && setFileMenuOpen(false)}
             >
               {fileMenu.map((group, groupIndex) => (
@@ -164,114 +161,26 @@ export function TopBar({
       </div>
       <Divider />
       <IconButton label={t.topbar.undo} onClick={undo} disabled={!canUndo}>
-        <IconUndo size={20} />
+        <IconUndo />
       </IconButton>
       <IconButton label={t.topbar.redo} onClick={redo} disabled={!canRedo}>
-        <IconRedo size={20} />
+        <IconRedo />
       </IconButton>
-      <Divider />
-      <div className="flex gap-0.5 rounded-[10px] bg-surface-2 p-[3px]">
-        <ToolButton
-          label={t.tools.select}
-          active={tool === "select"}
-          onClick={() => setTool("select")}
-        >
-          <IconCursor size={20} />
-        </ToolButton>
-        <ToolButton label={t.tools.pan} active={tool === "pan"} onClick={() => setTool("pan")}>
-          <IconHand size={20} />
-        </ToolButton>
-        <ToolButton label={t.tools.note} active={tool === "note"} onClick={() => setTool("note")}>
-          <IconNote size={20} />
-        </ToolButton>
-        <ToolButton label={t.tools.image} onClick={onAddImage}>
-          <IconImage size={20} />
-        </ToolButton>
-      </div>
-      <div className="flex-1" />
-      <div className="flex items-center rounded-[10px] border border-border">
-        <IconButton
-          label={t.topbar.zoomOut}
-          className="h-[34px] rounded-r-none"
-          onClick={() => zoomBy(1 / 1.2, getViewportSize())}
-        >
-          <IconMinus />
-        </IconButton>
-        <button
-          type="button"
-          className="h-[34px] w-16 whitespace-nowrap text-center text-[0.94em] tabular-nums hover:bg-surface-2"
-          title={t.topbar.zoomReset}
-          onClick={() => resetZoom(getViewportSize())}
-        >
-          {Math.round(zoom * 100)} %
-        </button>
-        <IconButton
-          label={t.topbar.zoomIn}
-          className="h-[34px] rounded-none"
-          onClick={() => zoomBy(1.2, getViewportSize())}
-        >
-          <IconPlus />
-        </IconButton>
-        <IconButton
-          label={t.topbar.zoomFit}
-          className="h-[34px] rounded-l-none border-border border-l"
-          onClick={() => fitToContent(getViewportSize())}
-        >
-          <IconFit />
-        </IconButton>
-      </div>
       <Divider />
       <IconButton
         label={theme === "dark" ? t.topbar.lightMode : t.topbar.darkMode}
         data-testid="theme-toggle"
         onClick={toggleTheme}
       >
-        {theme === "dark" ? <IconSun size={20} /> : <IconMoon size={20} />}
+        {theme === "dark" ? <IconSun /> : <IconMoon />}
       </IconButton>
       <IconButton label={t.topbar.shortcuts} onClick={() => setDialog("shortcuts")}>
-        <IconHelp size={20} />
+        <IconHelp />
       </IconButton>
-      <Button variant="primary" className="ml-1.5" onClick={() => setDialog("export")}>
+      <Button variant="strong" className="ml-1.5" onClick={() => setDialog("export")}>
         <IconExport size={17} />
         {t.topbar.export}
       </Button>
     </header>
-  );
-}
-
-interface MenuEntry {
-  label: string;
-  icon: ReactNode;
-  action: () => void;
-  keys?: string;
-}
-
-/** Verktygsknapp i verktygsgruppen: det valda verktyget lyfts fram som en vit bricka. */
-function ToolButton({
-  label,
-  active = false,
-  onClick,
-  children,
-}: {
-  label: string;
-  active?: boolean;
-  onClick: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      title={label}
-      aria-pressed={active || undefined}
-      onClick={onClick}
-      className={cx(
-        "inline-flex h-8 w-9 items-center justify-center rounded-[7px] transition-colors",
-        "focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2",
-        active ? "bg-surface text-accent shadow-raised" : "text-text-muted hover:text-text",
-      )}
-    >
-      {children}
-    </button>
   );
 }

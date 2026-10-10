@@ -6,21 +6,25 @@
 @theme {
   --color-surface: #ffffff;
   --color-surface-2: #f4f5f7;
-  --color-surface-3: #e9ebef;
-  --color-border: #e2e5ea;
-  --color-border-strong: #cfd4dc;
-  --color-text: #171a21;
-  --color-text-muted: #5f6877;
-  --color-accent: #2f6bea;
-  --color-accent-soft: #e5edff;
-  --color-danger: #d13c3c;
+  --color-surface-3: #e9ebf0;
+  --color-border: #e3e6eb;
+  --color-border-strong: #d0d5dd;
+  --color-text: #101828;
+  --color-text-muted: #5f6b7d;
+  --color-accent: #4f5bd5;
+  --color-accent-soft: #eceefc;
+  --color-on-accent: #ffffff;
+  --color-strong: #101828;
+  --color-on-strong: #ffffff;
+  --color-danger: #d92d20;
   --color-warning: #b45309;
-  --color-canvas: #fafbfc;
-  --color-toast: #1d212b;
-  --color-toast-text: #f4f5f8;
+  --color-success: #12b76a;
+  --color-canvas: #f8f9fb;
+  --font-sans: "Geist Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
 
   --shadow-control: 0 1px 1px rgb(16 24 40 / 0.05);
   --shadow-raised: 0 1px 2px rgb(16 24 40 / 0.1), 0 0 0 1px rgb(16 24 40 / 0.04);
+  --shadow-float: 0 1px 2px rgb(16 24 40 / 0.06), 0 4px 14px rgb(16 24 40 / 0.07);
   --shadow-pop:
     0 12px 32px -8px rgb(16 24 40 / 0.2), 0 4px 10px -4px rgb(16 24 40 / 0.1),
     0 0 0 1px rgb(16 24 40 / 0.05);
@@ -30,23 +34,26 @@
 /* Mörkt läge slås på med knappen i verktygsfältet (data-theme), inte av datorns inställning. */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --color-surface: #1b1e26;
-  --color-surface-2: #242833;
-  --color-surface-3: #2f3441;
-  --color-border: #313746;
-  --color-border-strong: #454d60;
-  --color-text: #e9ebf1;
-  --color-text-muted: #9aa3b5;
-  --color-accent: #7aa5ff;
-  --color-accent-soft: #26365c;
-  --color-danger: #ff7b7b;
+  --color-surface: #16181d;
+  --color-surface-2: #1f2229;
+  --color-surface-3: #282c35;
+  --color-border: #2a2e37;
+  --color-border-strong: #3a3f4b;
+  --color-text: #eceef2;
+  --color-text-muted: #98a2b3;
+  --color-accent: #8b93ff;
+  --color-accent-soft: #252846;
+  --color-on-accent: #0f1115;
+  --color-strong: #eceef2;
+  --color-on-strong: #101828;
+  --color-danger: #f97066;
   --color-warning: #f0b35a;
-  --color-canvas: #151821;
-  --color-toast: #e9ebf1;
-  --color-toast-text: #171a21;
+  --color-success: #32d583;
+  --color-canvas: #0f1115;
 
   --shadow-control: 0 1px 1px rgb(0 0 0 / 0.3);
   --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.5), 0 0 0 1px rgb(255 255 255 / 0.06);
+  --shadow-float: 0 4px 16px rgb(0 0 0 / 0.4);
   --shadow-pop:
     0 12px 32px -8px rgb(0 0 0 / 0.6), 0 4px 10px -4px rgb(0 0 0 / 0.4),
     0 0 0 1px rgb(255 255 255 / 0.08);
@@ -61,7 +68,7 @@ body,
   overflow: hidden;
   background: var(--color-surface);
   color: var(--color-text);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-sans);
   font-size: 14px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -87,8 +94,11 @@ body,
   }
 }
 
-/* Utan lager (@layer) går regeln före alla Tailwind-klasser, så ingen !important behövs. */
-:root.gb-theme-switching * {
+/* Ingen övergångsanimation i själva temabytet, så att allt byter färg på en gång.
+   Regeln ligger utanför lagren och slår därför Tailwinds transition-klasser. */
+:root.gb-theme-switching *,
+:root.gb-theme-switching *::before,
+:root.gb-theme-switching *::after {
   transition: none;
 }
 

@@ -16,14 +16,14 @@ export function Toasts() {
           key={toast.id}
           onClick={() => dismiss(toast.id)}
           className={cx(
-            "pointer-events-auto flex items-center gap-2.5 rounded-full bg-toast py-2.5 pr-5 pl-4 font-medium text-[15px] text-toast-text shadow-pop",
+            "pointer-events-auto flex items-center gap-2.5 rounded-full bg-strong py-2.5 pr-5 pl-4 font-medium text-[15px] text-on-strong shadow-pop",
           )}
         >
           <span
             aria-hidden
             className={cx(
               "h-2 w-2 shrink-0 rounded-full",
-              toast.kind === "error" ? "bg-[#ff6b6b]" : "bg-[#4ade80]",
+              toast.kind === "error" ? "bg-danger" : "bg-success",
             )}
           />
           {toast.message}

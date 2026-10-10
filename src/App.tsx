@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef } from "react";
 import { viewportCenter } from "@/canvas/actions";
 import { Canvas } from "@/canvas/Canvas";
+import { ToolBar, ZoomControls } from "@/canvas/CanvasToolbar";
 import { ACCEPTED_IMAGE_TYPES, addImageFromFile } from "@/canvas/images";
 import { useKeyboardShortcuts } from "@/canvas/useKeyboardShortcuts";
 import { Toasts } from "@/components/Toasts";
@@ -104,17 +105,12 @@ export function App() {
 
   return (
     <div className="flex h-full flex-col">
-      <TopBar
-        getViewportSize={getViewportSize}
-        onNew={onNew}
-        onOpen={onOpen}
-        onSave={onSave}
-        onImportArrows={onImportArrows}
-        onAddImage={onAddImage}
-      />
+      <TopBar onNew={onNew} onOpen={onOpen} onSave={onSave} onImportArrows={onImportArrows} />
       <div className="relative flex min-h-0 flex-1">
-        <div ref={canvasHostRef} className="min-w-0 flex-1">
+        <div ref={canvasHostRef} className="relative min-w-0 flex-1">
           <Canvas />
+          <ToolBar onAddImage={onAddImage} />
+          <ZoomControls getViewportSize={getViewportSize} />
         </div>
         <SidePanel getViewportSize={getViewportSize} />
         <Toasts />
