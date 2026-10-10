@@ -308,6 +308,9 @@ function curvedGeometry(
   };
 }
 
+/** Riktningar (grader, 0 = höger, negativt = uppåt) för en nods loopar, i den ordning de används. */
+const SELF_LOOP_ANGLES = [-24, -156, 24, 156, -90, 90, 0, 180];
+
 function selfLoopGeometry(
   center: Point,
   radius: number,
@@ -315,16 +318,21 @@ function selfLoopGeometry(
   arrowSize: number,
   directed: boolean,
 ): RelationshipGeometry {
-  // Loopar fördelas runt noden med start rakt upp.
-  const baseAngle = -Math.PI / 2 + bundle.index * (Math.PI / 4);
-  const spread = Math.PI / 7;
+  // Loopar fördelas runt noden. Rakt upp ligger nodens labels och rakt ned dess egenskaper, så
+  // de första looparna läggs snett uppåt och snett nedåt; rakt upp och ned används sist.
+  const baseAngle =
+    ((SELF_LOOP_ANGLES[bundle.index % SELF_LOOP_ANGLES.length] ?? -24) * Math.PI) / 180;
+  // Smal öppning och styrpunkter nära loopens egen riktning, så att loopen inte breder ut sig
+  // över labels ovanför noden.
+  const spread = (16 * Math.PI) / 180;
+  const flare = spread / 2;
   const loopR = SELF_LOOP_RADIUS + Math.floor(bundle.index / 8) * 30;
   const startAngle = baseAngle - spread;
   const endAngle = baseAngle + spread;
   const start = add(center, fromAngle(startAngle, radius));
   const tipPoint = add(center, fromAngle(endAngle, radius));
-  const c1 = add(center, fromAngle(startAngle - spread, radius + loopR * 1.6));
-  const c2 = add(center, fromAngle(endAngle + spread, radius + loopR * 1.6));
+  const c1 = add(center, fromAngle(startAngle - flare, radius + loopR * 1.6));
+  const c2 = add(center, fromAngle(endAngle + flare, radius + loopR * 1.6));
   const arrowDir = normalize(sub(tipPoint, c2));
   const lineEnd = directed ? sub(tipPoint, scale(arrowDir, arrowSize * 1.8)) : tipPoint;
   const outer = add(center, fromAngle(baseAngle, radius + loopR * 1.2));

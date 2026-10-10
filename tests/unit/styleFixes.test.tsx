@@ -127,6 +127,49 @@ describe("ritade mått", () => {
     expect(createEmptyDocument().style.node.labelBorderWidth).toBe(4);
   });
 
+  it("en relation till samma nod ritas snett åt sidan, inte över nodens labels", () => {
+    const doc = twoNodes();
+    const a = doc.nodes.a;
+    if (!a) throw new Error("nod saknas");
+    a.labels = ["Employee"];
+    doc.relationships.loop = {
+      id: "loop",
+      fromId: "a",
+      toId: "a",
+      type: "REPORTS_TO",
+      properties: {},
+      style: {},
+    };
+    const loop = doc.relationships.loop;
+    const geometry = computeRelationshipGeometry(doc, loop, relationshipBundles(doc));
+    if (!geometry) throw new Error("geometri saknas");
+    // Loopens text ligger uppe till höger om noden …
+    expect(geometry.labelPosition.x).toBeGreaterThan(a.position.x + 40);
+    expect(geometry.labelPosition.y).toBeLessThan(a.position.y - 20);
+    // … och ingen del av loopen går genom ytan där labeln ritas, rakt ovanför noden.
+    const label = labelLayout(a.labels, { labelFontSize: 14, labelBorderWidth: 4 }, 0, -54).outer;
+    if (!label) throw new Error("label saknas");
+    const numbers = geometry.path.match(/-?\d+(\.\d+)?/g)?.map(Number) ?? [];
+    const [x0, y0, x1, y1, x2, y2, x3, y3] = numbers as [
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+    ];
+    for (let i = 0; i <= 20; i++) {
+      const t = i / 20;
+      const u = 1 - t;
+      const x = u ** 3 * x0 + 3 * u * u * t * x1 + 3 * u * t * t * x2 + t ** 3 * x3;
+      const y = u ** 3 * y0 + 3 * u * u * t * y1 + 3 * u * t * t * y2 + t ** 3 * y3;
+      const inside = x > label.x && x < label.x + label.w && y > label.y && y < label.y + label.h;
+      expect(inside, `punkt ${i}`).toBe(false);
+    }
+  });
+
   it("pilspetsen är aldrig smalare än en tjock linje", () => {
     const doc = twoNodes();
     const rel = doc.relationships.r;

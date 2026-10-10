@@ -201,6 +201,14 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   gruppens `transform` per bildruta: då räknar webbläsaren om all svg-text varje gång (uppmätt
   ca 16 ms per bildruta med testmodellen). `Scene` är `memo` – håll dess props stabila. Ritytans
   plats och storlek mäts på behållaren (`containerRef`), inte på svg-elementet.
+- **Northwind-modellen:** `public/northwind.json` är Neo4js standardexempel som grafmodell (nio
+  labels, tio relationstyper, egenskaper med Cypher-typer, tre lager, knutna anteckningar). Den
+  skapas med `node scripts/generate-northwind-model.mjs` (källorna står överst i skriptet), vaktas
+  av `tests/unit/northwindModel.test.ts` och öppnas med `?open=northwind.json`. Använd den som
+  realistiskt testfall; `test-model-200.json` är till för prestanda.
+- **Relation från en nod till sig själv** ritas som en ögla snett uppe till höger (sedan vänster,
+  nere höger, nere vänster; `SELF_LOOP_ANGLES` i `geometry.ts`), aldrig rakt upp där nodens
+  labels ligger eller rakt ned där egenskaperna ligger.
 - **Testmodell:** `public/test-model-200.json` (200 noder, 10–50 egenskaper var, tio lager, 293
   sammankopplade par varav de flesta har en relation och några upp till tio). Skapas med
   `node scripts/generate-test-model.mjs` och vaktas av `tests/unit/testModel.test.ts`. Öppnas med

@@ -118,14 +118,16 @@ describe("relationsgeometri", () => {
     );
     expect(g.path).toContain("Q");
   });
-  it("självloop ritas som kurva ovanför noden", () => {
+  it("självloop ritas som kurva snett uppe till höger om noden", () => {
     const g = relationshipGeometry(
       { from: { x: 0, y: 0 }, fromRadius: 50, to: { x: 0, y: 0 }, toRadius: 50 },
       { index: 0, count: 1, reversed: false },
       { arrowSize: 8, directed: true },
     );
     expect(g.path).toContain("C");
-    expect(g.labelPosition.y).toBeLessThan(-50);
+    // Uppe till höger: rakt ovanför ligger nodens labels, rakt under dess egenskaper.
+    expect(g.labelPosition.x).toBeGreaterThan(90);
+    expect(g.labelPosition.y).toBeLessThan(-30);
   });
 });
 

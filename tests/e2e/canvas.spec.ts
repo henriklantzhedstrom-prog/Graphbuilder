@@ -277,4 +277,20 @@ test.describe("rityta", () => {
     await page.reload();
     await expect(page.getByLabel("Model name")).toHaveValue("Test model – 200 nodes");
   });
+
+  test("Northwind-modellen från Neo4js exempel öppnas via länk", async ({ page }) => {
+    await freshApp(page);
+    await page.goto("/?open=northwind.json");
+    await expect(page.getByLabel("Model name")).toHaveValue("Northwind (Neo4j example)");
+    const canvas = page.getByTestId("canvas");
+    await expect(canvas).toHaveCSS("transform", "none");
+    await expect(page.locator("[data-part='node-circle']")).toHaveCount(9);
+    await expect(canvas.locator("[data-ref^='relationship:'][data-part='body']")).toHaveCount(10);
+    // Anteckningarna är knutna: fyra har en länk till sin nod eller relation.
+    await expect(canvas.locator("[data-part='note-link']")).toHaveCount(4);
+    await page.getByRole("tab", { name: "Layers" }).click();
+    await expect(page.getByTestId("layer-row")).toHaveText([/Catalog/, /Sales/, /Organisation/]);
+    await expect(page.getByTestId("notes-layer").getByText("5", { exact: true })).toBeVisible();
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/northwind.png`, animations: "disabled" });
+  });
 });
