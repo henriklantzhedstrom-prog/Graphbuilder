@@ -50,6 +50,7 @@ export const DEFAULT_DIAGRAM_STYLE: DiagramStyle = {
 // Klara grundfärger med stor skillnad sinsemellan, alla ljusa nog för svart text
 // (utom den svarta, som är till för ljus text).
 export const NOTE_COLORS = [
+  "#ffffff",
   "#ffd60a",
   "#ff9500",
   "#ff3b30",
@@ -57,7 +58,6 @@ export const NOTE_COLORS = [
   "#0a84ff",
   "#34c759",
   "#8e8e93",
-  "#ffffff",
 ] as const;
 
 export const NODE_PALETTE = [
@@ -75,7 +75,8 @@ export const NODE_PALETTE = [
 export const DEFAULT_NOTE: Omit<Note, "id" | "position" | "attachedTo"> = {
   size: { w: 200, h: 120 },
   text: "",
-  color: NOTE_COLORS[0],
+  // Vit med svart kant som standard; färgen går att byta, kanten är alltid svart.
+  color: "#ffffff",
   textColor: "#1b1f27",
   fontSize: 14,
   align: "left",

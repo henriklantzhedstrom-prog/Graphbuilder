@@ -104,6 +104,10 @@ test.describe("anteckningar", () => {
     const notes = page.locator("[data-ref^='note:'] > rect");
     await expect(notes).toHaveCount(1);
     await expect(page.locator("svg text", { hasText: "Kom ihåg detta" })).toBeVisible();
+    // En ny anteckning är vit med svart kant.
+    await expect(notes.first()).toHaveAttribute("fill", "#ffffff");
+    await expect(notes.first()).toHaveAttribute("stroke", "#000000");
+    await expect(notes.first()).toHaveAttribute("stroke-width", "2");
     // Anteckningen ligger mitt i ritytan.
     const canvas = await page.getByTestId("canvas").boundingBox();
     const note = await notes.first().boundingBox();

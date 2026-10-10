@@ -11,6 +11,10 @@ export interface NoteViewProps {
   hideText?: boolean;
 }
 
+/** Anteckningar har alltid en svart kant, oavsett bakgrundsfärg. */
+export const NOTE_BORDER_COLOR = "#000000";
+export const NOTE_BORDER_WIDTH = 2;
+
 export function NoteView({ note, box, interactive = false, hideText = false }: NoteViewProps) {
   const lines = hideText ? [] : wrapToWidth(note.text, box.w - NOTE_PADDING * 2, note.fontSize);
   const lineHeight = note.fontSize * LINE_HEIGHT;
@@ -34,8 +38,8 @@ export function NoteView({ note, box, interactive = false, hideText = false }: N
         height={box.h}
         rx={6}
         fill={note.color}
-        stroke="rgba(0,0,0,0.18)"
-        strokeWidth={1}
+        stroke={NOTE_BORDER_COLOR}
+        strokeWidth={NOTE_BORDER_WIDTH}
       />
       {lines.length > 0 && (
         <text

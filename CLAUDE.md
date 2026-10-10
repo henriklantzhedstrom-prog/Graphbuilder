@@ -88,6 +88,8 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   anteckningar och bilder.
 - **Show all / Hide all** överst i lagerpanelen visar eller döljer alla lager i ett steg
   (`setAllLayersVisible`). Det fasta lagret "Properties" påverkas inte.
+- **En ny anteckning är vit med svart kant** (`DEFAULT_NOTE`, `NOTE_BORDER_*` i `NoteView.tsx`).
+  Färgen går att byta i panelen; kanten är alltid svart.
 - **Anteckningar har ett eget fast lager, "Notes"** (`doc.notesVisible`, `NotesRow` i
   `LayersPanel.tsx`), och hör inte till de vanliga lagren (`Note` har inget `layerId`; äldre filer
   migreras, dokumentversion 6). De ritas överst och är aldrig låsta av ett lager.
