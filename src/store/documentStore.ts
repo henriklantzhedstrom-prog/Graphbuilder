@@ -107,6 +107,8 @@ export interface DocumentState {
   // Gemensamt
   moveElements(refs: ElementRef[], delta: Point): void;
   setElementBox(ref: ElementRef, box: Box): void;
+  /** Sätter nya lägen för noder och anteckningar i ett steg (automatisk placering). */
+  applyPositions(positions: { nodes: Record<Id, Point>; notes: Record<Id, Point> }): void;
   deleteElements(refs: ElementRef[]): void;
   /** Duplicerar element med förskjutning och returnerar de nya referenserna. */
   duplicateElements(refs: ElementRef[], offset?: Point): ElementRef[];
@@ -469,6 +471,18 @@ export const useDocumentStore = create<DocumentState>()(
           for (const [noteId, move] of followers) {
             const note = s.doc.notes[noteId];
             if (note) note.position = add(note.position, move);
+          }
+          touch(s.doc);
+        }),
+      applyPositions: ({ nodes, notes }) =>
+        set((s) => {
+          for (const [id, position] of Object.entries(nodes)) {
+            const node = s.doc.nodes[id];
+            if (node) node.position = { x: position.x, y: position.y };
+          }
+          for (const [id, position] of Object.entries(notes)) {
+            const note = s.doc.notes[id];
+            if (note) note.position = { x: position.x, y: position.y };
           }
           touch(s.doc);
         }),

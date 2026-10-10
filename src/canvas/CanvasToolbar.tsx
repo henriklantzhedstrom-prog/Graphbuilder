@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { fitToContent, resetZoom, zoomBy } from "@/canvas/actions";
+import { arrangeAutomatically } from "@/canvas/arrange";
 import {
+  IconArrange,
   IconCursor,
   IconFit,
   IconHand,
@@ -28,7 +30,14 @@ function FloatingBar({ className, children }: { className: string; children: Rea
   );
 }
 
-export function ToolBar({ onAddImage }: { onAddImage: () => void }) {
+export function ToolBar({
+  onAddImage,
+  getViewportSize,
+}: {
+  onAddImage: () => void;
+  getViewportSize: () => Size;
+}) {
+  const arranging = useUiStore((s) => s.arranging);
   const tool = useUiStore((s) => s.tool);
   const setTool = useUiStore((s) => s.setTool);
   return (
@@ -49,6 +58,19 @@ export function ToolBar({ onAddImage }: { onAddImage: () => void }) {
       <IconButton label={t.tools.image} onClick={onAddImage}>
         <IconImage />
       </IconButton>
+      <Divider />
+      {/* Med text, inte bara en ikon: det är en handling man ska hitta, inte ett verktyg. */}
+      <button
+        type="button"
+        data-testid="arrange"
+        title={t.tools.arrangeHint}
+        disabled={arranging}
+        onClick={() => arrangeAutomatically(getViewportSize())}
+        className="flex h-9 items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 text-[14px] text-text transition-colors hover:bg-surface-2 disabled:cursor-wait disabled:opacity-60"
+      >
+        <IconArrange size={18} />
+        {arranging ? t.tools.arranging : t.tools.arrange}
+      </button>
     </FloatingBar>
   );
 }

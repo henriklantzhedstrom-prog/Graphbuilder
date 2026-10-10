@@ -546,7 +546,10 @@ export function Canvas() {
   };
 
   // ---------- Overrides under drag ----------
+  const previewPositions = useUiStore((s) => s.previewPositions);
   const overrides = useMemo<SceneOverrides | undefined>(() => {
+    // En automatisk placering som glider på plats ritas med sina tillfälliga lägen.
+    if (previewPositions) return { positions: previewPositions };
     if (!drag) return undefined;
     if (drag.kind === "move") {
       const positions = new Map<string, Point>();
@@ -582,7 +585,7 @@ export function Canvas() {
       return { boxes: new Map([[refKey(drag.ref), drag.box]]) };
     }
     return undefined;
-  }, [drag, selection, doc]);
+  }, [drag, selection, doc, previewPositions]);
 
   const visibleCanvasBox: Box = {
     x: -viewport.x / viewport.zoom,

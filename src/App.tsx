@@ -114,7 +114,7 @@ export function App() {
       <div className="relative flex min-h-0 flex-1">
         <div ref={canvasHostRef} className="relative min-w-0 flex-1">
           <Canvas />
-          <ToolBar onAddImage={onAddImage} />
+          <ToolBar onAddImage={onAddImage} getViewportSize={getViewportSize} />
           <ZoomControls getViewportSize={getViewportSize} />
         </div>
         <SidePanel getViewportSize={getViewportSize} />

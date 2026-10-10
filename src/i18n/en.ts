@@ -32,6 +32,10 @@ export const en = {
     pan: "Pan",
     addNode: "Add node",
     addNote: "Add note",
+    arrange: "Arrange",
+    arranging: "Arranging…",
+    arrangeHint:
+      "Move the nodes so that as few relationships as possible cross each other. With two or more nodes selected, only those are moved.",
     note: "Note",
     image: "Image…",
   },
@@ -257,6 +261,7 @@ export const en = {
         "New relationship (drop on empty space creates a node)",
       ],
       addNote: ["“Add note” button", "New note in the middle of the view"],
+      arrange: ["“Arrange” button", "Move nodes so that as few relationships as possible cross"],
       noteTool: ["N", "Note tool: click or drag on the canvas to place a note"],
       edit: ["Enter / double-click", "Edit caption, labels and properties in place"],
       delete: ["Delete / Backspace", "Delete selection"],
@@ -295,6 +300,12 @@ export const en = {
   },
   toasts: {
     saved: "The model was saved",
+    arranged: (before: number, after: number) =>
+      `Arranged: crossing relationships went from ${before} to ${after}`,
+    arrangeNoCrossings: "No relationships cross each other – nothing to arrange",
+    arrangeNoImprovement: (n: number) =>
+      `Found no arrangement with fewer than ${n} crossing relationships – left as it is`,
+    arrangeNothing: "There are fewer than two nodes to arrange",
     noteAttached: "The note is attached and will follow along",
     opened: (name: string) => `Opened “${name}”`,
     fileError: (msg: string) => `Could not open the file: ${msg}`,

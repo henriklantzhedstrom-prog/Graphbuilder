@@ -228,3 +228,11 @@ export const IconLink = ({ size = 18, ...p }: IconProps) => (
     <path d="M14 10a4 4 0 0 0-5.700 0l-3 3a4 4 0 0 0 5.700 5.700l1-1" />
   </svg>
 );
+export const IconArrange = ({ size = 18, ...p }: IconProps) => (
+  <svg {...base(size, p)}>
+    <circle cx="5" cy="6" r="2.200" />
+    <circle cx="19" cy="6" r="2.200" />
+    <circle cx="12" cy="18" r="2.200" />
+    <path d="M7.200 6h9.600M6.200 7.900l4.600 8.200M17.800 7.900l-4.600 8.200" />
+  </svg>
+);

@@ -36,6 +36,13 @@ export interface UiState {
   details: { ref: ElementRef; focus: DetailFocus } | null;
   /** Anteckningar som väntar på att användaren klickar på det de ska knytas till. */
   attachingNotes: Id[] | null;
+  /**
+   * Tillfälliga lägen medan en automatisk placering glider på plats (nyckel "node:id" eller
+   * "note:id"). Ritas i stället för de sparade lägena tills de nya sparas.
+   */
+  previewPositions: Map<string, Point> | null;
+  /** Sant medan en automatisk placering räknas fram. */
+  arranging: boolean;
   panel: Panel;
   dialog: Dialog;
   drag: DragState;
@@ -55,6 +62,8 @@ export interface UiState {
   setEditing(ref: ElementRef | null): void;
   setDetails(details: { ref: ElementRef; focus: DetailFocus } | null): void;
   setAttachingNotes(ids: Id[] | null): void;
+  setPreviewPositions(positions: Map<string, Point> | null): void;
+  setArranging(arranging: boolean): void;
   setPanel(panel: Panel): void;
   setDialog(dialog: Dialog): void;
   setDrag(drag: DragState): void;
@@ -77,6 +86,8 @@ export const useUiStore = create<UiState>()((set, get) => ({
   editing: null,
   details: null,
   attachingNotes: null,
+  previewPositions: null,
+  arranging: false,
   panel: "inspector",
   dialog: null,
   drag: null,
@@ -121,6 +132,8 @@ export const useUiStore = create<UiState>()((set, get) => ({
   setEditing: (editing) => set({ editing }),
   setDetails: (details) => set({ details }),
   setAttachingNotes: (attachingNotes) => set({ attachingNotes }),
+  setPreviewPositions: (previewPositions) => set({ previewPositions }),
+  setArranging: (arranging) => set({ arranging }),
   setPanel: (panel) => set({ panel }),
   setDialog: (dialog) => set({ dialog }),
   setDrag: (drag) => set({ drag }),

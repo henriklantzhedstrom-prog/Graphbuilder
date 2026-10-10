@@ -203,6 +203,16 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
 - **Dra på tom bakgrund flyttar hela ytan** (panorering); Ctrl/Cmd+dra på tom yta = ram-markering
   (ersätter markeringen), Shift+dra = ram-markering som läggs till i det som redan är markerat.
   Dra i ett låst element räknas som bakgrund. Klick utan drag på tom yta avmarkerar.
+- **Automatisk placering** (knappen **Arrange** i den flytande verktygslisten): `arrange` i
+  `src/model/autoLayout.ts` lägger noderna i ett rutnät och söker med simulerad härdning efter
+  den placering som ger minst antal korsande relationer (sedan relationer rakt över en annan nod,
+  sedan kortast total längd). Varje kolumn och rad får den storlek dess noder behöver, med
+  labels, egenskaper och knutna anteckningar inräknade. Sökningen är deterministisk och startar
+  bland annat från nuvarande lägen. `planArrangement`/`arrangeAutomatically` i
+  `src/canvas/arrange.ts` väljer noder (de markerade om minst två, annars alla synliga olåsta),
+  låter dem glida på plats (`uiStore.previewPositions`) och sparar allt som ett ångra-steg
+  (`applyPositions`). Bilden ändras aldrig om antalet korsningar inte minskar. I en stor graf
+  går det inte att få bort alla korsningar; målet är att minimera dem.
 - **Zoom glider alltid mjukt** (`src/canvas/viewportAnimation.ts`): hjul, knappar, tangenter och
   "Fit to content" sätter ett mål och vyn tonas dit (logaritmiskt, tidsbaserat, ankarpunkten ligger
   still). Sätt aldrig zoomen direkt med `setViewport`; använd `zoomBy`/`resetZoom`/`fitToContent`

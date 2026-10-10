@@ -4,7 +4,7 @@ import { isMac, shortcutLabel } from "@/model/shortcutLabel";
 import { useUiStore } from "@/store/uiStore";
 
 const GROUPS: Record<keyof typeof t.shortcuts.groups, (keyof typeof t.shortcuts.items)[]> = {
-  create: ["createNode", "createRelationship", "addNote", "noteTool"],
+  create: ["createNode", "createRelationship", "addNote", "noteTool", "arrange"],
   edit: ["edit", "delete", "undo", "redo", "duplicate", "copyPaste", "nudge", "reverse"],
   select: ["selectAll", "marquee", "marqueeAdd", "multi", "deselect"],
   view: ["pan", "zoom", "zoomKeys", "fit", "layersPanel"],

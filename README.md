@@ -10,6 +10,8 @@ Draw graph models (nodes and relationships) in the browser, in the spirit of arr
 - **Edit on the canvas** – double-click a node to edit its caption in place, with its labels in a
   box above it and its properties in a box below; double-click a relationship for its type and
   properties.
+- **Arrange** – one click moves the nodes so that as few relationships as possible cross each
+  other; attached notes follow, and the whole move is a single undo step.
 - **Notes** – free-text sticky notes with color, text size and alignment. Notes live in their own
   **Notes** layer and can be attached to a node or relationship, so they follow along when the
   graph is rearranged.
