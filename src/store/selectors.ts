@@ -14,6 +14,9 @@ import type {
   RelationshipStyle,
 } from "@/model/types";
 
+/** Standardvärdet för egenskapernas bakgrund; betyder "följ modellens bakgrund". */
+const DEFAULT_PROPERTY_BACKGROUND = "#ffffff";
+
 export const refKey = (ref: ElementRef): string => `${ref.kind}:${ref.id}`;
 export const parseRefKey = (key: string): ElementRef => {
   const [kind, id] = key.split(":") as [ElementRef["kind"], string];
@@ -121,15 +124,26 @@ export const countElementsInLayer = (doc: GraphDocument, layerId: Id): number =>
 
 // ---------- Stil ----------
 
-export const resolvedNodeStyle = (doc: GraphDocument, node: GraphNode): NodeStyle => ({
-  ...doc.style.node,
-  ...node.style,
-});
+/**
+ * Bakgrunden bakom egenskapsraderna väljs inte av användaren: den följer modellens bakgrundsfärg,
+ * så att rutan smälter in och bara döljer linjer som passerar bakom. En annan sparad färg (från
+ * en äldre modell) behålls.
+ */
+const propertyBackgroundFor = (doc: GraphDocument, stored: string): string =>
+  stored.toLowerCase() === DEFAULT_PROPERTY_BACKGROUND ? doc.style.background : stored;
+
+export const resolvedNodeStyle = (doc: GraphDocument, node: GraphNode): NodeStyle => {
+  const style = { ...doc.style.node, ...node.style };
+  return { ...style, propertyBackground: propertyBackgroundFor(doc, style.propertyBackground) };
+};
 
 export const resolvedRelationshipStyle = (
   doc: GraphDocument,
   rel: Relationship,
-): RelationshipStyle => ({ ...doc.style.relationship, ...rel.style });
+): RelationshipStyle => {
+  const style = { ...doc.style.relationship, ...rel.style };
+  return { ...style, propertyBackground: propertyBackgroundFor(doc, style.propertyBackground) };
+};
 
 // ---------- Boxar ----------
 

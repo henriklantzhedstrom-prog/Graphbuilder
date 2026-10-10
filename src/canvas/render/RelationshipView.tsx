@@ -1,3 +1,4 @@
+import { textOn } from "@/model/color";
 import type { RelationshipGeometry } from "@/model/geometry";
 import type { Relationship, RelationshipStyle } from "@/model/types";
 import { PropertyBackground, propertyTextX } from "./PropertyBackground";
@@ -87,7 +88,7 @@ export function RelationshipView({
               textAnchor="middle"
               dominantBaseline="central"
               fontSize={style.typeFontSize}
-              fill={style.typeColor}
+              fill={textOn(style.typeBackground, style.typeColor)}
               fontFamily="system-ui, sans-serif"
               style={{ pointerEvents: "none", userSelect: "none" }}
             >
@@ -110,7 +111,7 @@ export function RelationshipView({
             y={(type ? typeHeight / 2 : 0) + style.propertyFontSize + 2}
             textAnchor="start"
             fontSize={style.propertyFontSize}
-            fill={style.propertyColor}
+            fill={textOn(style.propertyBackground, style.propertyColor)}
             fontFamily="system-ui, sans-serif"
             style={{ pointerEvents: "none", userSelect: "none" }}
           >

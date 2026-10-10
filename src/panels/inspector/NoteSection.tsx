@@ -35,11 +35,6 @@ export function NoteSection({ notes }: { notes: Note[] }) {
         swatches={NOTE_COLORS}
         onChange={(color) => setAll({ color })}
       />
-      <ColorField
-        label={t.inspector.textColor}
-        value={commonValue(notes.map((n) => n.textColor))}
-        onChange={(textColor) => setAll({ textColor })}
-      />
       <SliderField
         label={t.inspector.fontSize}
         value={fontSize ?? 6}

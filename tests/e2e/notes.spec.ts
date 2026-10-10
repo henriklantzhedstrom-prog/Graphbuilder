@@ -76,4 +76,18 @@ test.describe("anteckningar", () => {
     await page.getByLabel("Text size").fill("24");
     await expect(page.locator("[data-ref^='note:'] text")).toHaveAttribute("font-size", "24");
   });
+
+  test("anteckningens text syns mot sin färg, utan eget färgval för texten", async ({ page }) => {
+    await freshApp(page);
+    await page.getByRole("button", { name: "Note" }).click();
+    await page.getByTestId("canvas").click({ position: { x: 200, y: 200 } });
+    await page.getByTestId("inline-editor").fill("Anteckning");
+    await page.getByTestId("canvas").click({ position: { x: 700, y: 600 } });
+    await page.locator("[data-ref^='note:'] > rect").first().click();
+    await expect(page.locator("aside").getByText("Text color")).toHaveCount(0);
+    const text = page.locator("[data-ref^='note:'] text");
+    await expect(text).toHaveAttribute("fill", "#1b1f27");
+    await page.locator("[data-field='Color']").locator("input[type='color']").fill("#101010");
+    await expect(text).toHaveAttribute("fill", "#ffffff");
+  });
 });

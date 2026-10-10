@@ -1,4 +1,5 @@
 import { nodeCaption } from "@/model/caption";
+import { textOn } from "@/model/color";
 import type { GraphNode, NodeStyle, Point } from "@/model/types";
 import { nodeOuterRadius } from "@/store/selectors";
 import { labelLayout } from "./labels";
@@ -123,7 +124,7 @@ export function NodeView({
           textAnchor="middle"
           dominantBaseline="central"
           fontSize={style.captionFontSize}
-          fill={style.captionColor}
+          fill={textOn(style.fill, style.captionColor)}
           fontFamily="system-ui, sans-serif"
           style={{ pointerEvents: "none", userSelect: "none" }}
         >
@@ -154,7 +155,7 @@ export function NodeView({
             textAnchor="middle"
             dominantBaseline="central"
             fontSize={style.labelFontSize}
-            fill={style.labelColor}
+            fill={textOn(style.labelBackground, style.labelColor)}
             fontFamily="system-ui, sans-serif"
             style={{ pointerEvents: "none", userSelect: "none" }}
           >
@@ -177,7 +178,7 @@ export function NodeView({
           y={propStartY}
           textAnchor="start"
           fontSize={style.propertyFontSize}
-          fill={style.propertyColor}
+          fill={textOn(style.propertyBackground, style.propertyColor)}
           fontFamily="system-ui, sans-serif"
           style={{ pointerEvents: "none", userSelect: "none" }}
         >

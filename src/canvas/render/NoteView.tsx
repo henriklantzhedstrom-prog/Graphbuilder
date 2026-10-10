@@ -1,3 +1,4 @@
+import { textOn } from "@/model/color";
 import type { Box, Note } from "@/model/types";
 import { LINE_HEIGHT, wrapToWidth } from "./text";
 
@@ -43,7 +44,7 @@ export function NoteView({ note, box, interactive = false, hideText = false }: N
           y={box.y + NOTE_PADDING + note.fontSize * 0.85}
           textAnchor={note.align === "center" ? "middle" : "start"}
           fontSize={note.fontSize}
-          fill={note.textColor}
+          fill={textOn(note.color, note.textColor)}
           fontFamily="system-ui, sans-serif"
           style={{ pointerEvents: "none", userSelect: "none", whiteSpace: "pre" }}
         >

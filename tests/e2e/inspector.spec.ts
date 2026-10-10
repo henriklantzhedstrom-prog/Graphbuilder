@@ -391,10 +391,20 @@ test.describe("egenskapspanel", () => {
     await dragRelationship(page, { x: 250, y: 300 }, { x: 600, y: 300 }, "REL");
     await page.keyboard.press("Escape");
     const panel = page.locator("aside");
-    // Inget markerat: bakgrund, åtta nodfärger och fem relationsfärger – alla med nio prickar.
+    // Inget markerat: bakgrund, fyra nodfärger och två relationsfärger – alla med nio prickar.
+    // Textfärger går inte att välja; text ritas i en färg som syns mot sin bakgrund.
+    for (const label of [
+      "Caption color",
+      "Label color",
+      "Property color",
+      "Property background",
+      "Type color",
+    ]) {
+      await expect(panel.getByText(label, { exact: true })).toHaveCount(0);
+    }
     const colorFields = panel.locator("[data-field]:has(input[type='color'])");
-    await expect(colorFields).toHaveCount(14);
-    for (let i = 0; i < 14; i++) {
+    await expect(colorFields).toHaveCount(7);
+    for (let i = 0; i < 7; i++) {
       await expect(colorFields.nth(i).locator("button[title^='#']")).toHaveCount(9);
     }
     // Radius är första inställningen under Nodes, före Fill.
@@ -409,9 +419,19 @@ test.describe("egenskapspanel", () => {
     await expect(page.locator("[data-part='node-circle'][stroke='#ff3b30']")).toHaveCount(2);
     await panel.locator("[data-field='Label background']").getByTitle("#ffd60a").click();
     await expect(page.locator("[data-part='label-box'][fill='#ffd60a']")).toHaveCount(1);
+    // Mörk labelbakgrund: labelns text blir vit av sig själv.
+    await panel.locator("[data-field='Label background']").getByTitle("#000000").click();
+    await expect(page.locator("[data-part='label-box'] + text")).toHaveAttribute("fill", "#ffffff");
+    await panel.locator("[data-field='Label background']").getByTitle("#ffd60a").click();
+    await expect(page.locator("[data-part='label-box'] + text")).toHaveAttribute("fill", "#000000");
     await panel.locator("[data-field='Line color']").getByTitle("#0a84ff").click();
     await expect(page.locator("[data-ref^='relationship:'] path[stroke='#0a84ff']")).toHaveCount(1);
     await panel.locator("[data-field='Background color']").getByTitle("#8e8e93").click();
+    // Egenskapernas ruta följer modellens bakgrund, så att den smälter in.
+    await expect(page.locator("[data-part='property-background']").first()).toHaveAttribute(
+      "fill",
+      "#8e8e93",
+    );
     await expect(page.getByTestId("canvas-container")).toHaveCSS(
       "background-color",
       "rgb(142, 142, 147)",

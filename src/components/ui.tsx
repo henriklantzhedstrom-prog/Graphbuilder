@@ -8,6 +8,7 @@ import {
   useState,
 } from "react";
 import { t } from "@/i18n";
+import { toHex } from "@/model/color";
 import { NODE_PALETTE } from "@/model/defaults";
 import { beginHistoryGroup, endHistoryGroup } from "@/store/documentStore";
 
@@ -405,47 +406,6 @@ export function Divider() {
   return <span className="mx-1.5 h-5 w-px shrink-0 bg-border" aria-hidden />;
 }
 
-/**
- * Normaliserar en färg till #rrggbb för <input type="color">. Klarar även färgnamn, rgb(), hsl()
- * och korta eller genomskinliga hexkoder (t.ex. från importerade modeller) via webbläsaren.
- */
-export function toHex(color: string | null): string {
-  if (!color) return "#000000";
-  const value = color.trim();
-  if (/^#[0-9a-f]{6}$/i.test(value)) return value.toLowerCase();
-  if (/^#[0-9a-f]{3}$/i.test(value)) {
-    const [, r, g, b] = value;
-    return `#${r}${r}${g}${g}${b}${b}`.toLowerCase();
-  }
-  if (/^#[0-9a-f]{8}$/i.test(value)) return value.slice(0, 7).toLowerCase();
-  return cssColorToHex(value) ?? "#000000";
-}
-
-let colorProbe: CanvasRenderingContext2D | null | undefined;
-
-function cssColorToHex(color: string): string | null {
-  if (colorProbe === undefined) {
-    try {
-      colorProbe = document.createElement("canvas").getContext("2d");
-    } catch {
-      colorProbe = null;
-    }
-  }
-  if (!colorProbe) return null;
-  // En ogiltig färg lämnar fillStyle orörd; två olika utgångsvärden avslöjar det.
-  colorProbe.fillStyle = "#000000";
-  colorProbe.fillStyle = color;
-  const first = colorProbe.fillStyle;
-  colorProbe.fillStyle = "#ffffff";
-  colorProbe.fillStyle = color;
-  if (first !== colorProbe.fillStyle) return null;
-  if (/^#[0-9a-f]{6}$/i.test(first)) return first.toLowerCase();
-  const rgba = first.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-  if (!rgba) return null;
-  return `#${rgba
-    .slice(1, 4)
-    .map((n) => Number(n).toString(16).padStart(2, "0"))
-    .join("")}`;
-}
+export { toHex } from "@/model/color";
 
 export { cx };

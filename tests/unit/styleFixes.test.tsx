@@ -4,11 +4,10 @@ import { labelLayout } from "@/canvas/render/labels";
 import { computeRelationshipGeometry } from "@/canvas/render/Scene";
 import { toHex } from "@/components/ui";
 import { exportSvg } from "@/export/svg";
-import { contrast, readableTextColor } from "@/model/color";
+import { contrast, readableTextColor, textOn } from "@/model/color";
 import { createEmptyDocument } from "@/model/defaults";
 import { shortcutLabel } from "@/model/shortcutLabel";
 import type { GraphDocument } from "@/model/types";
-import { captionColorFor } from "@/panels/inspector/common";
 import { relationshipBundles } from "@/store/selectors";
 
 function twoNodes(): GraphDocument {
@@ -37,17 +36,35 @@ describe("färger", () => {
     expect(toHex(null)).toBe("#000000");
   });
 
-  it("rubriken byter färg när den inte går att läsa mot fyllningen", () => {
+  it("text ritas alltid i en färg som går att läsa mot sin bakgrund", () => {
     expect(contrast("#000000", "#ffffff")).toBeCloseTo(21, 0);
-    // Svart rubrik på svart nod: byt till vitt. Och tillbaka på en vit nod.
-    expect(captionColorFor("#000000", "#000000")).toBe("#ffffff");
-    expect(captionColorFor("#ffffff", "#ffffff")).toBe("#000000");
+    // Svart text på svart bakgrund blir vit, och vit på vitt blir svart.
+    expect(textOn("#000000", "#000000")).toBe("#ffffff");
+    expect(textOn("#ffffff", "#ffffff")).toBe("#000000");
     // Paletten med klara färger går att läsa med svart text: ingen ändring.
     for (const fill of ["#ff3b30", "#ff9500", "#ffd60a", "#34c759", "#0a84ff", "#af52de"]) {
-      expect(captionColorFor(fill, "#000000")).toBeNull();
+      expect(textOn(fill, "#000000")).toBe("#000000");
     }
-    // En egen rubrikfärg som syns behålls.
+    // En sparad textfärg som syns (från en äldre modell) behålls som den är skriven.
+    expect(textOn("#000000", "#FFD60A")).toBe("#FFD60A");
     expect(readableTextColor("#000000", "#ffd60a")).toBe("#ffd60a");
+
+    // Allt som ritas följer sin bakgrund: rubrik, label, egenskaper och relationens typ.
+    const doc = twoNodes();
+    const a = doc.nodes.a;
+    const rel = doc.relationships.r;
+    if (!a || !rel) throw new Error("element saknas");
+    a.properties = { name: "Alice" };
+    a.captionKey = "name";
+    a.labels = ["Person"];
+    a.style = { fill: "#000000", labelBackground: "#000000", propertyBackground: "#000000" };
+    rel.type = "KNOWS";
+    rel.style = { typeBackground: "#000000" };
+    const svg = exportSvg(doc, { onlyVisible: true, transparent: false })?.svg ?? "";
+    for (const text of ["Alice", "Person", "name: Alice", "KNOWS"]) {
+      const element = svg.match(new RegExp(`<text[^>]*>(?:<tspan[^>]*>)?${text}`))?.[0] ?? "";
+      expect(element, text).toContain('fill="#ffffff"');
+    }
   });
 });
 

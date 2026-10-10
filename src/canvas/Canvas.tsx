@@ -10,6 +10,7 @@ import { IconPlus } from "@/components/icons";
 import { useElementSize } from "@/hooks/useElementSize";
 import { useSettledValue } from "@/hooks/useSettledValue";
 import { t } from "@/i18n";
+import { textOn } from "@/model/color";
 import { DEFAULT_NOTE } from "@/model/defaults";
 import {
   boxesIntersect,
@@ -119,6 +120,9 @@ function resizeBox(start: Box, handle: Handle, delta: Point, aspect: number | nu
   }
   return { x, y, w, h };
 }
+
+/** Textfältet för redigering på plats har vit bakgrund; texten i det ska gå att läsa mot den. */
+const EDITOR_BACKGROUND = "#ffffff";
 
 /** Zoomhastighet per pixel hjulrörelse, och största rörelse som räknas per hjulhändelse. */
 const WHEEL_ZOOM_SPEED = 0.0022;
@@ -728,7 +732,7 @@ function EditorHost({
           target={editing}
           box={{ x: node.position.x - w / 2, y: node.position.y - h / 2, w, h }}
           fontSize={style.captionFontSize}
-          color={style.captionColor}
+          color={textOn(EDITOR_BACKGROUND, style.captionColor)}
           align="center"
           zoom={zoom}
         />
@@ -749,7 +753,7 @@ function EditorHost({
           target={editing}
           box={{ x: geometry.labelPosition.x - w / 2, y: geometry.labelPosition.y - h / 2, w, h }}
           fontSize={style.typeFontSize}
-          color={style.typeColor}
+          color={textOn(EDITOR_BACKGROUND, style.typeColor)}
           align="center"
           zoom={zoom}
         />
@@ -767,7 +771,7 @@ function EditorHost({
           target={editing}
           box={{ x: box.x + pad, y: box.y + pad, w: box.w - pad * 2, h: box.h - pad * 2 }}
           fontSize={note.fontSize}
-          color={note.textColor}
+          color={textOn(EDITOR_BACKGROUND, note.textColor)}
           align={note.align}
           zoom={zoom}
         />

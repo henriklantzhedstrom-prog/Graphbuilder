@@ -115,8 +115,13 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   `contentBounds` i selectors räknar bara nodernas cirklar och ska inte användas för bilder.
   Ändras var labels eller egenskaper ritas i `NodeView`/`RelationshipView` ska samma mått ändras
   i `bounds.ts`.
-- **Rubriken ska alltid gå att läsa.** När fyllningen ändras i panelen byts rubrikfärgen till
-  svart eller vitt om kontrasten blir under 3 (`captionColorFor`, `src/model/color.ts`).
+- **Textfärger går inte att välja.** Kunden tyckte att det var överdrivet. All text på ritytan
+  (rubrik, labels, egenskaper, relationens typ, anteckningar) ritas med `textOn(bakgrund, sparad
+  färg)` i `src/model/color.ts`: den sparade färgen om den går att läsa mot bakgrunden, annars
+  svart eller vitt. Fälten `captionColor`, `labelColor`, `propertyColor`, `typeColor` och
+  `textColor` finns kvar i modellen för äldre filer men har inga reglage; lägg inte tillbaka dem.
+  Samma sak gäller egenskapernas bakgrund (`propertyBackground`): den har inget reglage och
+  följer modellens bakgrundsfärg (`propertyBackgroundFor` i `selectors.ts`).
 - **Kortkommandon** skrivs med "Ctrl+" i `i18n` och visas via `shortcutLabel` (⌘ på Mac).
 - **Nodens kant växer utåt.** `radius` är den fyllda ytans radie; kanten ritas utanför den
   (cirkelns linje har radien `radius + strokeWidth / 2`). Använd `nodeOuterRadius(style)`
@@ -162,8 +167,7 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
 - **Ritordning** (`Scene.tsx`): alla bilder, sedan alla relationer, sedan alla noder, sedan alla
   anteckningar; lagerordningen gäller inom bilder, noder och anteckningar (relationer ritas alltid bakom noderna, oavsett lager). Relationer börjar under nodens kant och
   pilspetsen slutar precis utanför den (se `nodeOuterRadius`). Parallella relationer: `PARALLEL_SPACING` i `geometry.ts`.
-  Egenskapsrader har en bakgrundsruta (`PropertyBackground.tsx`, stil `propertyBackground`, standard
-  vit) som relationer passerar bakom och som är klickbar som en del av elementet. Raderna är
+  Egenskapsrader har en bakgrundsruta (`PropertyBackground.tsx`, i modellens bakgrundsfärg) som relationer passerar bakom och som är klickbar som en del av elementet. Raderna är
   vänsterställda i rutan (`propertyTextX`); rutan är centrerad under noden resp. relationstypen. Labels har
   inställbar kant (`labelBorderColor`, `labelBorderWidth`). Rutor runt text (labels, relationstyp,
   egenskaper) mäts med `measureTextWidth` i `src/canvas/render/text.ts` (verklig textbredd) plus
