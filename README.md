@@ -7,6 +7,8 @@ Draw graph models (nodes and relationships) in the browser, in the spirit of arr
   relationship has no layer of its own and is shown when both of its nodes are in visible layers;
   it can also be put in a layer, and is then shown only when that layer is visible too.
   A fixed **Properties** layer shows or hides the property texts of all nodes and relationships.
+- **Edit in place** – double-click a node to type its caption, labels and properties right where
+  they are drawn; double-click a relationship for its type and properties.
 - **Notes** – free-text sticky notes on the canvas with color, text size and alignment.
 - **Background images** – add images (button, drag-and-drop or paste) as a backdrop, scale them
   proportionally, set opacity and lock them.

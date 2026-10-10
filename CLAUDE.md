@@ -105,6 +105,37 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   öppna igen. Värden som dras (skjutreglage, färgväljare) ligger alltid i en ångra-grupp
   (`beginHistoryGroup`/`endHistoryGroup` i `documentStore.ts`), så att en hel dragning blir ett
   enda steg att ångra. `toHex` klarar alla CSS-färger (namn, rgb(), korta hexkoder).
+- **Mått för export och "Fit to content"** räknas med `drawnBounds` (`src/canvas/render/bounds.ts`):
+  allt som faktiskt ritas, inklusive kant, labels, egenskapslistor och relationernas texter.
+  `contentBounds` i selectors räknar bara nodernas cirklar och ska inte användas för bilder.
+  Ändras var labels eller egenskaper ritas i `NodeView`/`RelationshipView` ska samma mått ändras
+  i `bounds.ts`.
+- **Rubriken ska alltid gå att läsa.** När fyllningen ändras i panelen byts rubrikfärgen till
+  svart eller vitt om kontrasten blir under 3 (`captionColorFor`, `src/model/color.ts`).
+- **Kortkommandon** skrivs med "Ctrl+" i `i18n` och visas via `shortcutLabel` (⌘ på Mac).
+- **Nodens kant växer utåt.** `radius` är den fyllda ytans radie; kanten ritas utanför den
+  (cirkelns linje har radien `radius + strokeWidth / 2`). Använd `nodeOuterRadius(style)`
+  (= `radius + strokeWidth`) för allt som ska ligga utanför noden: labels, egenskaper, ringar,
+  pilspetsar, markering och mått. Relationer börjar vid `radius`, under kanten.
+- **Labels** placeras av `labelLayout` (`src/canvas/render/labels.ts`), som både `NodeView` och
+  `bounds.ts` använder. Labelns inre yta är texten plus luft (`LABEL_PADDING_X` 12 px i sidled,
+  höjd 1,8 × textstorleken); kanten ritas UTANFÖR den ytan, så en tjockare kant växer utåt och
+  tar aldrig plats från texten. Standardkant 4 px.
+- **Egenskaper och labels i panelen sparas med Enter.** Nyckel + Enter skapar egenskapen och
+  flyttar markören till värdet; Enter i värdet går till nästa nyckel; "nyckel: värde" sparar båda.
+  Fälten sparar också när de lämnas, och ett klick på ritytan lämnar det aktiva fältet först
+  (`onPointerDown` i `Canvas.tsx`). Namn som redan finns eller bara är siffror stoppas med ett
+  meddelande (`propertyKeyProblem`).
+- **Redigering direkt på ritytan** (dubbelklick eller Enter på ett markerat element): `startEditing`
+  i `actions.ts` öppnar rubriken på plats (`InlineEditor`, `uiStore.editing`) och, för noder och
+  relationer, `DetailsEditor` (`uiStore.details`). Där är varje label en skrivbar bricka och varje
+  egenskap en skrivbar rad "nyckel: värde", på samma plats och i samma utseende som de ritas
+  (HTML ovanpå ritytan, skalad med zoomen; det ritade döljs så länge via `detailsKey`). Sist
+  finns en tom bricka/rad för att lägga till; den ligger utanför flödet så att de befintliga
+  inte flyttar sig. Enter sparar och går till nästa fält, tom text tar bort, Esc eller klick på
+  ritytan avslutar, Enter i rubriken avslutar allt. Dubbelklick på en label eller på egenskaperna
+  sätter markören där. En ny nod från "Add node" öppnar bara rubriken. Bygg aldrig om detta som
+  rutor som upprepar sidopanelen – kunden vill skriva direkt i det ritade.
 - Varje ny funktion levereras med enhetstest (`tests/unit`) och, när den har UI, e2e-test (`tests/e2e`).
 - Commit-meddelanden: en kort rad i imperativ på engelska (`Add layers panel`), sedan valfri brödtext.
 - Importera med alias `@/` för `src/`.
