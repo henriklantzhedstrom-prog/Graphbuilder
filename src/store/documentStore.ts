@@ -51,10 +51,14 @@ export interface DocumentState {
   renameLayer(id: Id, name: string): void;
   setLayerVisible(id: Id, visible: boolean): void;
   setLayerLocked(id: Id, locked: boolean): void;
+  /** Visar eller döljer det fasta lagret "Properties" (egenskapsraderna på ritytan). */
+  setPropertiesVisible(visible: boolean): void;
   moveLayer(id: Id, toIndex: number): void;
   /** Tar bort lagret. Innehåll flyttas till `moveContentTo` eller tas bort om det utelämnas. */
   removeLayer(id: Id, moveContentTo?: Id): void;
   moveElementsToLayer(refs: ElementRef[], layerId: Id): void;
+  /** Gör relationerna till standardrelationer igen: inget eget lager, de följer sina ändnoder. */
+  clearRelationshipLayer(ids: Id[]): void;
   /** Returnerar id för understa lagret "Bakgrund", skapar det om det saknas. */
   ensureBackgroundLayer(): Id;
 
@@ -167,6 +171,11 @@ export const useDocumentStore = create<DocumentState>()(
             touch(s.doc);
           }
         }),
+      setPropertiesVisible: (visible) =>
+        set((s) => {
+          s.doc.propertiesVisible = visible;
+          touch(s.doc);
+        }),
       setLayerLocked: (id, locked) =>
         set((s) => {
           const l = s.doc.layers.find((x) => x.id === id);
@@ -193,8 +202,9 @@ export const useDocumentStore = create<DocumentState>()(
             moveContentTo && s.doc.layers.some((l) => l.id === moveContentTo && l.id !== id)
               ? moveContentTo
               : undefined;
-          // Relationer har inget lager; de försvinner bara om någon av ändnoderna tas bort.
-          const collections = [s.doc.nodes, s.doc.notes, s.doc.images];
+          // Relationer som lagts i lagret följer med innehållet; övriga relationer försvinner
+          // bara om någon av ändnoderna tas bort.
+          const collections = [s.doc.nodes, s.doc.notes, s.doc.images, s.doc.relationships];
           for (const col of collections) {
             for (const [elId, el] of Object.entries(col)) {
               if (el.layerId !== id) continue;
@@ -217,9 +227,16 @@ export const useDocumentStore = create<DocumentState>()(
         set((s) => {
           if (!s.doc.layers.some((l) => l.id === layerId)) return;
           for (const ref of refs) {
-            if (ref.kind === "relationship") continue;
             const el = getElement(s.doc, ref);
-            if (el && "layerId" in el) el.layerId = layerId;
+            if (el) el.layerId = layerId;
+          }
+          touch(s.doc);
+        }),
+      clearRelationshipLayer: (ids) =>
+        set((s) => {
+          for (const id of ids) {
+            const rel = s.doc.relationships[id];
+            if (rel) delete rel.layerId;
           }
           touch(s.doc);
         }),
@@ -464,7 +481,15 @@ export const useDocumentStore = create<DocumentState>()(
             const toId = idMap.get(rel.toId);
             if (!fromId || !toId) continue;
             const id = newId("r");
-            s.doc.relationships[id] = { ...rel, id, fromId, toId };
+            // En relation som låg i ett lager hamnar i mållagret, precis som noderna.
+            const { layerId: sourceLayerId, ...rest } = rel;
+            s.doc.relationships[id] = {
+              ...rest,
+              id,
+              fromId,
+              toId,
+              ...(sourceLayerId === undefined ? {} : { layerId }),
+            };
             created.push({ kind: "relationship", id });
           }
           for (const note of content.notes) {

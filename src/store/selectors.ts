@@ -55,7 +55,8 @@ export const isRelationshipVisible = (doc: GraphDocument, rel: Relationship): bo
     from !== undefined &&
     to !== undefined &&
     isLayerVisible(doc, from.layerId) &&
-    isLayerVisible(doc, to.layerId)
+    isLayerVisible(doc, to.layerId) &&
+    (rel.layerId === undefined || isLayerVisible(doc, rel.layerId))
   );
 };
 
@@ -63,19 +64,18 @@ export function isElementVisible(doc: GraphDocument, ref: ElementRef): boolean {
   const el = getElement(doc, ref);
   if (!el) return false;
   if (ref.kind === "relationship") return isRelationshipVisible(doc, el as Relationship);
-  return "layerId" in el && isLayerVisible(doc, el.layerId);
+  return el.layerId !== undefined && isLayerVisible(doc, el.layerId);
 }
 
-/** Lagret som ett element ligger i. Relationer har inget lager och ger undefined. */
+/** Lagret som ett element ligger i. Relationer utan eget lager (standard) ger undefined. */
 export function elementLayerId(doc: GraphDocument, ref: ElementRef): Id | undefined {
-  if (ref.kind === "relationship") return undefined;
-  const el = getElement(doc, ref);
-  return el && "layerId" in el ? el.layerId : undefined;
+  return getElement(doc, ref)?.layerId;
 }
 
 /**
- * Låst = ligger i låst lager, eller är en låst bild. En relation är låst när någon av dess
- * ändnoder ligger i ett låst lager. Låsta element kan inte markeras/flyttas.
+ * Låst = ligger i låst lager, eller är en låst bild. En relation utan eget lager är låst när
+ * någon av dess ändnoder ligger i ett låst lager; en relation i ett lager följer det lagrets lås.
+ * Låsta element kan inte markeras/flyttas.
  */
 export function isElementLocked(doc: GraphDocument, ref: ElementRef): boolean {
   const el = getElement(doc, ref);
@@ -84,9 +84,11 @@ export function isElementLocked(doc: GraphDocument, ref: ElementRef): boolean {
     const rel = el as Relationship;
     const from = doc.nodes[rel.fromId];
     const to = doc.nodes[rel.toId];
-    return !from || !to || isLayerLocked(doc, from.layerId) || isLayerLocked(doc, to.layerId);
+    if (!from || !to) return true;
+    if (rel.layerId !== undefined) return isLayerLocked(doc, rel.layerId);
+    return isLayerLocked(doc, from.layerId) || isLayerLocked(doc, to.layerId);
   }
-  if (!("layerId" in el) || isLayerLocked(doc, el.layerId)) return true;
+  if (el.layerId === undefined || isLayerLocked(doc, el.layerId)) return true;
   if (ref.kind === "image") return (el as BackgroundImage).locked;
   return false;
 }
@@ -103,9 +105,16 @@ export function allElementRefs(doc: GraphDocument): ElementRef[] {
   ];
 }
 
-/** Element i ett lager: noder, anteckningar och bilder. Relationer har inget lager. */
+/** Element i ett lager: noder, anteckningar, bilder och de relationer som lagts i lagret. */
 export const elementsInLayer = (doc: GraphDocument, layerId: Id): ElementRef[] =>
   allElementRefs(doc).filter((ref) => elementLayerId(doc, ref) === layerId);
+
+/** Antal egenskaper på noder och relationer: det som lagret "Properties" visar. */
+export const countProperties = (doc: GraphDocument): number =>
+  [...Object.values(doc.nodes), ...Object.values(doc.relationships)].reduce(
+    (sum, el) => sum + Object.keys(el.properties).length,
+    0,
+  );
 
 export const countElementsInLayer = (doc: GraphDocument, layerId: Id): number =>
   elementsInLayer(doc, layerId).length;
@@ -205,7 +214,10 @@ export function renderGroups(doc: GraphDocument): LayerRenderGroup[] {
   return [...groups.values()];
 }
 
-/** Relationer som syns: båda ändnoderna ligger i synliga lager (valfritt även godkända av filtret). */
+/**
+ * Relationer som syns: båda ändnoderna och relationens eventuella eget lager är synliga
+ * (valfritt även godkända av filtret).
+ */
 export const visibleRelationships = (
   doc: GraphDocument,
   layerFilter?: (layerId: Id) => boolean,
@@ -215,5 +227,11 @@ export const visibleRelationships = (
     if (!layerFilter) return true;
     const from = doc.nodes[rel.fromId];
     const to = doc.nodes[rel.toId];
-    return !!from && !!to && layerFilter(from.layerId) && layerFilter(to.layerId);
+    return (
+      !!from &&
+      !!to &&
+      layerFilter(from.layerId) &&
+      layerFilter(to.layerId) &&
+      (rel.layerId === undefined || layerFilter(rel.layerId))
+    );
   });

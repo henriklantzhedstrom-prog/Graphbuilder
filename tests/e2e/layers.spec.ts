@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { captionText, createNode, dragRelationship, freshApp } from "./helpers";
+import { captionText, createNode, dragRelationship, freshApp, SCREENSHOT_DIR } from "./helpers";
 
 test.describe("lager", () => {
   test("nytt lager blir aktivt och nya noder hamnar där; dölj döljer dem", async ({ page }) => {
@@ -22,7 +22,9 @@ test.describe("lager", () => {
     await expect(captionText(page, "Topp")).toHaveCount(1);
   });
 
-  test("relationer har inget lager och syns när båda noderna syns", async ({ page }) => {
+  test("relationer har som standard inget lager och syns när båda noderna syns", async ({
+    page,
+  }) => {
     await freshApp(page);
     await createNode(page, 250, 300, "A");
     await page.getByRole("tab", { name: "Layers" }).click();
@@ -32,10 +34,11 @@ test.describe("lager", () => {
     const rel = page.locator("[data-ref^='relationship:']");
     await expect(rel).toHaveCount(1);
 
-    // En markerad relation har ingen lagerväljare.
+    // En ny relation är en standardrelation: inget eget lager.
     await page.getByRole("tab", { name: "Style" }).click();
     await expect(page.getByTestId("inspector")).toBeVisible();
     await expect(page.getByTestId("inspector-layer")).toHaveCount(0);
+    await expect(page.getByTestId("relationship-layer")).toHaveValue("");
 
     // Relationen räknas inte i något lager.
     await page.getByRole("tab", { name: "Layers" }).click();
@@ -57,6 +60,89 @@ test.describe("lager", () => {
     await expect(rel).toHaveCount(0);
     await rows.nth(2).getByTestId("layer-visibility").click();
     await expect(rel).toHaveCount(1);
+  });
+
+  test("relation kan läggas i ett lager och följer då det lagret", async ({ page }) => {
+    await freshApp(page);
+    await createNode(page, 250, 300, "A");
+    await createNode(page, 600, 300, "B");
+    await page.getByRole("tab", { name: "Layers" }).click();
+    await page.getByTestId("add-layer").click();
+    await dragRelationship(page, { x: 250, y: 300 }, { x: 600, y: 300 }, "REL");
+    const rel = page.locator("[data-ref^='relationship:']");
+    await expect(rel).toHaveCount(1);
+
+    // Lägg relationen i det nya lagret (Layer 2); noderna ligger kvar i Layer 1.
+    await page.getByRole("tab", { name: "Style" }).click();
+    await page.getByTestId("relationship-layer").selectOption({ label: "Layer 2" });
+    await page.screenshot({
+      path: `${SCREENSHOT_DIR}/relationship-layer.png`,
+      animations: "disabled",
+    });
+    await page.getByRole("tab", { name: "Layers" }).click();
+    const rows = page.getByTestId("layer-row");
+    await expect(rows.nth(0).getByText("1", { exact: true })).toBeVisible();
+    await expect(rows.nth(1).getByText("2", { exact: true })).toBeVisible();
+
+    // Döljs relationens lager försvinner bara relationen; noderna syns.
+    await rows.nth(0).getByTestId("layer-visibility").click();
+    await expect(rel).toHaveCount(0);
+    await expect(captionText(page, "A")).toHaveCount(1);
+    await expect(captionText(page, "B")).toHaveCount(1);
+    await rows.nth(0).getByTestId("layer-visibility").click();
+    await expect(rel).toHaveCount(1);
+
+    // Tillbaka till standard: relationen räknas inte längre i lagret och följer bara noderna.
+    await page.getByTestId("canvas").click({ position: { x: 425, y: 300 } });
+    await page.getByRole("tab", { name: "Style" }).click();
+    await page.getByTestId("relationship-layer").selectOption("");
+    await page.getByRole("tab", { name: "Layers" }).click();
+    await expect(rows.nth(0).getByText("0", { exact: true })).toBeVisible();
+    await rows.nth(0).getByTestId("layer-visibility").click();
+    await expect(rel).toHaveCount(1);
+  });
+
+  test("lagret Properties visar och döljer alla egenskapstexter", async ({ page }) => {
+    await freshApp(page);
+    await createNode(page, 250, 300, "A");
+    await page.getByRole("tab", { name: "Layers" }).click();
+    await page.getByTestId("add-layer").click();
+    await createNode(page, 600, 300, "B");
+    const canvas = page.getByTestId("canvas");
+    const propsA = canvas.locator("text").filter({ hasText: "name: A" });
+    const propsB = canvas.locator("text").filter({ hasText: "name: B" });
+    await expect(propsA).toHaveCount(1);
+    await expect(propsB).toHaveCount(1);
+    const properties = page.getByTestId("properties-layer");
+    await expect(properties).toContainText("Properties");
+    await expect(properties.getByText("2", { exact: true })).toBeVisible();
+
+    // Dolt Properties-lager: texterna försvinner, noderna och deras rubriker är kvar.
+    await page.getByTestId("properties-visibility").click();
+    await expect(propsA).toHaveCount(0);
+    await expect(propsB).toHaveCount(0);
+    await expect(captionText(page, "A")).toHaveCount(1);
+    await expect(captionText(page, "B")).toHaveCount(1);
+    await page.screenshot({
+      path: `${SCREENSHOT_DIR}/properties-layer-hidden.png`,
+      animations: "disabled",
+    });
+
+    // Synligt igen: egenskaper visas bara för element som själva syns.
+    await page.getByTestId("properties-visibility").click();
+    await expect(propsA).toHaveCount(1);
+    await page.getByTestId("layer-row").nth(0).getByTestId("layer-visibility").click();
+    await expect(propsB).toHaveCount(0);
+    await expect(propsA).toHaveCount(1);
+
+    // Valet sparas med modellen.
+    await page.getByTestId("properties-visibility").click();
+    // Autospar väntar en halv sekund efter senaste ändringen.
+    await page.waitForTimeout(900);
+    await page.reload();
+    await page.getByRole("tab", { name: "Layers" }).click();
+    await expect(page.getByRole("button", { name: "Show properties" })).toBeVisible();
+    await expect(canvas.locator("text").filter({ hasText: "name: A" })).toHaveCount(0);
   });
 
   test("låst lager kan inte markeras eller flyttas", async ({ page }) => {

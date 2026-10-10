@@ -43,7 +43,7 @@ export function createNodeAt(position: Point, edit = true): Id | null {
   return id;
 }
 
-/** Relationer har inget lager, så de kan skapas oavsett vilket lager som är aktivt. */
+/** Nya relationer får inget eget lager, så de kan skapas oavsett vilket lager som är aktivt. */
 export function createRelationship(fromId: Id, toId: Id, edit = true): Id | null {
   const id = docState().addRelationship(fromId, toId);
   if (!(id in docState().doc.relationships)) return null;

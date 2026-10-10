@@ -259,3 +259,26 @@ describe("egenskapsbakgrund och labelkant", () => {
     expect(doc.style.node.labelBorderWidth).toBe(1);
   });
 });
+
+describe("lagret Properties", () => {
+  it("dolt: egenskapsraderna ritas inte, men rubriken och datat finns kvar", () => {
+    const doc = { ...sampleDoc(), propertiesVisible: false };
+    const hidden = exportSvg(doc, { onlyVisible: true, transparent: false })?.svg ?? "";
+    expect(hidden).toContain("Andersson");
+    expect(hidden).not.toContain("age: 42");
+    // Utan "bara synliga lager" kommer egenskaperna med i bilden ändå.
+    const all = exportSvg(doc, { onlyVisible: false, transparent: false })?.svg ?? "";
+    expect(all).toContain("age: 42");
+    // Egenskaperna är data och följer alltid med i JSON och Cypher.
+    expect(exportCypher(doc, { onlyVisible: true })).toContain("age: 42");
+    expect(
+      parseDocument(JSON.parse(exportJson(doc, { onlyVisible: true }))).nodes.a?.properties,
+    ).toHaveProperty("age", "42");
+  });
+
+  it("synligt som standard, även i äldre filer utan fältet", () => {
+    const { propertiesVisible: _, ...old } = JSON.parse(JSON.stringify(sampleDoc()));
+    expect(parseDocument({ ...old, version: 3 }).propertiesVisible).toBe(true);
+    expect(parseDocument({ ...old, propertiesVisible: false }).propertiesVisible).toBe(false);
+  });
+});

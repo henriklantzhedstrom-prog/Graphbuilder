@@ -79,7 +79,7 @@ describe("lager", () => {
     expect(visibleRelationships(doc)).toHaveLength(0);
   });
 
-  it("relationer har inget lager: syns när båda ändnodernas lager syns", () => {
+  it("relationer har som standard inget lager: syns när båda ändnodernas lager syns", () => {
     const l1 = firstLayer();
     const l2 = store().addLayer();
     const l3 = store().addLayer();
@@ -100,7 +100,7 @@ describe("lager", () => {
     expect(isElementVisible(store().doc, { kind: "relationship", id: r })).toBe(true);
   });
 
-  it("relationer räknas inte till något lager och flyttas inte mellan lager", () => {
+  it("standardrelationer räknas inte till något lager och påverkas inte när noder flyttas", () => {
     const l1 = firstLayer();
     const l2 = store().addLayer();
     const a = store().addNode(l1, { x: 0, y: 0 });
@@ -108,18 +108,90 @@ describe("lager", () => {
     const r = store().addRelationship(a, b);
     expect(countElementsInLayer(store().doc, l1)).toBe(2);
     expect(elementsInLayer(store().doc, l1).some((ref) => ref.kind === "relationship")).toBe(false);
-    store().moveElementsToLayer(
-      [
-        { kind: "node", id: a },
-        { kind: "relationship", id: r },
-      ],
-      l2,
-    );
+    store().moveElementsToLayer([{ kind: "node", id: a }], l2);
     expect(store().doc.nodes[a]?.layerId).toBe(l2);
     expect(store().doc.relationships[r]).not.toHaveProperty("layerId");
     // Att ta bort ett lager med flytt behåller relationen.
     store().removeLayer(l2, l1);
     expect(store().doc.relationships[r]).toBeDefined();
+  });
+
+  it("relation i ett lager: syns bara när lagret och båda ändnoderna syns, och räknas i lagret", () => {
+    const l1 = firstLayer();
+    const l2 = store().addLayer();
+    const a = store().addNode(l1, { x: 0, y: 0 });
+    const b = store().addNode(l1, { x: 100, y: 0 });
+    const r = store().addRelationship(a, b);
+    const ref = { kind: "relationship" as const, id: r };
+    store().moveElementsToLayer([ref], l2);
+    expect(store().doc.relationships[r]?.layerId).toBe(l2);
+    expect(countElementsInLayer(store().doc, l2)).toBe(1);
+    expect(isElementVisible(store().doc, ref)).toBe(true);
+
+    // Eget lager dolt: relationen döljs fast noderna syns.
+    store().setLayerVisible(l2, false);
+    expect(visibleRelationships(store().doc)).toHaveLength(0);
+    expect(visibleRelationships(store().doc, () => true)).toHaveLength(0);
+    store().setLayerVisible(l2, true);
+    // Nodernas lager dolt: relationen döljs fast dess eget lager syns.
+    store().setLayerVisible(l1, false);
+    expect(isElementVisible(store().doc, ref)).toBe(false);
+    store().setLayerVisible(l1, true);
+    // Filtret (t.ex. export av valda lager) gäller också relationens eget lager.
+    expect(visibleRelationships(store().doc, (id) => id === l1)).toHaveLength(0);
+
+    // Lagrets lås gäller relationen; nodernas lås gör det inte längre.
+    store().setLayerLocked(l2, true);
+    expect(isElementLocked(store().doc, ref)).toBe(true);
+    store().setLayerLocked(l2, false);
+    store().setLayerLocked(l1, true);
+    expect(isElementLocked(store().doc, ref)).toBe(false);
+    store().setLayerLocked(l1, false);
+
+    // Tillbaka till standard: följer bara noderna igen.
+    store().clearRelationshipLayer([r]);
+    expect(store().doc.relationships[r]).not.toHaveProperty("layerId");
+    store().setLayerVisible(l2, false);
+    expect(isElementVisible(store().doc, ref)).toBe(true);
+  });
+
+  it("relation i ett lager följer lagrets innehåll när lagret tas bort", () => {
+    const l1 = firstLayer();
+    const l2 = store().addLayer();
+    const l3 = store().addLayer();
+    const a = store().addNode(l1, { x: 0, y: 0 });
+    const b = store().addNode(l1, { x: 100, y: 0 });
+    const moved = store().addRelationship(a, b, { type: "MOVED" });
+    const deleted = store().addRelationship(a, b, { type: "DELETED" });
+    store().moveElementsToLayer([{ kind: "relationship", id: moved }], l2);
+    store().moveElementsToLayer([{ kind: "relationship", id: deleted }], l3);
+    store().removeLayer(l2, l1);
+    expect(store().doc.relationships[moved]?.layerId).toBe(l1);
+    store().removeLayer(l3);
+    expect(store().doc.relationships[deleted]).toBeUndefined();
+    expect(store().doc.nodes[a]).toBeDefined();
+  });
+
+  it("kopia av en relation i ett lager hamnar i mållagret; standardrelationer förblir standard", () => {
+    const l1 = firstLayer();
+    const l2 = store().addLayer();
+    const a = store().addNode(l1, { x: 0, y: 0 });
+    const b = store().addNode(l1, { x: 100, y: 0 });
+    const plain = store().addRelationship(a, b, { type: "PLAIN" });
+    const layered = store().addRelationship(a, b, { type: "LAYERED" });
+    store().moveElementsToLayer([{ kind: "relationship", id: layered }], l1);
+    const content = store().copyElements([
+      { kind: "node", id: a },
+      { kind: "node", id: b },
+      { kind: "relationship", id: plain },
+      { kind: "relationship", id: layered },
+    ]);
+    const created = store().pasteElements(content, l2);
+    const copies = created
+      .filter((ref) => ref.kind === "relationship")
+      .flatMap((ref) => store().doc.relationships[ref.id] ?? []);
+    expect(copies.find((r) => r.type === "PLAIN")).not.toHaveProperty("layerId");
+    expect(copies.find((r) => r.type === "LAYERED")?.layerId).toBe(l2);
   });
 
   it("relation är låst när någon av ändnoderna ligger i låst lager", () => {

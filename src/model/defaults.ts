@@ -96,6 +96,7 @@ export function createEmptyDocument(name: string = t.app.untitled): GraphDocumen
     createdAt: now,
     updatedAt: now,
     layers: [createLayer(t.layers.defaultName(1))],
+    propertiesVisible: true,
     nodes: {},
     relationships: {},
     notes: {},

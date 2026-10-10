@@ -11,6 +11,8 @@ export interface RelationshipViewProps {
   hideType?: boolean;
   selected?: boolean;
   zoom?: number;
+  /** Falskt när lagret "Properties" är dolt: egenskapsraderna under typen ritas inte. */
+  showProperties?: boolean;
 }
 
 export function RelationshipView({
@@ -21,12 +23,13 @@ export function RelationshipView({
   hideType = false,
   selected = false,
   zoom = 1,
+  showProperties = true,
 }: RelationshipViewProps) {
   const { labelPosition, labelAngle } = geometry;
   const type = hideType ? "" : relationship.type;
   const typeWidth = measureTextWidth(type, style.typeFontSize) + TYPE_PADDING_X * 2;
   const typeHeight = style.typeFontSize * 1.4;
-  const props = propertyLines(relationship.properties);
+  const props = showProperties ? propertyLines(relationship.properties) : [];
   const propLineHeight = style.propertyFontSize * LINE_HEIGHT;
 
   return (

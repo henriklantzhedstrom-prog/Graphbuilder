@@ -7,6 +7,7 @@ import {
   IconEye,
   IconEyeOff,
   IconGrip,
+  IconList,
   IconLock,
   IconPlus,
   IconSelectAll,
@@ -17,7 +18,7 @@ import { Button, cx, IconButton, Select, TextInput } from "@/components/ui";
 import { t } from "@/i18n";
 import type { Id, Layer } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
-import { countElementsInLayer } from "@/store/selectors";
+import { countElementsInLayer, countProperties } from "@/store/selectors";
 import { useUiStore } from "@/store/uiStore";
 
 export function LayersPanel() {
@@ -51,6 +52,7 @@ export function LayersPanel() {
         </Button>
       </div>
       <ul className="flex flex-col gap-1 px-2 pb-2">
+        <PropertiesRow />
         {layersTopFirst.map((layer, visualIndex) => (
           <LayerRow
             key={layer.id}
@@ -259,6 +261,50 @@ function LayerRow({
           </IconButton>
         </div>
       )}
+    </li>
+  );
+}
+
+/**
+ * Det fasta lagret "Properties": ligger alltid överst, kan bara visas och döljas och innehåller
+ * egenskapsraderna för alla noder och relationer.
+ */
+function PropertiesRow() {
+  const visible = useDocumentStore((s) => s.doc.propertiesVisible);
+  const count = useDocumentStore((s) => countProperties(s.doc));
+  const setPropertiesVisible = useDocumentStore((s) => s.setPropertiesVisible);
+  return (
+    <li
+      data-testid="properties-layer"
+      title={t.layers.propertiesHint}
+      className="flex items-center gap-0.5 rounded-[10px] py-1 pr-3 pl-1 hover:bg-surface-2"
+    >
+      <span className="text-text-muted/60">
+        <IconList size={16} />
+      </span>
+      <IconButton
+        label={visible ? t.layers.propertiesHide : t.layers.propertiesShow}
+        data-testid="properties-visibility"
+        onClick={() => setPropertiesVisible(!visible)}
+        className={cx("hover:bg-text/5", !visible && "text-text-muted/50")}
+      >
+        {visible ? <IconEye size={18} /> : <IconEyeOff size={18} />}
+      </IconButton>
+      <span aria-hidden className="h-9 w-9 shrink-0" />
+      <span
+        className={cx(
+          "ml-1 flex h-9 min-w-0 flex-1 items-center truncate text-[1em]",
+          !visible && "text-text-muted/70",
+        )}
+      >
+        {t.layers.propertiesName}
+      </span>
+      <span
+        className="ml-2 min-w-6 rounded-full bg-surface-3 px-2 py-0.5 text-center text-[0.76em] text-text-muted tabular-nums"
+        title={t.layers.propertyCount(count)}
+      >
+        {count}
+      </span>
     </li>
   );
 }

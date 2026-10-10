@@ -3,8 +3,10 @@
 Draw graph models (nodes and relationships) in the browser, in the spirit of arrows.app, with three additions:
 
 - **Layers** – put nodes, notes and images in layers like in an image editor.
-  Show/hide, lock, rename and reorder. New elements go into the active layer. Relationships have
-  no layer of their own: a relationship is shown when both of its nodes are in visible layers.
+  Show/hide, lock, rename and reorder. New elements go into the active layer. By default a
+  relationship has no layer of its own and is shown when both of its nodes are in visible layers;
+  it can also be put in a layer, and is then shown only when that layer is visible too.
+  A fixed **Properties** layer shows or hides the property texts of all nodes and relationships.
 - **Notes** – free-text sticky notes on the canvas with color, text size and alignment.
 - **Background images** – add images (button, drag-and-drop or paste) as a backdrop, scale them
   proportionally, set opacity and lock them.

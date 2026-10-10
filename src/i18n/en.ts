@@ -85,6 +85,10 @@ export const en = {
     resetStyle: "Reset to model style",
     layer: "Layer",
     moveToLayer: "Move to layer",
+    relationshipLayerDefault: "Default (no layer)",
+    relationshipLayerDefaultHint: "Shown whenever both of its nodes are shown.",
+    relationshipLayerHint:
+      "Shown when this layer and both of its nodes are shown. Locked when the layer is locked.",
     text: "Text",
     textPlaceholder: "Write your note…",
     color: "Color",
@@ -164,6 +168,12 @@ export const en = {
     hint: "New elements go into the active layer. Hidden layers are not shown, locked layers cannot be selected.",
     defaultName: (n: number) => `Layer ${n}`,
     backgroundName: "Background",
+    propertiesName: "Properties",
+    propertiesShow: "Show properties",
+    propertiesHide: "Hide properties",
+    propertiesHint:
+      "The property texts under nodes and relationships. Shown only for elements that are shown themselves.",
+    propertyCount: (n: number) => (n === 1 ? "1 property" : `${n} properties`),
   },
   documents: {
     title: "My models",

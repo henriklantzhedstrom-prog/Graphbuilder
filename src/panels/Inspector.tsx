@@ -28,7 +28,7 @@ export function Inspector() {
   const relationships = pick("relationship", doc.relationships);
   const notes = pick("note", doc.notes);
   const images = pick("image", doc.images);
-  // Relationer har inget lager; lagerväljaren gäller noder, anteckningar och bilder.
+  // Relationer har en egen lagerväljare (med standardläget "inget lager") i RelationshipSection.
   const layered = selection.filter((r) => r.kind !== "relationship");
   const layerId = commonValue(layered.map((r) => elementLayerId(doc, r) ?? ""));
 

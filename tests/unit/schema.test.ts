@@ -64,9 +64,32 @@ describe("parseDocument", () => {
       relationships: { r1: { id: "r1", layerId: "gammalt-lager", fromId: "a", toId: "b" } },
     };
     const doc = parseDocument(raw);
-    expect(doc.version).toBe(3);
+    expect(doc.version).toBe(4);
     expect(doc.relationships.r1).toBeDefined();
     expect(doc.relationships.r1).not.toHaveProperty("layerId");
+  });
+
+  it("behåller relationens lager i nya filer; okänt lager ger en standardrelation", () => {
+    const base = createEmptyDocument("New");
+    const layerId = base.layers[0]?.id ?? "";
+    const raw = {
+      ...JSON.parse(JSON.stringify(base)),
+      nodes: {
+        a: { id: "a", layerId, position: { x: 0, y: 0 }, captionKey: null },
+        b: { id: "b", layerId, position: { x: 1, y: 1 }, captionKey: null },
+      },
+      relationships: {
+        r1: { id: "r1", layerId, fromId: "a", toId: "b" },
+        r2: { id: "r2", layerId: "saknas", fromId: "a", toId: "b" },
+        r3: { id: "r3", fromId: "a", toId: "b" },
+      },
+    };
+    const doc = parseDocument(raw);
+    expect(doc.relationships.r1?.layerId).toBe(layerId);
+    expect(doc.relationships.r2).not.toHaveProperty("layerId");
+    expect(doc.relationships.r3).not.toHaveProperty("layerId");
+    // Version 3 (före valfria lager) läses oförändrad.
+    expect(parseDocument({ ...raw, version: 3 }).relationships.r3).toBeDefined();
   });
 
   it("läser äldre modeller med opacitet på lager och tar bort fältet", () => {
@@ -97,7 +120,7 @@ describe("parseDocument", () => {
       },
     };
     const doc = parseDocument(raw);
-    expect(doc.version).toBe(3);
+    expect(doc.version).toBe(4);
     expect(doc.nodes.a?.properties).toEqual({ name: "Alice" });
     expect(doc.nodes.a?.captionKey).toBe("name");
     expect(doc.nodes.b?.properties).toEqual({ name: "X", caption: "Bob" });

@@ -22,7 +22,9 @@ export interface SvgExport {
 export const EXPORT_PADDING = 60;
 
 export function exportSvg(doc: GraphDocument, options: SvgExportOptions): SvgExport | null {
-  const d = selectDocument(doc, options.onlyVisible);
+  // Utan "bara synliga lager" ska även ett dolt Properties-lager komma med i bilden.
+  const selected = selectDocument(doc, options.onlyVisible);
+  const d = options.onlyVisible ? selected : { ...selected, propertiesVisible: true };
   const bounds = contentBounds(d, false);
   if (!bounds) return null;
   const box = inflate(bounds, options.padding ?? EXPORT_PADDING);

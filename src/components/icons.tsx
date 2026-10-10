@@ -217,3 +217,8 @@ export const IconLogo = ({ size = 18, ...p }: IconProps) => (
     <path d="m8.9 6.8 6.2 1.4M7.6 15.6l-1-6.6M16.3 11.5l-5.4 4.6" />
   </svg>
 );
+export const IconList = ({ size = 18, ...p }: IconProps) => (
+  <svg {...base(size, p)}>
+    <path d="M9 7h11M9 12h11M9 17h11M4.500 7h.01M4.500 12h.01M4.500 17h.01" />
+  </svg>
+);

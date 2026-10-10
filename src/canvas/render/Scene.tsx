@@ -94,7 +94,7 @@ export function Scene({
   const conflicts = interactive ? conflictingNodeIds(doc.nodes) : new Set<Id>();
   const isSelected = (key: string) => selectedKeys?.has(key) ?? false;
   const groups = renderGroups(doc).filter((g) => !layerFilter || layerFilter(g.layer.id));
-  // Relationer har inget lager: de syns när båda ändnoderna syns.
+  // Relationer syns när båda ändnoderna (och relationens eventuella eget lager) syns.
   const relationships = visibleRelationships(doc, layerFilter);
   const isEditing = (ref: ElementRef) =>
     editing !== null && editing !== undefined && refKey(editing) === refKey(ref);
@@ -142,6 +142,7 @@ export function Scene({
               hideType={isEditing({ kind: "relationship", id: rel.id })}
               selected={isSelected(`relationship:${rel.id}`)}
               zoom={zoom}
+              showProperties={doc.propertiesVisible}
             />
           );
         })}
@@ -160,6 +161,7 @@ export function Scene({
               highlighted={highlightNodeId === node.id}
               conflict={conflicts.has(node.id)}
               zoom={zoom}
+              showProperties={doc.propertiesVisible}
             />
           ))}
         </g>

@@ -19,6 +19,8 @@ export interface NodeViewProps {
   /** Markeras som mål när en relation dras över noden. */
   highlighted?: boolean;
   zoom?: number;
+  /** Falskt när lagret "Properties" är dolt: egenskapsraderna under noden ritas inte. */
+  showProperties?: boolean;
 }
 
 export function NodeView({
@@ -31,6 +33,7 @@ export function NodeView({
   highlighted = false,
   conflict = false,
   zoom = 1,
+  showProperties = true,
 }: NodeViewProps) {
   const { x, y } = position;
   const r = style.radius;
@@ -50,7 +53,7 @@ export function NodeView({
   const labelY = y - r - labelHeight - 6;
 
   // Alla egenskaper listas under noden, även den som också visas som rubrik.
-  const props = propertyLines(node.properties);
+  const props = showProperties ? propertyLines(node.properties) : [];
   const propLineHeight = style.propertyFontSize * LINE_HEIGHT;
   const propStartY = y + r + 8 + style.propertyFontSize;
 

@@ -75,9 +75,14 @@ export interface GraphNode {
   style: Partial<NodeStyle>;
 }
 
-/** Relationer har inget eget lager: de syns när båda ändnoderna ligger i synliga lager. */
+/**
+ * En relation har som standard inget eget lager (`layerId` saknas): den syns när båda ändnoderna
+ * ligger i synliga lager. Den kan läggas i ett lager; då måste dessutom det lagret vara synligt,
+ * och lagrets lås gäller för relationen.
+ */
 export interface Relationship {
   id: Id;
+  layerId?: Id;
   fromId: Id;
   toId: Id;
   type: string;
@@ -118,7 +123,7 @@ export interface Asset {
   height: number;
 }
 
-export const DOCUMENT_VERSION = 3;
+export const DOCUMENT_VERSION = 4;
 
 export interface GraphDocument {
   version: typeof DOCUMENT_VERSION;
@@ -128,6 +133,11 @@ export interface GraphDocument {
   updatedAt: string;
   /** Ordnade botten → topp */
   layers: Layer[];
+  /**
+   * Det fasta lagret "Properties": visar eller döljer egenskapsraderna under alla noder och
+   * relationer. Raderna syns ändå bara för element som själva syns.
+   */
+  propertiesVisible: boolean;
   nodes: Record<Id, GraphNode>;
   relationships: Record<Id, Relationship>;
   notes: Record<Id, Note>;

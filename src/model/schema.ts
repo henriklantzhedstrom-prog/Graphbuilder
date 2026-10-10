@@ -2,7 +2,7 @@ import { z } from "zod";
 import { t } from "@/i18n";
 import { captionKeyFor } from "./caption";
 import { createLayer, DEFAULT_DIAGRAM_STYLE } from "./defaults";
-import { DOCUMENT_VERSION, type GraphDocument, type GraphNode } from "./types";
+import { DOCUMENT_VERSION, type GraphDocument, type GraphNode, type Relationship } from "./types";
 
 const point = z.object({ x: z.number(), y: z.number() });
 const size = z.object({ w: z.number().positive(), h: z.number().positive() });
@@ -58,9 +58,13 @@ const graphNode = z.object({
   style: nodeStyle.partial().default({}),
 });
 
-/** Version 1–2 hade `layerId` även på relationer; fältet ignoreras och rensas bort. */
+/**
+ * `layerId` är valfritt: utan det följer relationen sina ändnoder. Version 1–2 hade alltid ett
+ * lager på relationer; där rensas fältet bort så att de blir standardrelationer.
+ */
 const relationship = z.object({
   id: z.string().min(1),
+  layerId: z.string().min(1).optional(),
   fromId: z.string().min(1),
   toId: z.string().min(1),
   type: z.string().default(""),
@@ -105,12 +109,13 @@ const diagramStyle = z.object({
 });
 
 export const documentSchemaV1 = z.object({
-  version: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+  version: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
   id: z.string().min(1),
   name: z.string().default(t.app.untitled),
   createdAt: z.string(),
   updatedAt: z.string(),
   layers: z.array(layer),
+  propertiesVisible: z.boolean().default(true),
   nodes: z.record(z.string(), graphNode).default({}),
   relationships: z.record(z.string(), relationship).default({}),
   notes: z.record(z.string(), note).default({}),
@@ -132,14 +137,15 @@ export class DocumentParseError extends Error {
 /**
  * Validerar och migrerar okänd JSON till ett GraphDocument i aktuell version.
  * Lagar inkonsekvenser som kan uppstå i filer: element i saknade lager flyttas
- * till första lagret, relationer utan båda ändnoder tas bort, bilder utan asset tas bort.
+ * till första lagret, relationer utan båda ändnoder tas bort, relationer i saknade lager blir
+ * standardrelationer, bilder utan asset tas bort.
  */
 export function parseDocument(input: unknown): GraphDocument {
   if (typeof input !== "object" || input === null) {
     throw new DocumentParseError(t.errors.notAModel);
   }
   const version = (input as { version?: unknown }).version;
-  if (version !== 1 && version !== 2 && version !== DOCUMENT_VERSION) {
+  if (version !== 1 && version !== 2 && version !== 3 && version !== DOCUMENT_VERSION) {
     throw new DocumentParseError(t.errors.wrongVersion(String(version), DOCUMENT_VERSION));
   }
   const result = documentSchemaV1.safeParse(input);
@@ -178,8 +184,16 @@ function repairDocument(doc: z.infer<typeof documentSchemaV1>): GraphDocument {
   const nodes = Object.fromEntries(
     Object.entries(doc.nodes).map(([k, v]) => [k, migrateNode(fixLayer(v))]),
   );
+  const keepsRelationshipLayers = doc.version >= 3;
   const relationships = Object.fromEntries(
-    Object.entries(doc.relationships).filter(([, r]) => r.fromId in nodes && r.toId in nodes),
+    Object.entries(doc.relationships)
+      .filter(([, r]) => r.fromId in nodes && r.toId in nodes)
+      .map(([k, { layerId, ...rest }]): [string, Relationship] => [
+        k,
+        keepsRelationshipLayers && layerId !== undefined && layerIds.has(layerId)
+          ? { ...rest, layerId }
+          : rest,
+      ]),
   );
   const notes = Object.fromEntries(Object.entries(doc.notes).map(([k, v]) => [k, fixLayer(v)]));
   const images = Object.fromEntries(
@@ -199,6 +213,7 @@ function repairDocument(doc: z.infer<typeof documentSchemaV1>): GraphDocument {
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
     layers,
+    propertiesVisible: doc.propertiesVisible,
     nodes,
     relationships,
     notes,
