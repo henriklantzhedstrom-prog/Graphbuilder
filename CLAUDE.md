@@ -97,7 +97,8 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   följer med när noden flyttas (hela vägen) eller när relationens noder flyttas (halva vägen per
   ändnod, alltså med relationens mitt) – både i `moveElements` och under dragningen, via
   `attachedNoteMoves` i `selectors.ts`. Den syns bara när det den är knuten till syns
-  (`isNoteVisible`) och får en tunn streckad linje dit (`note-links` i `Scene.tsx`). Tas noden
+  (`isNoteVisible`) och får en tunn streckad linje dit, mellan mittpunkterna (`note-links` i
+  `Scene.tsx`; noden och anteckningen ritas ovanpå linjen). Tas noden
   eller relationen bort blir anteckningen fri men ligger kvar (`detachOrphanNotes`). Knyts via
   **Add note** med en nod/relation markerad (`addNoteInView`), eller via "Attach to…" i panelen
   och ett klick på ritytan (`uiStore.attachingNotes`, hanteras först i `onPointerDown`).

@@ -167,12 +167,9 @@ export const Scene = memo(function Scene({
       <g data-kind="note-links" style={{ pointerEvents: "none" }}>
         {notes.map(({ note, box, anchor }) => {
           if (!anchor) return null;
-          // Linjen går från det anteckningen är knuten till fram till anteckningens närmaste kant.
-          const end = {
-            x: Math.min(box.x + box.w, Math.max(box.x, anchor.x)),
-            y: Math.min(box.y + box.h, Math.max(box.y, anchor.y)),
-          };
-          if (end.x === anchor.x && end.y === anchor.y) return null;
+          // Linjen går mellan mittpunkterna: från mitten av det anteckningen är knuten till, till
+          // mitten av anteckningen. Noden och anteckningen ritas ovanpå, så bara biten emellan syns.
+          const end = { x: box.x + box.w / 2, y: box.y + box.h / 2 };
           return (
             <line
               key={note.id}

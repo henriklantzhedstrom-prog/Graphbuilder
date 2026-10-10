@@ -136,6 +136,21 @@ test.describe("anteckningar", () => {
     const link = canvas.locator("[data-part='note-link']");
     await expect(note).toHaveCount(1);
     await expect(link).toHaveCount(1);
+    // Länken går från nodens mitt till anteckningens mitt.
+    const noteBox = await note.boundingBox();
+    const nodeBox = await page.locator("[data-part='node-circle']").boundingBox();
+    if (!noteBox || !nodeBox) throw new Error("mått saknas");
+    const origin = await canvas.boundingBox();
+    const ends = await link.evaluate((el) =>
+      ["x1", "y1", "x2", "y2"].map((name) => Number(el.getAttribute(name))),
+    );
+    const at = (x: number, y: number) => [x - (origin?.x ?? 0), y - (origin?.y ?? 0)];
+    const [nodeX, nodeY] = at(nodeBox.x + nodeBox.width / 2, nodeBox.y + nodeBox.height / 2);
+    const [noteX, noteY] = at(noteBox.x + noteBox.width / 2, noteBox.y + noteBox.height / 2);
+    expect(Math.abs((ends[0] ?? 0) - (nodeX ?? 0))).toBeLessThan(2);
+    expect(Math.abs((ends[1] ?? 0) - (nodeY ?? 0))).toBeLessThan(2);
+    expect(Math.abs((ends[2] ?? 0) - (noteX ?? 0))).toBeLessThan(2);
+    expect(Math.abs((ends[3] ?? 0) - (noteY ?? 0))).toBeLessThan(2);
     await note.click();
     await expect(page.getByTestId("note-attached-to")).toHaveText("Node “Alice”");
     await page.screenshot({ path: `${SCREENSHOT_DIR}/note-attached.png`, animations: "disabled" });
