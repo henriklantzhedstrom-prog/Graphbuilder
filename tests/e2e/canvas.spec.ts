@@ -109,6 +109,53 @@ test.describe("rityta", () => {
     expect(redone && redone.x - before.x).toBeGreaterThan(140);
   });
 
+  test("Ctrl+dra på bakgrunden markerar allt inom rektangeln", async ({ page }) => {
+    await freshApp(page);
+    await createNode(page, 250, 250, "X");
+    await createNode(page, 450, 250, "Y");
+    await createNode(page, 700, 500, "Utanför");
+    await page.keyboard.press("Escape");
+    const canvas = page.getByTestId("canvas");
+    const box = await canvas.boundingBox();
+    if (!box) throw new Error("canvas saknas");
+    const drag = async (modifier: "Control" | "Meta" | "Shift", from: number[], to: number[]) => {
+      await page.mouse.move(box.x + (from[0] ?? 0), box.y + (from[1] ?? 0));
+      await page.keyboard.down(modifier);
+      await page.mouse.down();
+      await page.mouse.move(box.x + (to[0] ?? 0), box.y + (to[1] ?? 0), { steps: 6 });
+      // Rektangeln ritas medan man drar.
+      await expect(canvas.locator("rect[stroke-dasharray]").last()).toBeVisible();
+      await page.mouse.up();
+      await page.keyboard.up(modifier);
+    };
+    const inspector = page.getByTestId("inspector");
+
+    // Rektangel runt X och Y: de två markeras, ytan flyttas inte.
+    await drag("Control", [150, 150], [560, 360]);
+    await expect(inspector).toContainText("2 elements selected");
+    const x = await canvas.locator("text").filter({ hasText: /^X$/ }).boundingBox();
+    expect(Math.abs((x?.x ?? 0) + (x?.width ?? 0) / 2 - (box.x + 250))).toBeLessThan(3);
+
+    // En ny rektangel ersätter markeringen (här bara den tredje noden) …
+    await drag("Control", [600, 400], [820, 620]);
+    await expect(inspector).toContainText("1 element selected");
+    // … medan Shift lägger till i det som redan är markerat.
+    await drag("Shift", [150, 150], [560, 360]);
+    await expect(inspector).toContainText("3 elements selected");
+    // Cmd fungerar som Ctrl (Mac).
+    await drag("Meta", [150, 150], [330, 360]);
+    await expect(inspector).toContainText("1 element selected");
+
+    // De markerade går att flytta tillsammans.
+    await drag("Control", [150, 150], [560, 360]);
+    await page.mouse.move(box.x + 250, box.y + 250);
+    await page.mouse.down();
+    await page.mouse.move(box.x + 250, box.y + 400, { steps: 6 });
+    await page.mouse.up();
+    const y = await canvas.locator("text").filter({ hasText: /^Y$/ }).first().boundingBox();
+    expect(Math.abs((y?.y ?? 0) + (y?.height ?? 0) / 2 - (box.y + 400))).toBeLessThan(4);
+  });
+
   test("rammarkering och radering", async ({ page }) => {
     await freshApp(page);
     await createNode(page, 250, 250, "X");

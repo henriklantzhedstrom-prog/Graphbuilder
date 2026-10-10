@@ -317,9 +317,11 @@ export function Canvas() {
       return;
     }
 
-    // Tom yta (eller låst element): Shift+dra = ram-markering, annars flyttas hela ytan.
-    if (e.shiftKey) {
-      gesture.current = { type: "marquee", start: canvasPoint, additive: true };
+    // Tom yta (eller låst element): Ctrl/Cmd+dra eller Shift+dra = ram-markering, annars flyttas
+    // hela ytan. Ctrl/Cmd markerar det som ligger i ramen; Shift lägger till i det som redan är
+    // markerat.
+    if (e.shiftKey || e.ctrlKey || e.metaKey) {
+      gesture.current = { type: "marquee", start: canvasPoint, additive: e.shiftKey };
       return;
     }
     ui.clearSelection();

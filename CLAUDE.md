@@ -172,7 +172,8 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   inställbar kant (`labelBorderColor`, `labelBorderWidth`). Rutor runt text (labels, relationstyp,
   egenskaper) mäts med `measureTextWidth` i `src/canvas/render/text.ts` (verklig textbredd) plus
   fast marginal (`LABEL_PADDING_X`, `TYPE_PADDING_X`) – använd aldrig teckenantal för rutbredd.
-- **Dra på tom bakgrund flyttar hela ytan** (panorering); Shift+dra på tom yta = ram-markering.
+- **Dra på tom bakgrund flyttar hela ytan** (panorering); Ctrl/Cmd+dra på tom yta = ram-markering
+  (ersätter markeringen), Shift+dra = ram-markering som läggs till i det som redan är markerat.
   Dra i ett låst element räknas som bakgrund. Klick utan drag på tom yta avmarkerar.
 - **Zoom glider alltid mjukt** (`src/canvas/viewportAnimation.ts`): hjul, knappar, tangenter och
   "Fit to content" sätter ett mål och vyn tonas dit (logaritmiskt, tidsbaserat, ankarpunkten ligger
