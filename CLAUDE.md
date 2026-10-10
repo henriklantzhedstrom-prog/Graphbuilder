@@ -108,7 +108,8 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   anteckningar; lagerordningen gäller inom bilder, noder och anteckningar (relationer ritas alltid bakom noderna, oavsett lager). Relationer börjar under nodens kant och
   pilspetsen slutar precis utanför den. Parallella relationer: `PARALLEL_SPACING` i `geometry.ts`.
   Egenskapsrader har en bakgrundsruta (`PropertyBackground.tsx`, stil `propertyBackground`, standard
-  vit) som relationer passerar bakom och som är klickbar som en del av elementet. Labels har
+  vit) som relationer passerar bakom och som är klickbar som en del av elementet. Raderna är
+  vänsterställda i rutan (`propertyTextX`); rutan är centrerad under noden resp. relationstypen. Labels har
   inställbar kant (`labelBorderColor`, `labelBorderWidth`). Rutor runt text (labels, relationstyp,
   egenskaper) mäts med `measureTextWidth` i `src/canvas/render/text.ts` (verklig textbredd) plus
   fast marginal (`LABEL_PADDING_X`, `TYPE_PADDING_X`) – använd aldrig teckenantal för rutbredd.

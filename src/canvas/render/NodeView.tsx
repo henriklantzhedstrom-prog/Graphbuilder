@@ -1,6 +1,6 @@
 import { nodeCaption } from "@/model/caption";
 import type { GraphNode, NodeStyle, Point } from "@/model/types";
-import { PropertyBackground } from "./PropertyBackground";
+import { PropertyBackground, propertyTextX } from "./PropertyBackground";
 import { LABEL_PADDING_X, LINE_HEIGHT, measureTextWidth, propertyLines, wrapToWidth } from "./text";
 
 export const HALO_WIDTH = 14;
@@ -56,6 +56,7 @@ export function NodeView({
   const props = showProperties ? propertyLines(node.properties) : [];
   const propLineHeight = style.propertyFontSize * LINE_HEIGHT;
   const propStartY = y + r + 8 + style.propertyFontSize;
+  const propX = propertyTextX(props, x, style.propertyFontSize);
 
   return (
     <g
@@ -169,16 +170,17 @@ export function NodeView({
       />
       {props.length > 0 && (
         <text
-          x={x}
+          data-part="property-text"
+          x={propX}
           y={propStartY}
-          textAnchor="middle"
+          textAnchor="start"
           fontSize={style.propertyFontSize}
           fill={style.propertyColor}
           fontFamily="system-ui, sans-serif"
           style={{ pointerEvents: "none", userSelect: "none" }}
         >
           {props.map((line, i) => (
-            <tspan key={i} x={x} dy={i === 0 ? 0 : propLineHeight}>
+            <tspan key={i} x={propX} dy={i === 0 ? 0 : propLineHeight}>
               {line}
             </tspan>
           ))}

@@ -1,6 +1,6 @@
 import type { RelationshipGeometry } from "@/model/geometry";
 import type { Relationship, RelationshipStyle } from "@/model/types";
-import { PropertyBackground } from "./PropertyBackground";
+import { PropertyBackground, propertyTextX } from "./PropertyBackground";
 import { LINE_HEIGHT, measureTextWidth, propertyLines, TYPE_PADDING_X } from "./text";
 
 export interface RelationshipViewProps {
@@ -31,6 +31,7 @@ export function RelationshipView({
   const typeHeight = style.typeFontSize * 1.4;
   const props = showProperties ? propertyLines(relationship.properties) : [];
   const propLineHeight = style.propertyFontSize * LINE_HEIGHT;
+  const propX = propertyTextX(props, 0, style.propertyFontSize);
 
   return (
     <g
@@ -104,16 +105,17 @@ export function RelationshipView({
         />
         {props.length > 0 && (
           <text
-            x={0}
+            data-part="property-text"
+            x={propX}
             y={(type ? typeHeight / 2 : 0) + style.propertyFontSize + 2}
-            textAnchor="middle"
+            textAnchor="start"
             fontSize={style.propertyFontSize}
             fill={style.propertyColor}
             fontFamily="system-ui, sans-serif"
             style={{ pointerEvents: "none", userSelect: "none" }}
           >
             {props.map((line, i) => (
-              <tspan key={i} x={0} dy={i === 0 ? 0 : propLineHeight}>
+              <tspan key={i} x={propX} dy={i === 0 ? 0 : propLineHeight}>
                 {line}
               </tspan>
             ))}
