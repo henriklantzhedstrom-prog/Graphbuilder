@@ -24,12 +24,19 @@ import type {
   Layer,
   NodeStyle,
   Note,
+  NoteAnchor,
   Point,
   Relationship,
   RelationshipStyle,
   Size,
 } from "@/model/types";
-import { elementLayerId, getElement, isElementVisible, isRelationshipVisible } from "./selectors";
+import {
+  attachedNoteMoves,
+  elementLayerId,
+  getElement,
+  isElementVisible,
+  isRelationshipVisible,
+} from "./selectors";
 
 export interface ClipboardContent {
   nodes: GraphNode[];
@@ -81,7 +88,11 @@ export interface DocumentState {
   reverseRelationships(ids: Id[]): void;
 
   // Anteckningar & bilder
-  addNote(layerId: Id, position: Point, partial?: Partial<Omit<Note, "id" | "layerId">>): Id;
+  addNote(position: Point, partial?: Partial<Omit<Note, "id">>): Id;
+  /** Knyter anteckningen till en nod eller relation, eller gör den fri igen (null). */
+  attachNote(id: Id, anchor: NoteAnchor | null): void;
+  /** Visar eller döljer det fasta lagret "Notes" (alla anteckningar). */
+  setNotesVisible(visible: boolean): void;
   updateNote(id: Id, patch: Partial<Omit<Note, "id">>): void;
   addAsset(asset: Omit<Asset, "id">): Id;
   addImage(
@@ -148,6 +159,16 @@ function applyToVisible<S extends object, E extends { style: Partial<S> }>(
     }
   }
   Object.assign(defaults, patch);
+}
+
+/** Anteckningar knutna till något som tagits bort blir fria (de ligger kvar där de är). */
+function detachOrphanNotes(doc: GraphDocument) {
+  for (const note of Object.values(doc.notes)) {
+    const anchor = note.attachedTo;
+    if (!anchor) continue;
+    const table = anchor.kind === "node" ? doc.nodes : doc.relationships;
+    if (!(anchor.id in table)) delete note.attachedTo;
+  }
 }
 
 function removeOrphanAssets(doc: GraphDocument) {
@@ -234,7 +255,7 @@ export const useDocumentStore = create<DocumentState>()(
               : undefined;
           // Relationer som lagts i lagret följer med innehållet; övriga relationer försvinner
           // bara om någon av ändnoderna tas bort.
-          const collections = [s.doc.nodes, s.doc.notes, s.doc.images, s.doc.relationships];
+          const collections = [s.doc.nodes, s.doc.images, s.doc.relationships];
           for (const col of collections) {
             for (const [elId, el] of Object.entries(col)) {
               if (el.layerId !== id) continue;
@@ -249,6 +270,7 @@ export const useDocumentStore = create<DocumentState>()(
               }
             }
             removeOrphanAssets(s.doc);
+            detachOrphanNotes(s.doc);
           }
           s.doc.layers.splice(index, 1);
           touch(s.doc);
@@ -257,7 +279,13 @@ export const useDocumentStore = create<DocumentState>()(
         set((s) => {
           if (!s.doc.layers.some((l) => l.id === layerId)) return;
           for (const ref of refs) {
-            const el = getElement(s.doc, ref);
+            // Anteckningar ligger i det fasta lagret "Notes" och flyttas inte mellan lager.
+            if (ref.kind === "note") continue;
+            const el = getElement(s.doc, ref) as
+              | GraphNode
+              | Relationship
+              | BackgroundImage
+              | undefined;
             if (el) el.layerId = layerId;
           }
           touch(s.doc);
@@ -358,10 +386,25 @@ export const useDocumentStore = create<DocumentState>()(
           touch(s.doc);
         }),
 
-      addNote: (layerId, position, partial) => {
+      attachNote: (id, anchor) =>
+        set((s) => {
+          const note = s.doc.notes[id];
+          if (!note) return;
+          const exists =
+            anchor && anchor.id in (anchor.kind === "node" ? s.doc.nodes : s.doc.relationships);
+          if (exists) note.attachedTo = { kind: anchor.kind, id: anchor.id };
+          else delete note.attachedTo;
+          touch(s.doc);
+        }),
+      setNotesVisible: (visible) =>
+        set((s) => {
+          s.doc.notesVisible = visible;
+          touch(s.doc);
+        }),
+      addNote: (position, partial) => {
         const id = newId("t");
         set((s) => {
-          s.doc.notes[id] = { id, layerId, position, ...DEFAULT_NOTE, ...partial };
+          s.doc.notes[id] = { id, position, ...DEFAULT_NOTE, ...partial };
           touch(s.doc);
         });
         return id;
@@ -413,10 +456,19 @@ export const useDocumentStore = create<DocumentState>()(
 
       moveElements: (refs, delta) =>
         set((s) => {
+          // Anteckningar som är knutna till de flyttade noderna följer med (om de inte själva
+          // är med i flytten).
+          const movedNodes = new Set(refs.filter((r) => r.kind === "node").map((r) => r.id));
+          const movedNotes = new Set(refs.filter((r) => r.kind === "note").map((r) => r.id));
+          const followers = attachedNoteMoves(s.doc, movedNodes, delta, movedNotes);
           for (const ref of refs) {
             if (ref.kind === "relationship") continue;
             const el = getElement(s.doc, ref) as GraphNode | Note | BackgroundImage | undefined;
             if (el) el.position = add(el.position, delta);
+          }
+          for (const [noteId, move] of followers) {
+            const note = s.doc.notes[noteId];
+            if (note) note.position = add(note.position, move);
           }
           touch(s.doc);
         }),
@@ -452,6 +504,7 @@ export const useDocumentStore = create<DocumentState>()(
             }
           }
           removeOrphanAssets(s.doc);
+          detachOrphanNotes(s.doc);
           touch(s.doc);
         }),
       copyElements: (refs) => {
@@ -511,6 +564,7 @@ export const useDocumentStore = create<DocumentState>()(
             const toId = idMap.get(rel.toId);
             if (!fromId || !toId) continue;
             const id = newId("r");
+            idMap.set(rel.id, id);
             // En relation som låg i ett lager hamnar i mållagret, precis som noderna.
             const { layerId: sourceLayerId, ...rest } = rel;
             s.doc.relationships[id] = {
@@ -524,7 +578,18 @@ export const useDocumentStore = create<DocumentState>()(
           }
           for (const note of content.notes) {
             const id = newId("t");
-            s.doc.notes[id] = { ...note, id, layerId, position: add(note.position, offset) };
+            // Kopieras det anteckningen är knuten till följer kopian med den nya noden/relationen;
+            // annars sitter kopian kvar på samma som originalet.
+            const anchor = note.attachedTo;
+            const copiedAnchor = anchor ? idMap.get(anchor.id) : undefined;
+            s.doc.notes[id] = {
+              ...note,
+              id,
+              position: add(note.position, offset),
+              ...(anchor && copiedAnchor
+                ? { attachedTo: { kind: anchor.kind, id: copiedAnchor } }
+                : {}),
+            };
             created.push({ kind: "note", id });
           }
           for (const image of content.images) {

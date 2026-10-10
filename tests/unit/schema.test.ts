@@ -64,7 +64,7 @@ describe("parseDocument", () => {
       relationships: { r1: { id: "r1", layerId: "gammalt-lager", fromId: "a", toId: "b" } },
     };
     const doc = parseDocument(raw);
-    expect(doc.version).toBe(5);
+    expect(doc.version).toBe(6);
     expect(doc.relationships.r1).toBeDefined();
     expect(doc.relationships.r1).not.toHaveProperty("layerId");
   });
@@ -105,6 +105,28 @@ describe("parseDocument", () => {
     expect(parseDocument(current).style.node.labelBorderWidth).toBe(1);
   });
 
+  it("äldre anteckningar tappar sitt lager; en knytning till något som saknas tas bort", () => {
+    const base = JSON.parse(JSON.stringify(createEmptyDocument("Notes")));
+    const layerId = base.layers[0].id;
+    const note = { position: { x: 0, y: 0 }, size: { w: 100, h: 50 }, color: "#ffd60a" };
+    const raw = {
+      ...base,
+      version: 5,
+      nodes: { a: { id: "a", layerId, position: { x: 0, y: 0 }, captionKey: null } },
+      notes: {
+        old: { ...note, id: "old", layerId },
+        attached: { ...note, id: "attached", attachedTo: { kind: "node", id: "a" } },
+        broken: { ...note, id: "broken", attachedTo: { kind: "relationship", id: "saknas" } },
+      },
+    };
+    delete raw.notesVisible;
+    const doc = parseDocument(raw);
+    expect(doc.notesVisible).toBe(true);
+    expect(doc.notes.old).not.toHaveProperty("layerId");
+    expect(doc.notes.attached?.attachedTo).toEqual({ kind: "node", id: "a" });
+    expect(doc.notes.broken).not.toHaveProperty("attachedTo");
+  });
+
   it("läser äldre modeller med opacitet på lager och tar bort fältet", () => {
     const base = createEmptyDocument("Old");
     const raw = JSON.parse(JSON.stringify(base));
@@ -133,7 +155,7 @@ describe("parseDocument", () => {
       },
     };
     const doc = parseDocument(raw);
-    expect(doc.version).toBe(5);
+    expect(doc.version).toBe(6);
     expect(doc.nodes.a?.properties).toEqual({ name: "Alice" });
     expect(doc.nodes.a?.captionKey).toBe("name");
     expect(doc.nodes.b?.properties).toEqual({ name: "X", caption: "Bob" });

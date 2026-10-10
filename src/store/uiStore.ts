@@ -34,6 +34,8 @@ export interface UiState {
    * vilken del markören ska börja i.
    */
   details: { ref: ElementRef; focus: DetailFocus } | null;
+  /** Anteckningar som väntar på att användaren klickar på det de ska knytas till. */
+  attachingNotes: Id[] | null;
   panel: Panel;
   dialog: Dialog;
   drag: DragState;
@@ -52,6 +54,7 @@ export interface UiState {
   setViewport(vp: Viewport): void;
   setEditing(ref: ElementRef | null): void;
   setDetails(details: { ref: ElementRef; focus: DetailFocus } | null): void;
+  setAttachingNotes(ids: Id[] | null): void;
   setPanel(panel: Panel): void;
   setDialog(dialog: Dialog): void;
   setDrag(drag: DragState): void;
@@ -73,6 +76,7 @@ export const useUiStore = create<UiState>()((set, get) => ({
   viewport: { x: 0, y: 0, zoom: 1 },
   editing: null,
   details: null,
+  attachingNotes: null,
   panel: "inspector",
   dialog: null,
   drag: null,
@@ -116,6 +120,7 @@ export const useUiStore = create<UiState>()((set, get) => ({
   setViewport: (viewport) => set({ viewport }),
   setEditing: (editing) => set({ editing }),
   setDetails: (details) => set({ details }),
+  setAttachingNotes: (attachingNotes) => set({ attachingNotes }),
   setPanel: (panel) => set({ panel }),
   setDialog: (dialog) => set({ dialog }),
   setDrag: (drag) => set({ drag }),

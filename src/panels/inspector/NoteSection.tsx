@@ -1,9 +1,26 @@
-import { ColorField, Field, Section, Segmented, SegmentedItem, SliderField } from "@/components/ui";
+import { attachNotes } from "@/canvas/actions";
+import { IconLink } from "@/components/icons";
+import {
+  Button,
+  ColorField,
+  Field,
+  Section,
+  Segmented,
+  SegmentedItem,
+  SliderField,
+} from "@/components/ui";
 import { t } from "@/i18n";
+import { nodeCaption } from "@/model/caption";
 import { NOTE_COLORS } from "@/model/defaults";
-import type { Note } from "@/model/types";
+import type { GraphDocument, Note } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
+import { useUiStore } from "@/store/uiStore";
 import { commonValue, MAX_ELEMENT_SIZE, MIN_ELEMENT_SIZE } from "./common";
+
+const nodeCaptionOf = (doc: GraphDocument, id: string): string => {
+  const node = doc.nodes[id];
+  return node ? nodeCaption(node) : "";
+};
 
 export function NoteSection({ notes }: { notes: Note[] }) {
   const updateNote = useDocumentStore((s) => s.updateNote);
@@ -15,8 +32,52 @@ export function NoteSection({ notes }: { notes: Note[] }) {
   const single = notes.length === 1 ? notes[0] : undefined;
   const fontSize = commonValue(notes.map((n) => n.fontSize));
 
+  const doc = useDocumentStore((s) => s.doc);
+  const attaching = useUiStore((s) => s.attachingNotes !== null);
+  const setAttachingNotes = useUiStore((s) => s.setAttachingNotes);
+  const ids = notes.map((n) => n.id);
+  const anchors = notes.map((n) => (n.attachedTo ? `${n.attachedTo.kind}:${n.attachedTo.id}` : ""));
+  const sameAnchor = commonValue(anchors);
+  const anchor = sameAnchor ? notes[0]?.attachedTo : undefined;
+  const attachedLabel =
+    sameAnchor === null
+      ? t.inspector.mixed
+      : !anchor
+        ? t.inspector.attachedNothing
+        : anchor.kind === "node"
+          ? t.inspector.attachedNode(nodeCaptionOf(doc, anchor.id))
+          : t.inspector.attachedRelationship(doc.relationships[anchor.id]?.type ?? "");
+  const isAttached = anchors.some((a) => a !== "");
+
   return (
     <Section title={notes.length === 1 ? t.inspector.note : t.inspector.notes(notes.length)}>
+      <div className="flex flex-col gap-2 pb-1" data-testid="note-attachment">
+        <span className="text-[0.88em] text-text-muted">{t.inspector.attachedTo}</span>
+        <p className="font-medium text-[0.94em] leading-snug" data-testid="note-attached-to">
+          {attachedLabel}
+        </p>
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            active={attaching}
+            data-testid="note-attach"
+            className={isAttached ? "" : "col-span-2"}
+            onClick={() => setAttachingNotes(attaching ? null : ids)}
+          >
+            <IconLink size={16} />
+            {attaching
+              ? t.inspector.attaching
+              : isAttached
+                ? t.inspector.attachChange
+                : t.inspector.attach}
+          </Button>
+          {isAttached && (
+            <Button data-testid="note-detach" onClick={() => attachNotes(ids, null)}>
+              {t.inspector.detach}
+            </Button>
+          )}
+        </div>
+        <p className="text-[0.82em] text-text-muted leading-snug">{t.inspector.attachedHint}</p>
+      </div>
       <Field label={t.inspector.text}>
         {(id) => (
           <textarea

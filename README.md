@@ -10,7 +10,9 @@ Draw graph models (nodes and relationships) in the browser, in the spirit of arr
 - **Edit on the canvas** – double-click a node to edit its caption in place, with its labels in a
   box above it and its properties in a box below; double-click a relationship for its type and
   properties.
-- **Notes** – free-text sticky notes on the canvas with color, text size and alignment.
+- **Notes** – free-text sticky notes with color, text size and alignment. Notes live in their own
+  **Notes** layer and can be attached to a node or relationship, so they follow along when the
+  graph is rearranged.
 - **Background images** – add images (button, drag-and-drop or paste) as a backdrop, scale them
   proportionally, set opacity and lock them.
 

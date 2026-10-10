@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { freshApp } from "./helpers";
+import { createNode, dragRelationship, freshApp, SCREENSHOT_DIR } from "./helpers";
 
 test.describe("anteckningar", () => {
   test("skapa med verktyget, skriv text, byt färg och ändra storlek", async ({ page }) => {
@@ -116,5 +116,133 @@ test.describe("anteckningar", () => {
     await expect(notes).toHaveCount(2);
     const second = await notes.nth(1).boundingBox();
     expect(Math.abs((second?.x ?? 0) - note.x)).toBeGreaterThan(20);
+  });
+
+  test("Add note med en nod markerad knyter anteckningen till noden, och den följer med", async ({
+    page,
+  }) => {
+    await freshApp(page);
+    await createNode(page, 300, 300, "Alice");
+    const canvas = page.getByTestId("canvas");
+    // Noden är markerad: anteckningen hamnar bredvid den och knyts dit.
+    await page.getByTestId("add-note").click();
+    await page.getByTestId("inline-editor").fill("Viktig person");
+    await canvas.click({ position: { x: 100, y: 600 } });
+    const note = page.locator("[data-ref^='note:'] > rect").first();
+    const link = canvas.locator("[data-part='note-link']");
+    await expect(note).toHaveCount(1);
+    await expect(link).toHaveCount(1);
+    await note.click();
+    await expect(page.getByTestId("note-attached-to")).toHaveText("Node “Alice”");
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/note-attached.png`, animations: "disabled" });
+
+    // Flytta noden: anteckningen följer med lika långt, även medan man drar.
+    const before = await note.boundingBox();
+    const box = await canvas.boundingBox();
+    if (!before || !box) throw new Error("anteckning saknas");
+    await page.mouse.move(box.x + 300, box.y + 300);
+    await page.mouse.down();
+    await page.mouse.move(box.x + 420, box.y + 380, { steps: 6 });
+    const during = await note.boundingBox();
+    expect(Math.abs((during?.x ?? 0) - (before.x + 120))).toBeLessThan(3);
+    await page.mouse.up();
+    const after = await note.boundingBox();
+    expect(Math.abs((after?.x ?? 0) - (before.x + 120))).toBeLessThan(3);
+    expect(Math.abs((after?.y ?? 0) - (before.y + 80))).toBeLessThan(3);
+
+    // Anteckningen går att flytta för sig och sitter kvar på noden; Detach gör den fri.
+    await note.click();
+    await page.getByTestId("note-detach").click();
+    await expect(link).toHaveCount(0);
+    await expect(page.getByTestId("note-attached-to")).toContainText("Nothing");
+    const free = await note.boundingBox();
+    await page.mouse.move(box.x + 420, box.y + 380);
+    await page.mouse.down();
+    await page.mouse.move(box.x + 300, box.y + 300, { steps: 6 });
+    await page.mouse.up();
+    const still = await note.boundingBox();
+    expect(Math.abs((still?.x ?? 0) - (free?.x ?? 0))).toBeLessThan(2);
+  });
+
+  test("knyt en befintlig anteckning genom att peka ut en nod eller relation", async ({ page }) => {
+    await freshApp(page);
+    await createNode(page, 250, 250, "A");
+    await createNode(page, 650, 250, "B");
+    await dragRelationship(page, { x: 250, y: 250 }, { x: 650, y: 250 }, "KNOWS");
+    await page.keyboard.press("Escape");
+    const canvas = page.getByTestId("canvas");
+    // Inget markerat: anteckningen blir fri, mitt i vyn.
+    await page.getByTestId("add-note").click();
+    await page.getByTestId("inline-editor").fill("Fri anteckning");
+    await canvas.click({ position: { x: 100, y: 620 } });
+    const note = page.locator("[data-ref^='note:'] > rect").first();
+    const link = canvas.locator("[data-part='note-link']");
+    await expect(link).toHaveCount(0);
+
+    // Attach to… och klicka på relationen.
+    await note.click();
+    await page.getByTestId("note-attach").click();
+    await expect(page.getByTestId("attach-hint")).toBeVisible();
+    await canvas.click({ position: { x: 450, y: 250 } });
+    await expect(page.getByTestId("attach-hint")).toHaveCount(0);
+    await expect(link).toHaveCount(1);
+    await expect(page.getByTestId("note-attached-to")).toHaveText("Relationship “KNOWS”");
+    // Anteckningen är fortfarande markerad; klicket valde inte relationen.
+    await expect(page.getByTestId("inspector")).toContainText("1 element selected");
+
+    // Change… och klicka på en nod; ett klick på tom yta avbryter utan att ändra något.
+    await page.getByTestId("note-attach").click();
+    await canvas.click({ position: { x: 100, y: 100 } });
+    await expect(page.getByTestId("attach-hint")).toHaveCount(0);
+    await expect(page.getByTestId("note-attached-to")).toHaveText("Relationship “KNOWS”");
+    await page.getByTestId("note-attach").click();
+    await canvas.click({ position: { x: 650, y: 250 } });
+    await expect(page.getByTestId("note-attached-to")).toHaveText("Node “B”");
+
+    // Tas noden bort ligger anteckningen kvar, men fri.
+    await page.keyboard.press("Escape");
+    await canvas.click({ position: { x: 650, y: 250 } });
+    await page.keyboard.press("Delete");
+    await expect(note).toHaveCount(1);
+    await expect(link).toHaveCount(0);
+  });
+
+  test("lagret Notes visar och döljer alla anteckningar; knutna följer sin nods lager", async ({
+    page,
+  }) => {
+    await freshApp(page);
+    await createNode(page, 300, 300, "A");
+    await page.getByTestId("add-note").click();
+    await page.getByTestId("inline-editor").fill("På noden");
+    await page.keyboard.press("Escape");
+    await page.getByTestId("add-note").click();
+    await page.getByTestId("inline-editor").fill("Fri");
+    await page.getByTestId("canvas").click({ position: { x: 100, y: 620 } });
+    const notes = page.locator("[data-ref^='note:'] > rect");
+    await expect(notes).toHaveCount(2);
+
+    await page.getByRole("tab", { name: "Layers" }).click();
+    const row = page.getByTestId("notes-layer");
+    await expect(row).toContainText("Notes");
+    await expect(row.getByText("2", { exact: true })).toBeVisible();
+    // Anteckningar räknas inte i de vanliga lagren.
+    await expect(page.getByTestId("layer-row").getByText("1", { exact: true })).toBeVisible();
+
+    await page.getByTestId("notes-visibility").click();
+    await expect(notes).toHaveCount(0);
+    await page.getByTestId("notes-visibility").click();
+    await expect(notes).toHaveCount(2);
+
+    // Döljs nodens lager följer den knutna anteckningen med; den fria syns kvar.
+    await page.getByTestId("layer-row").getByTestId("layer-visibility").click();
+    await expect(notes).toHaveCount(1);
+    await expect(page.locator("svg text", { hasText: "Fri" })).toBeVisible();
+
+    // En ny anteckning visar lagret Notes igen om det var dolt.
+    await page.getByTestId("notes-visibility").click();
+    await expect(notes).toHaveCount(0);
+    await page.getByTestId("add-note").click();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("button", { name: "Hide notes" })).toBeVisible();
   });
 });

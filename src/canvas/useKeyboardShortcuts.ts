@@ -103,6 +103,7 @@ export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
           ui.setDrag(null);
           ui.setEditing(null);
           ui.setDetails(null);
+          ui.setAttachingNotes(null);
           if (ui.tool !== "select") ui.setTool("select");
           else ui.clearSelection();
           return;

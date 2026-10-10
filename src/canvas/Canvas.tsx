@@ -24,6 +24,7 @@ import {
 import type { Box, ElementRef, Id, Point } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
 import {
+  attachedNoteMoves,
   elementBox,
   getElement,
   imageBox,
@@ -39,6 +40,7 @@ import {
 } from "@/store/selectors";
 import { type DragState, useUiStore } from "@/store/uiStore";
 import {
+  attachNotes,
   createNodeAt,
   createNoteAt,
   createRelationship,
@@ -251,6 +253,22 @@ export function Canvas() {
     const screen = { x: e.clientX, y: e.clientY };
     const canvasPoint = toCanvas(e);
     const { ref, part, handle } = hitTarget(e.target);
+
+    // Läget "peka ut vad anteckningen ska knytas till": ett klick på en nod eller relation knyter
+    // den dit, ett klick någon annanstans avbryter. Inget annat händer med klicket.
+    if (ui.attachingNotes) {
+      const target = ref && (ref.kind === "node" || ref.kind === "relationship") ? ref : null;
+      if (target && isElementVisible(currentDoc, target)) {
+        attachNotes(ui.attachingNotes, {
+          kind: target.kind as "node" | "relationship",
+          id: target.id,
+        });
+        ui.showToast(t.toasts.noteAttached);
+      } else {
+        ui.setAttachingNotes(null);
+      }
+      return;
+    }
 
     if (ui.editing) {
       // Blur på textarean committar; låt klicket fortsätta.
@@ -540,6 +558,23 @@ export function Canvas() {
           y: el.position.y + drag.delta.y,
         });
       }
+      // Anteckningar som är knutna till de noder som dras följer med redan under dragningen.
+      const moved = selection.filter((r) => positions.has(refKey(r)));
+      const followers = attachedNoteMoves(
+        doc,
+        new Set(moved.filter((r) => r.kind === "node").map((r) => r.id)),
+        drag.delta,
+        new Set(moved.filter((r) => r.kind === "note").map((r) => r.id)),
+      );
+      for (const [noteId, move] of followers) {
+        const note = doc.notes[noteId];
+        if (note) {
+          positions.set(`note:${noteId}`, {
+            x: note.position.x + move.x,
+            y: note.position.y + move.y,
+          });
+        }
+      }
       return { positions };
     }
     if (drag.kind === "resize") {
@@ -560,8 +595,10 @@ export function Canvas() {
     Object.keys(doc.notes).length === 0 &&
     Object.keys(doc.images).length === 0;
 
-  const cursor =
-    tool === "pan" || spacePressed
+  const attaching = useUiStore((s) => s.attachingNotes !== null);
+  const cursor = attaching
+    ? "crosshair"
+    : tool === "pan" || spacePressed
       ? drag || gesture.current?.type === "pan"
         ? "grabbing"
         : "grab"
@@ -618,6 +655,14 @@ export function Canvas() {
         </g>
       </svg>
       <DetailsEditor viewport={viewport} />
+      {attaching && (
+        <div
+          data-testid="attach-hint"
+          className="pointer-events-none absolute top-16 left-1/2 z-10 -translate-x-1/2 rounded-full bg-strong px-4 py-2 font-medium text-[15px] text-on-strong shadow-pop"
+        >
+          {t.canvas.attachHint}
+        </div>
+      )}
       {dropActive && (
         <div className="pointer-events-none absolute inset-3 flex items-center justify-center rounded-2xl border-2 border-accent border-dashed bg-accent/5 font-medium text-[16px] text-accent">
           {t.canvas.dropImageHint}

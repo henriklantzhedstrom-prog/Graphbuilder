@@ -7,6 +7,7 @@ import {
   type GraphDocument,
   type GraphNode,
   type NodeStyle,
+  type Note,
   type Relationship,
 } from "./types";
 
@@ -78,9 +79,13 @@ const relationship = z.object({
   style: relationshipStyle.partial().default({}),
 });
 
+/** Före version 6 låg anteckningar i vanliga lager (`layerId`); fältet läses men används inte. */
 const note = z.object({
   id: z.string().min(1),
-  layerId: z.string().min(1),
+  layerId: z.string().optional(),
+  attachedTo: z
+    .object({ kind: z.enum(["node", "relationship"]), id: z.string().min(1) })
+    .optional(),
   position: point,
   size,
   text: z.string().default(""),
@@ -115,13 +120,21 @@ const diagramStyle = z.object({
 });
 
 export const documentSchemaV1 = z.object({
-  version: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)]),
+  version: z.union([
+    z.literal(1),
+    z.literal(2),
+    z.literal(3),
+    z.literal(4),
+    z.literal(5),
+    z.literal(6),
+  ]),
   id: z.string().min(1),
   name: z.string().default(t.app.untitled),
   createdAt: z.string(),
   updatedAt: z.string(),
   layers: z.array(layer),
   propertiesVisible: z.boolean().default(true),
+  notesVisible: z.boolean().default(true),
   nodes: z.record(z.string(), graphNode).default({}),
   relationships: z.record(z.string(), relationship).default({}),
   notes: z.record(z.string(), note).default({}),
@@ -162,7 +175,7 @@ export function parseDocument(input: unknown): GraphDocument {
   return repairDocument(result.data);
 }
 
-const SUPPORTED_VERSIONS: readonly number[] = [1, 2, 3, 4, DOCUMENT_VERSION];
+const SUPPORTED_VERSIONS: readonly number[] = [1, 2, 3, 4, 5, DOCUMENT_VERSION];
 
 /**
  * Före version 5 var labelns kant 1 px som standard; nu är den 4 px. Modeller som fortfarande har
@@ -211,7 +224,17 @@ function repairDocument(doc: z.infer<typeof documentSchemaV1>): GraphDocument {
           : rest,
       ]),
   );
-  const notes = Object.fromEntries(Object.entries(doc.notes).map(([k, v]) => [k, fixLayer(v)]));
+  // Anteckningar har inget lager längre. En anteckning knuten till något som inte finns blir fri.
+  const notes = Object.fromEntries(
+    Object.entries(doc.notes).map(
+      ([k, { layerId: _layerId, attachedTo, ...rest }]): [string, Note] => [
+        k,
+        attachedTo && attachedTo.id in (attachedTo.kind === "node" ? nodes : relationships)
+          ? { ...rest, attachedTo }
+          : rest,
+      ],
+    ),
+  );
   const images = Object.fromEntries(
     Object.entries(doc.images)
       .filter(([, im]) => im.assetId in doc.assets)
@@ -230,6 +253,7 @@ function repairDocument(doc: z.infer<typeof documentSchemaV1>): GraphDocument {
     updatedAt: doc.updatedAt,
     layers,
     propertiesVisible: doc.propertiesVisible,
+    notesVisible: doc.notesVisible,
     nodes,
     relationships,
     notes,

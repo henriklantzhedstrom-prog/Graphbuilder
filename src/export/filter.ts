@@ -1,5 +1,5 @@
 import type { GraphDocument } from "@/model/types";
-import { isRelationshipVisible } from "@/store/selectors";
+import { isNoteVisible, isRelationshipVisible } from "@/store/selectors";
 
 /** Kopia av dokumentet med bara synliga lager, deras element och relationer mellan synliga noder. */
 export function visibleDocument(doc: GraphDocument): GraphDocument {
@@ -17,7 +17,9 @@ export function visibleDocument(doc: GraphDocument): GraphDocument {
     layers: doc.layers.filter((l) => l.visible),
     nodes,
     relationships,
-    notes: keep(doc.notes),
+    notes: Object.fromEntries(
+      Object.entries(doc.notes).filter(([, note]) => isNoteVisible(doc, note)),
+    ),
     images,
     assets: Object.fromEntries(Object.entries(doc.assets).filter(([id]) => usedAssets.has(id))),
   };

@@ -1,7 +1,7 @@
 import { t } from "@/i18n";
 import { DEFAULT_NOTE } from "@/model/defaults";
 import { fitBoxInViewport } from "@/model/geometry";
-import type { Box, ElementRef, Id, Point, Size } from "@/model/types";
+import type { Box, ElementRef, Id, NoteAnchor, Point, Size } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
 import {
   allElementRefs,
@@ -10,6 +10,8 @@ import {
   isElementLocked,
   isSelectable,
   layerById,
+  nodeOuterRadius,
+  resolvedNodeStyle,
 } from "@/store/selectors";
 import { type DetailFocus, useUiStore } from "@/store/uiStore";
 import { drawnBounds } from "./render/bounds";
@@ -55,10 +57,13 @@ export function createRelationship(fromId: Id, toId: Id, edit = true): Id | null
   return id;
 }
 
-export function createNoteAt(box: Box, edit = true): Id | null {
-  const layerId = resolveActiveLayer();
-  if (!layerId) return null;
-  const id = docState().addNote(layerId, { x: box.x, y: box.y }, { size: { w: box.w, h: box.h } });
+export function createNoteAt(box: Box, edit = true, attachTo?: NoteAnchor): Id | null {
+  // En ny anteckning ska synas: visa lagret "Notes" om det var dolt.
+  if (!docState().doc.notesVisible) docState().setNotesVisible(true);
+  const id = docState().addNote(
+    { x: box.x, y: box.y },
+    { size: { w: box.w, h: box.h }, ...(attachTo ? { attachedTo: attachTo } : {}) },
+  );
   const ref: ElementRef = { kind: "note", id };
   ui().setSelection([ref]);
   if (edit) ui().setEditing(ref);
@@ -213,15 +218,38 @@ export function addNodeInView(viewportSize: Size): Id | null {
   return createNodeAt(position);
 }
 
+/** Avstånd mellan en nod eller relation och en ny anteckning som knyts till den. */
+const ATTACHED_NOTE_GAP = 40;
+
 /**
- * Skapar en anteckning mitt i den synliga ytan (knappen "Add note") och öppnar den för text.
- * Ligger det redan en anteckning där förskjuts den nya snett nedåt.
+ * Knappen "Add note". Är exakt en nod eller relation markerad läggs anteckningen bredvid den och
+ * knyts till den, så att den följer med när grafen stuvas om. Annars hamnar den fri mitt i den
+ * synliga ytan. Ligger det redan en anteckning där förskjuts den nya snett nedåt.
  */
 export function addNoteInView(viewportSize: Size): Id | null {
   const { doc } = docState();
-  const center = viewportCenter(viewportSize);
   const { w, h } = DEFAULT_NOTE.size;
-  const position = { x: center.x - w / 2, y: center.y - h / 2 };
+  const only = ui().selection.length === 1 ? ui().selection[0] : undefined;
+  let attachTo: NoteAnchor | undefined;
+  let position: Point;
+  const node = only?.kind === "node" ? doc.nodes[only.id] : undefined;
+  const relationship = only?.kind === "relationship" ? doc.relationships[only.id] : undefined;
+  const from = relationship ? doc.nodes[relationship.fromId] : undefined;
+  const to = relationship ? doc.nodes[relationship.toId] : undefined;
+  if (node) {
+    attachTo = { kind: "node", id: node.id };
+    const outer = nodeOuterRadius(resolvedNodeStyle(doc, node));
+    position = { x: node.position.x + outer + ATTACHED_NOTE_GAP, y: node.position.y - h / 2 };
+  } else if (relationship && from && to) {
+    attachTo = { kind: "relationship", id: relationship.id };
+    position = {
+      x: (from.position.x + to.position.x) / 2 - w / 2,
+      y: (from.position.y + to.position.y) / 2 + ATTACHED_NOTE_GAP,
+    };
+  } else {
+    const center = viewportCenter(viewportSize);
+    position = { x: center.x - w / 2, y: center.y - h / 2 };
+  }
   const taken = (p: Point) =>
     Object.values(doc.notes).some(
       (n) => Math.abs(n.position.x - p.x) < 10 && Math.abs(n.position.y - p.y) < 10,
@@ -230,7 +258,16 @@ export function addNoteInView(viewportSize: Size): Id | null {
     position.x += NEW_NODE_OFFSET;
     position.y += NEW_NODE_OFFSET;
   }
-  return createNoteAt({ ...position, w, h });
+  return createNoteAt({ ...position, w, h }, true, attachTo);
+}
+
+/**
+ * Knyter de valda anteckningarna till en nod eller relation (eller gör dem fria med null) och
+ * avslutar läget där man pekar ut vad de ska knytas till.
+ */
+export function attachNotes(noteIds: Id[], anchor: NoteAnchor | null): void {
+  for (const id of noteIds) docState().attachNote(id, anchor);
+  ui().setAttachingNotes(null);
 }
 
 /** Rensa markering/redigering som pekar på borttagna eller dolda element. */

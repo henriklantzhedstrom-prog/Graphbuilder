@@ -10,6 +10,7 @@ import type {
   Layer,
   NodeStyle,
   Note,
+  Point,
   Relationship,
   RelationshipStyle,
 } from "@/model/types";
@@ -63,16 +64,29 @@ export const isRelationshipVisible = (doc: GraphDocument, rel: Relationship): bo
   );
 };
 
+/**
+ * En anteckning syns när det fasta lagret "Notes" är synligt och, om den är knuten till en nod
+ * eller relation, när den noden eller relationen syns.
+ */
+export const isNoteVisible = (doc: GraphDocument, note: Note): boolean =>
+  doc.notesVisible && (!note.attachedTo || isElementVisible(doc, note.attachedTo));
+
 export function isElementVisible(doc: GraphDocument, ref: ElementRef): boolean {
   const el = getElement(doc, ref);
   if (!el) return false;
   if (ref.kind === "relationship") return isRelationshipVisible(doc, el as Relationship);
-  return el.layerId !== undefined && isLayerVisible(doc, el.layerId);
+  if (ref.kind === "note") return isNoteVisible(doc, el as Note);
+  const { layerId } = el as GraphNode | BackgroundImage;
+  return isLayerVisible(doc, layerId);
 }
 
-/** Lagret som ett element ligger i. Relationer utan eget lager (standard) ger undefined. */
+/**
+ * Lagret som ett element ligger i. Relationer utan eget lager (standard) och anteckningar (som
+ * har det fasta lagret "Notes") ger undefined.
+ */
 export function elementLayerId(doc: GraphDocument, ref: ElementRef): Id | undefined {
-  return getElement(doc, ref)?.layerId;
+  if (ref.kind === "note") return undefined;
+  return (getElement(doc, ref) as GraphNode | Relationship | BackgroundImage | undefined)?.layerId;
 }
 
 /**
@@ -91,7 +105,9 @@ export function isElementLocked(doc: GraphDocument, ref: ElementRef): boolean {
     if (rel.layerId !== undefined) return isLayerLocked(doc, rel.layerId);
     return isLayerLocked(doc, from.layerId) || isLayerLocked(doc, to.layerId);
   }
-  if (el.layerId === undefined || isLayerLocked(doc, el.layerId)) return true;
+  // Anteckningar ligger inte i något låsbart lager.
+  if (ref.kind === "note") return false;
+  if (isLayerLocked(doc, (el as GraphNode | BackgroundImage).layerId)) return true;
   if (ref.kind === "image") return (el as BackgroundImage).locked;
   return false;
 }
@@ -158,6 +174,49 @@ export const nodeBox = (doc: GraphDocument, node: GraphNode): Box =>
   circleBox(node.position, nodeOuterRadius(resolvedNodeStyle(doc, node)));
 
 export const noteBox = (note: Note): Box => rectBox(note.position, note.size);
+
+/** Punkten en anteckning är knuten till: nodens mitt, eller mitt emellan relationens noder. */
+export function noteAnchorPoint(doc: GraphDocument, note: Note): Point | null {
+  const anchor = note.attachedTo;
+  if (!anchor) return null;
+  if (anchor.kind === "node") return doc.nodes[anchor.id]?.position ?? null;
+  const rel = doc.relationships[anchor.id];
+  const from = rel ? doc.nodes[rel.fromId] : undefined;
+  const to = rel ? doc.nodes[rel.toId] : undefined;
+  if (!from || !to) return null;
+  return { x: (from.position.x + to.position.x) / 2, y: (from.position.y + to.position.y) / 2 };
+}
+
+/**
+ * Hur mycket knutna anteckningar ska flytta sig när noderna `movedNodeIds` flyttas `delta`.
+ * En anteckning på en nod följer noden helt; en anteckning på en relation följer relationens
+ * mitt, alltså halva sträckan per flyttad ändnod. Anteckningar i `excluded` (de som själva
+ * flyttas) tas inte med.
+ */
+export function attachedNoteMoves(
+  doc: GraphDocument,
+  movedNodeIds: ReadonlySet<Id>,
+  delta: Point,
+  excluded: ReadonlySet<Id> = new Set(),
+): Map<Id, Point> {
+  const moves = new Map<Id, Point>();
+  if (movedNodeIds.size === 0) return moves;
+  for (const note of Object.values(doc.notes)) {
+    const anchor = note.attachedTo;
+    if (!anchor || excluded.has(note.id)) continue;
+    let share = 0;
+    if (anchor.kind === "node") {
+      share = movedNodeIds.has(anchor.id) ? 1 : 0;
+    } else {
+      const rel = doc.relationships[anchor.id];
+      if (rel) {
+        share = (movedNodeIds.has(rel.fromId) ? 0.5 : 0) + (movedNodeIds.has(rel.toId) ? 0.5 : 0);
+      }
+    }
+    if (share > 0) moves.set(note.id, { x: delta.x * share, y: delta.y * share });
+  }
+  return moves;
+}
 export const imageBox = (image: BackgroundImage): Box => rectBox(image.position, image.size);
 
 export function elementBox(doc: GraphDocument, ref: ElementRef): Box | null {
@@ -219,7 +278,6 @@ export interface LayerRenderGroup {
   layer: Layer;
   images: BackgroundImage[];
   nodes: GraphNode[];
-  notes: Note[];
 }
 
 /** Lager i ritordning (botten → topp) med sina element i ritordning. Dolda lager utelämnas. */
@@ -227,13 +285,16 @@ export function renderGroups(doc: GraphDocument): LayerRenderGroup[] {
   const groups = new Map<Id, LayerRenderGroup>();
   for (const layer of doc.layers) {
     if (!layer.visible) continue;
-    groups.set(layer.id, { layer, images: [], nodes: [], notes: [] });
+    groups.set(layer.id, { layer, images: [], nodes: [] });
   }
   for (const im of Object.values(doc.images)) groups.get(im.layerId)?.images.push(im);
   for (const n of Object.values(doc.nodes)) groups.get(n.layerId)?.nodes.push(n);
-  for (const n of Object.values(doc.notes)) groups.get(n.layerId)?.notes.push(n);
   return [...groups.values()];
 }
+
+/** Anteckningar som syns (det fasta lagret "Notes" och det de är knutna till). */
+export const visibleNotes = (doc: GraphDocument): Note[] =>
+  Object.values(doc.notes).filter((note) => isNoteVisible(doc, note));
 
 /**
  * Relationer som syns: båda ändnoderna och relationens eventuella eget lager är synliga

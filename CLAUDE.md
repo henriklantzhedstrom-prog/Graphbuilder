@@ -75,7 +75,7 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
 - **Appen är på engelska. Alla UI-texter ligger i `src/i18n/en.ts`** och importeras via `@/i18n`.
   Inga hårdkodade strängar i komponenter, modell eller export (felmeddelanden under `t.errors`).
   Kommunikationen med kunden är på svenska; appen och koden på engelska.
-- Varje nod, anteckning och bild hör till exakt ett lager. Nya element skapas i aktivt lager.
+- Varje nod och bild hör till exakt ett lager. Nya element skapas i aktivt lager.
   Dolda lager renderas inte; låsta lager kan inte markeras eller flyttas.
 - **Relationer har som standard inget lager** (`layerId` saknas). En standardrelation syns när båda
   ändnoderna ligger i synliga lager och är låst när någon ändnod ligger i ett låst lager. En
@@ -88,6 +88,17 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   anteckningar och bilder.
 - **Show all / Hide all** överst i lagerpanelen visar eller döljer alla lager i ett steg
   (`setAllLayersVisible`). Det fasta lagret "Properties" påverkas inte.
+- **Anteckningar har ett eget fast lager, "Notes"** (`doc.notesVisible`, `NotesRow` i
+  `LayersPanel.tsx`), och hör inte till de vanliga lagren (`Note` har inget `layerId`; äldre filer
+  migreras, dokumentversion 6). De ritas överst och är aldrig låsta av ett lager.
+- **Anteckningar kan knytas till en nod eller relation** (`Note.attachedTo`). En knuten anteckning
+  följer med när noden flyttas (hela vägen) eller när relationens noder flyttas (halva vägen per
+  ändnod, alltså med relationens mitt) – både i `moveElements` och under dragningen, via
+  `attachedNoteMoves` i `selectors.ts`. Den syns bara när det den är knuten till syns
+  (`isNoteVisible`) och får en tunn streckad linje dit (`note-links` i `Scene.tsx`). Tas noden
+  eller relationen bort blir anteckningen fri men ligger kvar (`detachOrphanNotes`). Knyts via
+  **Add note** med en nod/relation markerad (`addNoteInView`), eller via "Attach to…" i panelen
+  och ett klick på ritytan (`uiStore.attachingNotes`, hanteras först i `onPointerDown`).
 - **Lagret "Properties"** är ett fast lager överst i lagerlistan (`PropertiesRow` i
   `LayersPanel.tsx`), inte ett vanligt lager i `doc.layers`: det kan bara visas/döljas
   (`doc.propertiesVisible`, `setPropertiesVisible`) och styr egenskapsraderna under alla noder och

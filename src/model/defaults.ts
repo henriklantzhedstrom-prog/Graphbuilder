@@ -72,7 +72,7 @@ export const NODE_PALETTE = [
   "#000000",
 ] as const;
 
-export const DEFAULT_NOTE: Omit<Note, "id" | "layerId" | "position"> = {
+export const DEFAULT_NOTE: Omit<Note, "id" | "position" | "attachedTo"> = {
   size: { w: 200, h: 120 },
   text: "",
   color: NOTE_COLORS[0],
@@ -97,6 +97,7 @@ export function createEmptyDocument(name: string = t.app.untitled): GraphDocumen
     updatedAt: now,
     layers: [createLayer(t.layers.defaultName(1))],
     propertiesVisible: true,
+    notesVisible: true,
     nodes: {},
     relationships: {},
     notes: {},

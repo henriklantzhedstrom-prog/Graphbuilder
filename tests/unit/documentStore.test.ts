@@ -18,6 +18,7 @@ import {
   renderGroups,
   resolvedNodeStyle,
   resolvedRelationshipStyle,
+  visibleNotes,
   visibleRelationships,
 } from "@/store/selectors";
 
@@ -404,6 +405,109 @@ describe("element", () => {
     store().setLayerVisible(l2, true);
     store().setAllLayersVisible(true);
     expect(store().doc.layers.every((l) => l.visible)).toBe(true);
+  });
+
+  it("knuten anteckning följer med när noden eller relationens noder flyttas", () => {
+    const l = firstLayer();
+    const a = store().addNode(l, { x: 0, y: 0 });
+    const b = store().addNode(l, { x: 200, y: 0 });
+    const r = store().addRelationship(a, b);
+    const onNode = store().addNote({ x: 50, y: 50 }, { attachedTo: { kind: "node", id: a } });
+    const onRel = store().addNote(
+      { x: 100, y: 80 },
+      { attachedTo: { kind: "relationship", id: r } },
+    );
+    const free = store().addNote({ x: 500, y: 500 });
+    const pos = (id: string) => store().doc.notes[id]?.position;
+
+    // Noden flyttas: dess anteckning följer helt, relationens följer halva vägen (mitten flyttas
+    // hälften när bara ena änden rör sig), den fria står kvar.
+    store().moveElements([{ kind: "node", id: a }], { x: 100, y: 40 });
+    expect(pos(onNode)).toEqual({ x: 150, y: 90 });
+    expect(pos(onRel)).toEqual({ x: 150, y: 100 });
+    expect(pos(free)).toEqual({ x: 500, y: 500 });
+    // Båda ändnoderna flyttas: relationens anteckning följer hela vägen.
+    store().moveElements(
+      [
+        { kind: "node", id: a },
+        { kind: "node", id: b },
+      ],
+      { x: 10, y: 10 },
+    );
+    expect(pos(onRel)).toEqual({ x: 160, y: 110 });
+    // Flyttas anteckningen tillsammans med sin nod flyttas den en gång, inte två.
+    store().moveElements(
+      [
+        { kind: "node", id: a },
+        { kind: "note", id: onNode },
+      ],
+      { x: 5, y: 5 },
+    );
+    expect(pos(onNode)).toEqual({ x: 165, y: 105 });
+    // Anteckningen själv går att flytta fritt; den sitter kvar på sin nod.
+    store().moveElements([{ kind: "note", id: onNode }], { x: 1, y: 1 });
+    expect(store().doc.notes[onNode]?.attachedTo).toEqual({ kind: "node", id: a });
+    // Lossa och knyt om.
+    store().attachNote(onNode, null);
+    expect(store().doc.notes[onNode]).not.toHaveProperty("attachedTo");
+    store().attachNote(onNode, { kind: "node", id: "finns-inte" });
+    expect(store().doc.notes[onNode]).not.toHaveProperty("attachedTo");
+    store().attachNote(free, { kind: "node", id: b });
+    expect(store().doc.notes[free]?.attachedTo).toEqual({ kind: "node", id: b });
+  });
+
+  it("anteckningar har ett eget lager och följer synligheten hos det de är knutna till", () => {
+    const l1 = firstLayer();
+    const l2 = store().addLayer();
+    const a = store().addNode(l1, { x: 0, y: 0 });
+    const b = store().addNode(l2, { x: 200, y: 0 });
+    const r = store().addRelationship(a, b);
+    const onA = store().addNote({ x: 0, y: 100 }, { attachedTo: { kind: "node", id: a } });
+    const onR = store().addNote({ x: 0, y: 200 }, { attachedTo: { kind: "relationship", id: r } });
+    const free = store().addNote({ x: 0, y: 300 });
+    const shown = () => visibleNotes(store().doc).map((n) => n.id);
+    expect(shown()).toEqual([onA, onR, free]);
+    // Anteckningar räknas inte till något vanligt lager och är aldrig låsta av ett lager.
+    expect(countElementsInLayer(store().doc, l1)).toBe(1);
+    store().setLayerLocked(l1, true);
+    expect(isElementLocked(store().doc, { kind: "note", id: onA })).toBe(false);
+    store().setLayerLocked(l1, false);
+    // Döljs nodens lager döljs anteckningen på noden och på relationen, men inte den fria.
+    store().setLayerVisible(l1, false);
+    expect(shown()).toEqual([free]);
+    store().setLayerVisible(l1, true);
+    // Lagret Notes döljer alla.
+    store().setNotesVisible(false);
+    expect(shown()).toEqual([]);
+    expect(isElementVisible(store().doc, { kind: "note", id: free })).toBe(false);
+    store().setNotesVisible(true);
+    // Tas noden bort blir dess anteckningar fria men ligger kvar (relationen försvinner med noden).
+    store().deleteElements([{ kind: "node", id: a }]);
+    expect(store().doc.notes[onA]).toBeDefined();
+    expect(store().doc.notes[onA]).not.toHaveProperty("attachedTo");
+    expect(store().doc.notes[onR]).not.toHaveProperty("attachedTo");
+    // Ett borttaget lager tar inte med sig några anteckningar.
+    store().removeLayer(l2);
+    expect(Object.keys(store().doc.notes)).toHaveLength(3);
+  });
+
+  it("kopierad anteckning följer med kopian av det den är knuten till", () => {
+    const l = firstLayer();
+    const a = store().addNode(l, { x: 0, y: 0 });
+    const note = store().addNote({ x: 50, y: 50 }, { attachedTo: { kind: "node", id: a } });
+    const both = store().pasteElements(
+      store().copyElements([
+        { kind: "node", id: a },
+        { kind: "note", id: note },
+      ]),
+      l,
+    );
+    const newNode = both.find((ref) => ref.kind === "node")?.id;
+    const newNote = both.find((ref) => ref.kind === "note")?.id ?? "";
+    expect(store().doc.notes[newNote]?.attachedTo).toEqual({ kind: "node", id: newNode });
+    // Kopieras bara anteckningen sitter kopian kvar på samma nod.
+    const alone = store().pasteElements(store().copyElements([{ kind: "note", id: note }]), l);
+    expect(store().doc.notes[alone[0]?.id ?? ""]?.attachedTo).toEqual({ kind: "node", id: a });
   });
 
   it("parallella relationer grupperas", () => {

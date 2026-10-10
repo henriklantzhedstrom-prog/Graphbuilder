@@ -64,7 +64,6 @@ function sampleDoc(): GraphDocument {
   };
   doc.notes.t1 = {
     id: "t1",
-    layerId: l1,
     position: { x: 0, y: 200 },
     size: { w: 100, h: 50 },
     text: "Hej",

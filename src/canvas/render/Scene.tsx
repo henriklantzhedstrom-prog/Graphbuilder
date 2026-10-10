@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { type BundleInfo, type RelationshipGeometry, relationshipGeometry } from "@/model/geometry";
 import { conflictingNodeIds } from "@/model/labels";
-import type { Box, ElementRef, GraphDocument, Id, Point, Relationship } from "@/model/types";
+import type { Box, ElementRef, GraphDocument, Id, Note, Point, Relationship } from "@/model/types";
 import {
   imageBox,
   nodeOuterRadius,
@@ -11,6 +11,7 @@ import {
   renderGroups,
   resolvedNodeStyle,
   resolvedRelationshipStyle,
+  visibleNotes,
   visibleRelationships,
 } from "@/store/selectors";
 import { ImageView } from "./ImageView";
@@ -84,6 +85,25 @@ export function computeRelationshipGeometry(
   );
 }
 
+/** Färgen på den streckade linjen mellan en anteckning och det den är knuten till. */
+const NOTE_LINK_COLOR = "#8e8e93";
+
+/** Punkten en anteckning är knuten till, med hänsyn till noder som just nu dras. */
+function noteAnchorWithOverrides(
+  doc: GraphDocument,
+  note: Note,
+  overrides?: SceneOverrides,
+): Point | null {
+  const anchor = note.attachedTo;
+  if (!anchor) return null;
+  if (anchor.kind === "node") return nodePositionWithOverrides(doc, anchor.id, overrides);
+  const rel = doc.relationships[anchor.id];
+  const from = rel ? nodePositionWithOverrides(doc, rel.fromId, overrides) : null;
+  const to = rel ? nodePositionWithOverrides(doc, rel.toId, overrides) : null;
+  if (!from || !to) return null;
+  return { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2 };
+}
+
 /** Ritas bara om när något av det som visas ändras, inte när vyn flyttas eller zoomas. */
 export const Scene = memo(function Scene({
   doc,
@@ -106,9 +126,17 @@ export const Scene = memo(function Scene({
   const relationships = visibleRelationships(doc, layerFilter);
   const isEditing = (ref: ElementRef) =>
     editing !== null && editing !== undefined && refKey(editing) === refKey(ref);
+  // Anteckningar ligger överst, i det fasta lagret "Notes". En knuten anteckning får en tunn
+  // streckad linje till det den hör till, så att kopplingen syns.
+  const notes = visibleNotes(doc).map((note) => {
+    const base = overrides?.boxes?.get(`note:${note.id}`) ?? noteBox(note);
+    const pos = overrides?.positions?.get(`note:${note.id}`);
+    const box = pos ? { ...base, x: pos.x, y: pos.y } : base;
+    return { note, box, anchor: noteAnchorWithOverrides(doc, note, overrides) };
+  });
 
-  // Ritordning: bilder underst, sedan alla relationer, sedan alla noder, sedan anteckningar.
-  // Lagerordningen gäller för bilder, noder och anteckningar; relationer ligger alltid bakom noderna.
+  // Ritordning: bilder underst, sedan anteckningarnas länkar och alla relationer, sedan alla
+  // noder och överst anteckningarna. Lagerordningen gäller för bilder och noder.
   return (
     <>
       {groups.map(({ layer, images }) => (
@@ -136,6 +164,31 @@ export const Scene = memo(function Scene({
           })}
         </g>
       ))}
+      <g data-kind="note-links" style={{ pointerEvents: "none" }}>
+        {notes.map(({ note, box, anchor }) => {
+          if (!anchor) return null;
+          // Linjen går från det anteckningen är knuten till fram till anteckningens närmaste kant.
+          const end = {
+            x: Math.min(box.x + box.w, Math.max(box.x, anchor.x)),
+            y: Math.min(box.y + box.h, Math.max(box.y, anchor.y)),
+          };
+          if (end.x === anchor.x && end.y === anchor.y) return null;
+          return (
+            <line
+              key={note.id}
+              data-part="note-link"
+              x1={anchor.x}
+              y1={anchor.y}
+              x2={end.x}
+              y2={end.y}
+              stroke={NOTE_LINK_COLOR}
+              strokeWidth={1.5}
+              strokeDasharray="5 4"
+              strokeLinecap="round"
+            />
+          );
+        })}
+      </g>
       <g data-kind="relationships">
         {relationships.map((rel) => {
           const geometry = computeRelationshipGeometry(doc, rel, bundles, overrides);
@@ -175,34 +228,29 @@ export const Scene = memo(function Scene({
           ))}
         </g>
       ))}
-      {groups.map(({ layer, notes }) => (
-        <g key={`notes:${layer.id}`} data-layer={layer.id} data-kind="notes">
-          {notes.map((note) => {
-            const box = overrides?.boxes?.get(`note:${note.id}`) ?? noteBox(note);
-            const pos = overrides?.positions?.get(`note:${note.id}`);
-            const effective = pos ? { ...box, x: pos.x, y: pos.y } : box;
-            const key = `note:${note.id}`;
-            return (
-              <g key={note.id}>
-                <NoteView
-                  note={note}
-                  box={effective}
-                  interactive={interactive}
-                  hideText={isEditing({ kind: "note", id: note.id })}
+      <g data-kind="notes">
+        {notes.map(({ note, box }) => {
+          const key = `note:${note.id}`;
+          return (
+            <g key={note.id}>
+              <NoteView
+                note={note}
+                box={box}
+                interactive={interactive}
+                hideText={isEditing({ kind: "note", id: note.id })}
+              />
+              {isSelected(key) && (
+                <SelectionBox
+                  box={box}
+                  refKey={key}
+                  zoom={zoom}
+                  resizable={canResize?.({ kind: "note", id: note.id }) ?? true}
                 />
-                {isSelected(key) && (
-                  <SelectionBox
-                    box={effective}
-                    refKey={key}
-                    zoom={zoom}
-                    resizable={canResize?.({ kind: "note", id: note.id }) ?? true}
-                  />
-                )}
-              </g>
-            );
-          })}
-        </g>
-      ))}
+              )}
+            </g>
+          );
+        })}
+      </g>
     </>
   );
 });

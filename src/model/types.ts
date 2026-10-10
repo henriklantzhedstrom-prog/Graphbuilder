@@ -92,9 +92,21 @@ export interface Relationship {
 
 export type NoteAlign = "left" | "center";
 
+/** Det en anteckning kan vara knuten till. */
+export interface NoteAnchor {
+  kind: "node" | "relationship";
+  id: Id;
+}
+
+/**
+ * Anteckningar ligger inte i de vanliga lagren utan i det fasta lagret "Notes"
+ * (`GraphDocument.notesVisible`). En anteckning kan vara knuten till en nod eller relation
+ * (`attachedTo`): då följer den med när noden eller relationens noder flyttas, och syns bara
+ * när det den är knuten till syns.
+ */
 export interface Note {
   id: Id;
-  layerId: Id;
+  attachedTo?: NoteAnchor;
   position: Point;
   size: Size;
   text: string;
@@ -123,7 +135,7 @@ export interface Asset {
   height: number;
 }
 
-export const DOCUMENT_VERSION = 5;
+export const DOCUMENT_VERSION = 6;
 
 export interface GraphDocument {
   version: typeof DOCUMENT_VERSION;
@@ -138,6 +150,8 @@ export interface GraphDocument {
    * relationer. Raderna syns ändå bara för element som själva syns.
    */
   propertiesVisible: boolean;
+  /** Det fasta lagret "Notes": visar eller döljer alla anteckningar. */
+  notesVisible: boolean;
   nodes: Record<Id, GraphNode>;
   relationships: Record<Id, Relationship>;
   notes: Record<Id, Note>;

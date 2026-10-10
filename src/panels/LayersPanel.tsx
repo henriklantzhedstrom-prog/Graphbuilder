@@ -9,6 +9,7 @@ import {
   IconGrip,
   IconList,
   IconLock,
+  IconNote,
   IconPlus,
   IconSelectAll,
   IconTrash,
@@ -74,6 +75,7 @@ export function LayersPanel() {
       </div>
       <ul className="flex flex-col gap-1 px-2 pb-2">
         <PropertiesRow />
+        <NotesRow />
         {layersTopFirst.map((layer, visualIndex) => (
           <LayerRow
             key={layer.id}
@@ -282,6 +284,49 @@ function LayerRow({
           </IconButton>
         </div>
       )}
+    </li>
+  );
+}
+
+/**
+ * Det fasta lagret "Notes": alla anteckningar ligger här och kan visas eller döljas på en gång.
+ */
+function NotesRow() {
+  const visible = useDocumentStore((s) => s.doc.notesVisible);
+  const count = useDocumentStore((s) => Object.keys(s.doc.notes).length);
+  const setNotesVisible = useDocumentStore((s) => s.setNotesVisible);
+  return (
+    <li
+      data-testid="notes-layer"
+      title={t.layers.notesHint}
+      className="flex items-center gap-0.5 rounded-[10px] py-1 pr-3 pl-1 hover:bg-surface-2"
+    >
+      <span className="text-text-muted/60">
+        <IconNote size={16} />
+      </span>
+      <IconButton
+        label={visible ? t.layers.notesHide : t.layers.notesShow}
+        data-testid="notes-visibility"
+        onClick={() => setNotesVisible(!visible)}
+        className={cx("hover:bg-text/5", !visible && "text-text-muted/50")}
+      >
+        {visible ? <IconEye size={18} /> : <IconEyeOff size={18} />}
+      </IconButton>
+      <span aria-hidden className="h-9 w-9 shrink-0" />
+      <span
+        className={cx(
+          "ml-1 flex h-9 min-w-0 flex-1 items-center truncate text-[1em]",
+          !visible && "text-text-muted/70",
+        )}
+      >
+        {t.layers.notesName}
+      </span>
+      <span
+        className="ml-2 min-w-6 rounded-full bg-surface-3 px-2 py-0.5 text-center text-[0.76em] text-text-muted tabular-nums"
+        title={t.layers.noteCount(count)}
+      >
+        {count}
+      </span>
     </li>
   );
 }

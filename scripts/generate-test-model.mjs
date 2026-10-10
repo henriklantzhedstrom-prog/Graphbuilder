@@ -236,13 +236,14 @@ for (const [a, b] of pairs.values()) {
 }
 
 const doc = {
-  version: 5,
+  version: 6,
   id: "d_testmodel200",
   name: "Test model – 200 nodes",
   createdAt: now,
   updatedAt: now,
   layers,
   propertiesVisible: true,
+  notesVisible: true,
   nodes,
   relationships,
   notes: {},
