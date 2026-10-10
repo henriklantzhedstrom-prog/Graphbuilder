@@ -50,4 +50,30 @@ test.describe("anteckningar", () => {
     await page.getByRole("button", { name: "Center" }).click();
     await expect(page.locator("[data-ref^='note:'] text[text-anchor='middle']")).toHaveCount(1);
   });
+
+  test("textstorlek, bredd och höjd ställs in med skjutreglage", async ({ page }) => {
+    await freshApp(page);
+    await page.getByRole("button", { name: "Note" }).click();
+    await page.getByTestId("canvas").click({ position: { x: 200, y: 200 } });
+    await page.getByTestId("inline-editor").fill("Anteckning");
+    await page.getByTestId("canvas").click({ position: { x: 700, y: 600 } });
+    const rect = page.locator("[data-ref^='note:'] > rect").first();
+    await rect.click();
+    for (const [label, min, max] of [
+      ["Text size", "6", "80"],
+      ["Width", "20", "2000"],
+      ["Height", "20", "2000"],
+    ]) {
+      const slider = page.getByLabel(label ?? "", { exact: true });
+      await expect(slider).toHaveAttribute("type", "range");
+      await expect(slider).toHaveAttribute("min", min ?? "");
+      await expect(slider).toHaveAttribute("max", max ?? "");
+    }
+    await page.getByLabel("Width").fill("320");
+    await page.getByLabel("Height").fill("90");
+    await expect(rect).toHaveAttribute("width", "320");
+    await expect(rect).toHaveAttribute("height", "90");
+    await page.getByLabel("Text size").fill("24");
+    await expect(page.locator("[data-ref^='note:'] text")).toHaveAttribute("font-size", "24");
+  });
 });

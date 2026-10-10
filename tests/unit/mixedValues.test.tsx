@@ -1,6 +1,6 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { CheckboxField, SliderField } from "@/components/ui";
+import { CheckboxField, formatPercent, SliderField } from "@/components/ui";
 import { PropertiesEditor } from "@/panels/inspector/PropertiesEditor";
 
 afterEach(cleanup);
@@ -19,10 +19,16 @@ describe("blandade värden", () => {
 
   it("skjutreglage visar (mixed) i stället för ett tal", () => {
     const { container } = render(
-      <SliderField label="Opacity" value={1} mixed onChange={() => {}} />,
+      <SliderField label="Opacity" value={1} mixed format={formatPercent} onChange={() => {}} />,
     );
     expect(container.textContent).toContain("(mixed)");
     expect(container.textContent).not.toContain("100 %");
+    cleanup();
+    // Ett reglage med talfält visar ett tomt fält med streck, inte ett av värdena.
+    render(<SliderField label="Radius" value={50} mixed min={10} max={250} onChange={() => {}} />);
+    const field = screen.getByLabelText("Type a number") as HTMLInputElement;
+    expect(field.value).toBe("");
+    expect(field.placeholder).toBe("–");
   });
 
   it("rubrikrutan visar mellanläge när bara några av noderna har egenskapen som rubrik", () => {

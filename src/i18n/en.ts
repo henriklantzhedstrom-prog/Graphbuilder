@@ -263,6 +263,7 @@ export const en = {
     ok: "OK",
     cancel: "Cancel",
     close: "Close",
+    typeNumber: "Type a number",
     confirm: "Confirm",
     yes: "Yes",
     no: "No",

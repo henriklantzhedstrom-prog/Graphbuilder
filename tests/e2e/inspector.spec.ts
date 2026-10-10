@@ -98,40 +98,106 @@ test.describe("egenskapspanel", () => {
     await expect(page.locator("[data-ref^='node:'] > circle[fill='#34c759']")).toHaveCount(2);
   });
 
-  test("sifferfält går att tömma och skriva om, och håller sig inom gränserna", async ({
-    page,
-  }) => {
+  test("alla tal i panelen är skjutreglage med fasta gränser", async ({ page }) => {
+    await freshApp(page);
+    await createNode(page, 250, 300, "A");
+    await createNode(page, 600, 300, "B");
+    await dragRelationship(page, { x: 250, y: 300 }, { x: 600, y: 300 }, "REL");
+    await page.keyboard.press("Escape");
+    const inspector = page.locator("aside");
+    // Varje reglage har ett fält bredvid sig där talet kan skrivas in.
+    const sliders = await inspector.locator("input[type='range']").count();
+    await expect(inspector.locator("input[type='number']")).toHaveCount(sliders);
+    const limits: [string, string, string][] = [
+      ["Border width", "0", "30"],
+      ["Radius", "10", "250"],
+      ["Caption size", "6", "100"],
+      ["Label border width", "0", "10"],
+      ["Label size", "6", "60"],
+      ["Line width", "0", "30"],
+      ["Arrow size", "0", "40"],
+      ["Type size", "6", "60"],
+    ];
+    for (const [label, min, max] of limits) {
+      const slider = page.getByLabel(label, { exact: true });
+      await expect(slider, label).toHaveAttribute("type", "range");
+      await expect(slider, label).toHaveAttribute("min", min);
+      await expect(slider, label).toHaveAttribute("max", max);
+    }
+    await expect(page.getByLabel("Property size", { exact: true })).toHaveCount(2);
+
+    // Reglagen går inte under sin gräns, så en modell kan aldrig få en storlek på noll.
+    const caption = captionText(page, "A");
+    const size = page.getByLabel("Caption size");
+    await size.focus();
+    await size.press("Home");
+    await expect(caption).toHaveAttribute("font-size", "6");
+    await size.press("ArrowLeft");
+    await expect(caption).toHaveAttribute("font-size", "6");
+    await size.press("ArrowRight");
+    await expect(caption).toHaveAttribute("font-size", "7");
+
+    // Halva steg visas med en decimal.
+    const labelBorder = page.getByLabel("Label border width");
+    await labelBorder.focus();
+    await labelBorder.press("ArrowRight");
+    await expect(
+      page.locator("[data-field='Label border width'] input[type='number']"),
+    ).toHaveValue("4.5");
+
+    // Linjebredden ändrar relationen direkt, och modellen går att öppna igen.
+    await page.getByLabel("Line width").fill("12");
+    await expect(page.locator("[data-ref^='relationship:'] path[stroke-width='12']")).toHaveCount(
+      1,
+    );
+    await page.waitForTimeout(900);
+    await page.reload();
+    await expect(captionText(page, "A")).toHaveAttribute("font-size", "7");
+  });
+
+  test("talet bredvid ett reglage går att skriva in, tömma och skriva om", async ({ page }) => {
     await freshApp(page);
     await createNode(page, 300, 300, "A");
     await page.keyboard.press("Escape");
-    const size = page.getByLabel("Caption size");
-    const caption = captionText(page, "A");
-    await expect(caption).toHaveAttribute("font-size", "20");
+    const circle = page.locator("[data-part='node-circle']");
+    const slider = page.getByLabel("Radius");
+    const field = page.locator("[data-field='Radius'] input[type='number']");
+    await expect(field).toHaveValue("50");
 
-    // Sudda siffra för siffra och skriv ett nytt värde.
-    await size.click();
-    await size.press("End");
-    await size.press("Backspace");
-    await size.press("Backspace");
-    await expect(size).toHaveValue("");
-    await expect(caption).toHaveAttribute("font-size", "20");
-    await size.pressSequentially("30");
-    await expect(caption).toHaveAttribute("font-size", "30");
+    // Töm fältet och skriv ett nytt tal: noden och reglaget följer med.
+    await field.selectText();
+    await field.press("Backspace");
+    await expect(field).toHaveValue("");
+    await expect(circle).toHaveAttribute("data-radius", "50");
+    await field.pressSequentially("80");
+    await expect(circle).toHaveAttribute("data-radius", "80");
+    await expect(slider).toHaveValue("80");
 
-    // Noll är för litet: texten ändras inte medan man skriver, och fältet rättas till minsta värdet.
-    await size.fill("0");
-    await expect(caption).toHaveAttribute("font-size", "30");
-    await size.press("Enter");
-    await expect(size).toHaveValue("6");
-    await expect(caption).toHaveAttribute("font-size", "6");
+    // För litet tal slår inte igenom medan man skriver, och rättas till minsta värdet med Enter.
+    await field.fill("3");
+    await expect(circle).toHaveAttribute("data-radius", "80");
+    await field.press("Enter");
+    await expect(field).toHaveValue("10");
+    await expect(circle).toHaveAttribute("data-radius", "10");
 
-    // Tomt fält som lämnas återgår till det gällande värdet, och modellen går att öppna igen.
-    await size.fill("");
-    await size.press("Tab");
-    await expect(size).toHaveValue("6");
+    // För stort tal rättas till största värdet när fältet lämnas.
+    await field.fill("900");
+    await field.press("Tab");
+    await expect(field).toHaveValue("250");
+    await expect(circle).toHaveAttribute("data-radius", "250");
+
+    // Tomt fält som lämnas återgår till det gällande värdet.
+    await field.fill("");
+    await field.press("Tab");
+    await expect(field).toHaveValue("250");
+
+    // Dras reglaget följer talet i fältet med, och modellen går att öppna igen.
+    await slider.focus();
+    await slider.press("ArrowLeft");
+    await expect(field).toHaveValue("249");
     await page.waitForTimeout(900);
     await page.reload();
-    await expect(captionText(page, "A")).toHaveAttribute("font-size", "6");
+    await expect(page.locator("[data-part='node-circle']")).toHaveAttribute("data-radius", "249");
   });
 
   test("nodens storlek ställs in med ett skjutreglage mellan 10 och 250", async ({ page }) => {
@@ -150,7 +216,7 @@ test.describe("egenskapspanel", () => {
     await expect(circle).toHaveAttribute("data-radius", "51");
     await radius.press("End");
     await expect(circle).toHaveAttribute("data-radius", "250");
-    await expect(page.getByTestId("inspector")).toContainText("250");
+    await expect(page.locator("[data-field='Radius'] input[type='number']")).toHaveValue("250");
     await radius.press("Home");
     await expect(circle).toHaveAttribute("data-radius", "10");
 

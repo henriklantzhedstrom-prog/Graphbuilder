@@ -1,9 +1,9 @@
-import { ColorField, Field, NumberField, Section, Segmented, SegmentedItem } from "@/components/ui";
+import { ColorField, Field, Section, Segmented, SegmentedItem, SliderField } from "@/components/ui";
 import { t } from "@/i18n";
 import { NOTE_COLORS } from "@/model/defaults";
 import type { Note } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
-import { commonValue } from "./common";
+import { commonValue, MAX_ELEMENT_SIZE, MIN_ELEMENT_SIZE } from "./common";
 
 export function NoteSection({ notes }: { notes: Note[] }) {
   const updateNote = useDocumentStore((s) => s.updateNote);
@@ -13,6 +13,7 @@ export function NoteSection({ notes }: { notes: Note[] }) {
   const text = commonValue(notes.map((n) => n.text));
   const align = commonValue(notes.map((n) => n.align));
   const single = notes.length === 1 ? notes[0] : undefined;
+  const fontSize = commonValue(notes.map((n) => n.fontSize));
 
   return (
     <Section title={notes.length === 1 ? t.inspector.note : t.inspector.notes(notes.length)}>
@@ -39,12 +40,14 @@ export function NoteSection({ notes }: { notes: Note[] }) {
         value={commonValue(notes.map((n) => n.textColor))}
         onChange={(textColor) => setAll({ textColor })}
       />
-      <NumberField
+      <SliderField
         label={t.inspector.fontSize}
-        value={commonValue(notes.map((n) => n.fontSize))}
+        value={fontSize ?? 6}
+        mixed={fontSize === null}
         min={6}
         max={80}
-        onChange={(fontSize) => setAll({ fontSize })}
+        step={1}
+        onChange={(value) => setAll({ fontSize: value })}
       />
       <Field label={t.inspector.align} inline>
         {() => (
@@ -68,16 +71,20 @@ export function NoteSection({ notes }: { notes: Note[] }) {
       </Field>
       {single && (
         <>
-          <NumberField
+          <SliderField
             label={t.inspector.width}
             value={single.size.w}
-            min={20}
+            min={MIN_ELEMENT_SIZE}
+            max={MAX_ELEMENT_SIZE}
+            step={1}
             onChange={(w) => updateNote(single.id, { size: { ...single.size, w } })}
           />
-          <NumberField
+          <SliderField
             label={t.inspector.height}
             value={single.size.h}
-            min={20}
+            min={MIN_ELEMENT_SIZE}
+            max={MAX_ELEMENT_SIZE}
+            step={1}
             onChange={(h) => updateNote(single.id, { size: { ...single.size, h } })}
           />
         </>

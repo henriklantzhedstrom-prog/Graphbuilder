@@ -9,7 +9,6 @@ import {
 } from "react";
 import { t } from "@/i18n";
 import { beginHistoryGroup, endHistoryGroup } from "@/store/documentStore";
-import { IconChevronDown, IconChevronUp } from "./icons";
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(" ");
 
@@ -152,92 +151,11 @@ export function Field({
 /** Bredd på kontrollen till höger i en rad, så att alla fält hamnar i samma kolumn. */
 const CONTROL_WIDTH = "w-[7.25rem]";
 
-export function NumberField({
-  label,
-  value,
-  onChange,
-  min,
-  max,
-  step = 1,
-  placeholder,
-}: {
-  label: string;
-  value: number | null;
-  onChange: (v: number) => void;
-  min?: number;
-  max?: number;
-  step?: number;
-  placeholder?: string;
-}) {
-  // Fältet har en egen text medan man skriver, så att det går att tömma och skriva om. Ett värde
-  // slår igenom direkt när det ligger inom gränserna; annars rättas det när man lämnar fältet.
-  const [draft, setDraft] = useState<string | null>(null);
-  const clamp = (v: number) => Math.min(max ?? Infinity, Math.max(min ?? -Infinity, v));
-  const nudge = (direction: 1 | -1) => {
-    setDraft(null);
-    onChange(Math.round(clamp((value ?? min ?? 0) + direction * step) * 1000) / 1000);
-  };
-  return (
-    <Field label={label} inline>
-      {(id) => (
-        <span
-          className={cx(
-            "gb-control group flex h-9 shrink-0 items-center rounded-lg",
-            CONTROL_WIDTH,
-          )}
-        >
-          <input
-            id={id}
-            type="number"
-            className="gb-number h-full w-full min-w-0 rounded-lg bg-transparent pr-1 pl-2.5 text-[1em] tabular-nums outline-none"
-            value={draft ?? value ?? ""}
-            placeholder={placeholder}
-            min={min}
-            max={max}
-            step={step}
-            onChange={(e) => {
-              setDraft(e.target.value);
-              const v = Number(e.target.value);
-              if (e.target.value !== "" && Number.isFinite(v) && v === clamp(v)) onChange(v);
-            }}
-            onBlur={() => {
-              const v = Number(draft);
-              if (draft !== null && draft !== "" && Number.isFinite(v) && v !== clamp(v)) {
-                onChange(clamp(v));
-              }
-              setDraft(null);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-            }}
-          />
-          <span className="flex h-full flex-col border-border border-l opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
-            <StepButton direction={1} onClick={() => nudge(1)} />
-            <StepButton direction={-1} onClick={() => nudge(-1)} />
-          </span>
-        </span>
-      )}
-    </Field>
-  );
-}
+/** Tal i fältet bredvid ett skjutreglage: heltal utan decimaler, annars en decimal. */
+export const formatNumber = (v: number): string => String(Math.round(v * 10) / 10);
 
-/** Stegknapp i ett sifferfält. Piltangenterna gör samma sak, därför utanför tabbordningen. */
-function StepButton({ direction, onClick }: { direction: 1 | -1; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      tabIndex={-1}
-      aria-hidden
-      onClick={onClick}
-      className={cx(
-        "flex w-6 flex-1 items-center justify-center text-text-muted hover:bg-surface-2 hover:text-text",
-        direction === 1 ? "rounded-tr-[7px]" : "rounded-br-[7px]",
-      )}
-    >
-      {direction === 1 ? <IconChevronUp size={12} /> : <IconChevronDown size={12} />}
-    </button>
-  );
-}
+/** Andel (0–1) som procent, för t.ex. genomskinlighet. */
+export const formatPercent = (v: number): string => `${Math.round(v * 100)} %`;
 
 export function ColorField({
   label,
@@ -311,6 +229,10 @@ export function ColorField({
   );
 }
 
+/**
+ * Skjutreglage med ett litet fält bredvid där samma tal kan skrivas in exakt. Med `format`
+ * (t.ex. procent) visas värdet bara som text.
+ */
 export function SliderField({
   label,
   value,
@@ -318,7 +240,7 @@ export function SliderField({
   min = 0,
   max = 1,
   step = 0.01,
-  format = (v: number) => `${Math.round(v * 100)} %`,
+  format,
   mixed = false,
 }: {
   label: string;
@@ -327,20 +249,55 @@ export function SliderField({
   min?: number;
   max?: number;
   step?: number;
+  /** Egen visning av värdet (t.ex. procent). Då går talet inte att skriva in. */
   format?: (v: number) => string;
   /** De markerade elementen har olika värden: visa det i stället för ett tal. */
   mixed?: boolean;
 }) {
   const id = useId();
+  const labelId = useId();
+  // Fältet har en egen text medan man skriver, så att det går att tömma och skriva om. Ett tal
+  // slår igenom direkt när det ligger inom gränserna; annars rättas det när fältet lämnas.
+  const [draft, setDraft] = useState<string | null>(null);
+  const clamp = (v: number) => Math.min(max, Math.max(min, v));
+  const commitDraft = () => {
+    const v = Number(draft);
+    if (draft !== null && draft !== "" && Number.isFinite(v) && v !== clamp(v)) onChange(clamp(v));
+    setDraft(null);
+  };
   return (
-    <div className="flex flex-col gap-0.5">
-      <div className="flex min-h-7 items-center justify-between gap-3">
-        <label htmlFor={id} className="text-[0.88em] text-text-muted">
+    <div className="flex flex-col gap-0.5" data-field={label}>
+      <div className="flex min-h-8 items-center justify-between gap-3">
+        <label id={labelId} htmlFor={id} className="text-[0.88em] text-text-muted">
           {label}
         </label>
-        <output htmlFor={id} className="text-[0.88em] text-text tabular-nums">
-          {mixed ? t.inspector.mixed : format(value)}
-        </output>
+        {format ? (
+          <output htmlFor={id} className="text-[0.88em] text-text tabular-nums">
+            {mixed ? t.inspector.mixed : format(value)}
+          </output>
+        ) : (
+          <input
+            type="number"
+            aria-label={t.common.typeNumber}
+            aria-describedby={labelId}
+            title={t.common.typeNumber}
+            className="gb-control gb-number h-8 w-[4.5rem] shrink-0 rounded-lg px-2 text-right text-[0.94em] tabular-nums"
+            value={draft ?? (mixed ? "" : formatNumber(value))}
+            placeholder={mixed ? "–" : undefined}
+            min={min}
+            max={max}
+            step={step}
+            onChange={(e) => {
+              setDraft(e.target.value);
+              const v = Number(e.target.value);
+              if (e.target.value !== "" && Number.isFinite(v) && v === clamp(v)) onChange(v);
+            }}
+            onBlur={commitDraft}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+            }}
+          />
+        )}
       </div>
       <input
         id={id}
@@ -349,7 +306,10 @@ export function SliderField({
         max={max}
         step={step}
         value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
+        onChange={(e) => {
+          setDraft(null);
+          onChange(Number(e.target.value));
+        }}
         // En hel dragning (eller en nedhållen piltangent) blir ett enda steg att ångra.
         onPointerDown={beginHistoryGroup}
         onPointerUp={endHistoryGroup}

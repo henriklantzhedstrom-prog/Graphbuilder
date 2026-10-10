@@ -11,6 +11,10 @@ export function captionColorFor(fill: string, captionColor: string): string | nu
   return readable === current ? null : readable;
 }
 
+/** Gränser för bredd och höjd på anteckningar och bilder i panelens reglage. */
+export const MIN_ELEMENT_SIZE = 20;
+export const MAX_ELEMENT_SIZE = 2000;
+
 /** Gemensamt värde om alla är lika, annars null ("olika"). */
 export function commonValue<T>(values: T[]): T | null {
   const first = values[0];
@@ -20,9 +24,8 @@ export function commonValue<T>(values: T[]): T | null {
 
 export interface StyleFieldSpec<K extends string> {
   key: K;
+  /** Tal ställs alltid in med skjutreglage mellan `min` och `max`. */
   type: "color" | "number" | "boolean";
-  /** Talet ställs in med ett skjutreglage i stället för ett sifferfält. */
-  slider?: boolean;
   min?: number;
   max?: number;
   step?: number;
@@ -47,7 +50,7 @@ export const NODE_STYLE_FIELDS: StyleFieldSpec<
   { key: "fill", type: "color" },
   { key: "stroke", type: "color" },
   { key: "strokeWidth", type: "number", min: 0, max: 30 },
-  { key: "radius", type: "number", min: 10, max: 250, slider: true },
+  { key: "radius", type: "number", min: 10, max: 250 },
   { key: "captionColor", type: "color" },
   { key: "captionFontSize", type: "number", min: 6, max: 100 },
   { key: "labelColor", type: "color" },

@@ -121,7 +121,7 @@ body,
   outline: none;
 }
 
-/* Sifferfält: webbläsarens egna pilar göms, egna stegknappar visas i stället. */
+/* Talfältet bredvid ett skjutreglage: webbläsarens egna pilar göms, reglaget gör det jobbet. */
 .gb-number::-webkit-outer-spin-button,
 .gb-number::-webkit-inner-spin-button {
   appearance: none;

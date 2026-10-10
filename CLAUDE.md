@@ -97,35 +97,14 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   dem alla. Dolda element som följde standarden får det gamla värdet som egen stil och ser därför
   likadana ut när de visas igen (`applyToVisible` i `documentStore.ts`). Med markering ändras bara
   de markerade (`setNodeStyle`/`setRelationshipStyle`).
-- **Nodens storlek ställs in med skjutreglage** (10–250, `slider: true` i `NODE_STYLE_FIELDS`),
-  inte med sifferfält. Värden som dras (skjutreglage, färgväljare) ska alltid ligga i en
-  ångra-grupp (`beginHistoryGroup`/`endHistoryGroup` i `documentStore.ts`), så att en hel dragning
-  blir ett enda steg att ångra.
-- **Sifferfält** (`NumberField`) har egen text medan man skriver: värden utanför `min`/`max`
-  slår inte igenom förrän fältet lämnas, och rättas då till närmaste gräns. Skicka alltid med
-  `min` för storlekar – schemat kräver positiva värden, och en modell med radie eller textstorlek
-  0 går inte att öppna igen. `toHex` klarar alla CSS-färger (namn, rgb(), korta hexkoder).
-- **Mått för export och "Fit to content"** räknas med `drawnBounds` (`src/canvas/render/bounds.ts`):
-  allt som faktiskt ritas, inklusive kant, labels, egenskapslistor och relationernas texter.
-  `contentBounds` i selectors räknar bara nodernas cirklar och ska inte användas för bilder.
-  Ändras var labels eller egenskaper ritas i `NodeView`/`RelationshipView` ska samma mått ändras
-  i `bounds.ts`.
-- **Rubriken ska alltid gå att läsa.** När fyllningen ändras i panelen byts rubrikfärgen till
-  svart eller vitt om kontrasten blir under 3 (`captionColorFor`, `src/model/color.ts`).
-- **Kortkommandon** skrivs med "Ctrl+" i `i18n` och visas via `shortcutLabel` (⌘ på Mac).
-- **Nodens kant växer utåt.** `radius` är den fyllda ytans radie; kanten ritas utanför den
-  (cirkelns linje har radien `radius + strokeWidth / 2`). Använd `nodeOuterRadius(style)`
-  (= `radius + strokeWidth`) för allt som ska ligga utanför noden: labels, egenskaper, ringar,
-  pilspetsar, markering och mått. Relationer börjar vid `radius`, under kanten.
-- **Labels** placeras av `labelLayout` (`src/canvas/render/labels.ts`), som både `NodeView` och
-  `bounds.ts` använder. Labelns inre yta är texten plus luft (`LABEL_PADDING_X` 12 px i sidled,
-  höjd 1,8 × textstorleken); kanten ritas UTANFÖR den ytan, så en tjockare kant växer utåt och
-  tar aldrig plats från texten. Standardkant 4 px.
-- **Egenskaper och labels i panelen sparas med Enter.** Nyckel + Enter skapar egenskapen och
-  flyttar markören till värdet; Enter i värdet går till nästa nyckel; "nyckel: värde" sparar båda.
-  Fälten sparar också när de lämnas, och ett klick på ritytan lämnar det aktiva fältet först
-  (`onPointerDown` i `Canvas.tsx`). Namn som redan finns eller bara är siffror stoppas med ett
-  meddelande (`propertyKeyProblem`).
+- **Alla tal i sidopanelen ställs in med skjutreglage** (`SliderField`): nodens storlek (10–250),
+  kant- och linjebredder, textstorlekar, pilstorlek samt bredd och höjd på anteckningar och bilder
+  (20–2000). Bredvid varje reglage finns ett litet fält där samma tal kan skrivas in exakt; det
+  rättas till närmaste gräns när det lämnas. Varje tal måste ha `min` och `max` –
+  schemat kräver positiva storlekar, och en modell med radie eller textstorlek 0 går inte att
+  öppna igen. Värden som dras (skjutreglage, färgväljare) ligger alltid i en ångra-grupp
+  (`beginHistoryGroup`/`endHistoryGroup` i `documentStore.ts`), så att en hel dragning blir ett
+  enda steg att ångra. `toHex` klarar alla CSS-färger (namn, rgb(), korta hexkoder).
 - Varje ny funktion levereras med enhetstest (`tests/unit`) och, när den har UI, e2e-test (`tests/e2e`).
 - Commit-meddelanden: en kort rad i imperativ på engelska (`Add layers panel`), sedan valfri brödtext.
 - Importera med alias `@/` för `src/`.
@@ -182,8 +161,8 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   `SidePanel.tsx`); komponenterna i `src/components/ui.tsx` och panelerna använder storlekar i `em`
   så att de följer den. Använd inte `text-xs`/`text-sm`/`text-base` där (roten är 14px).
 - **Utseende (menyer, paneler, dialogrutor).** Allt byggs av byggstenarna i `src/components/ui.tsx`:
-  `Button` (default/primary/ghost/danger), `IconButton`, `TextInput`, `Select`, `NumberField`
-  (egna stegknappar), `ColorField` (färgruta + färgkod, färgprickar på egen rad), `CheckboxField`
+  `Button` (default/primary/ghost/danger), `IconButton`, `TextInput`, `Select`, `SliderField` (alla tal),
+  `ColorField` (färgruta + färgkod, färgprickar på egen rad), `CheckboxField`
   (reglage i panelen, `variant="check"` i dialogrutor), `SliderField`, `Segmented`/`SegmentedItem`
   (flikar, format, justering) och `Section`. Använd aldrig webbläsarens egna `<select>`, kryssrutor
   eller färgväljare direkt. Färger, skuggor och mörkt läge är variabler i `src/index.css`

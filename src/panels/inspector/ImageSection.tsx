@@ -1,9 +1,9 @@
-import { Button, CheckboxField, NumberField, Section, SliderField } from "@/components/ui";
+import { Button, CheckboxField, formatPercent, Section, SliderField } from "@/components/ui";
 import { t } from "@/i18n";
 import type { BackgroundImage } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
 import { useUiStore } from "@/store/uiStore";
-import { commonValue } from "./common";
+import { commonValue, MAX_ELEMENT_SIZE, MIN_ELEMENT_SIZE } from "./common";
 
 export function ImageSection({ images }: { images: BackgroundImage[] }) {
   const doc = useDocumentStore((s) => s.doc);
@@ -24,6 +24,7 @@ export function ImageSection({ images }: { images: BackgroundImage[] }) {
         label={t.inspector.opacity}
         value={opacity ?? 1}
         mixed={opacity === null}
+        format={formatPercent}
         onChange={(value) => setAll({ opacity: value })}
       />
       <CheckboxField
@@ -37,16 +38,20 @@ export function ImageSection({ images }: { images: BackgroundImage[] }) {
       />
       {single && (
         <>
-          <NumberField
+          <SliderField
             label={t.inspector.width}
             value={Math.round(single.size.w)}
-            min={20}
+            min={MIN_ELEMENT_SIZE}
+            max={MAX_ELEMENT_SIZE}
+            step={1}
             onChange={(w) => updateImage(single.id, { size: { ...single.size, w } })}
           />
-          <NumberField
+          <SliderField
             label={t.inspector.height}
             value={Math.round(single.size.h)}
-            min={20}
+            min={MIN_ELEMENT_SIZE}
+            max={MAX_ELEMENT_SIZE}
+            step={1}
             onChange={(h) => updateImage(single.id, { size: { ...single.size, h } })}
           />
           {asset && (
