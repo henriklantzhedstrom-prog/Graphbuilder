@@ -2,72 +2,60 @@ import { expect, test } from "@playwright/test";
 import { createNode, dragRelationship, freshApp, SCREENSHOT_DIR } from "./helpers";
 
 test.describe("redigering direkt på ritytan", () => {
-  test("dubbelklick på en nod: skriv labels och egenskaper direkt där de ritas", async ({
+  test("dubbelklick på en nod: rubrik på plats, labels i en ruta ovanför och egenskaper under", async ({
     page,
   }) => {
     await freshApp(page);
     await createNode(page, 450, 320, "Alice");
-    await page.getByPlaceholder("New label").fill("Person");
-    await page.getByPlaceholder("New label").press("Enter");
-    await page.keyboard.press("Escape");
     const canvas = page.getByTestId("canvas");
     const editor = page.getByTestId("details-editor");
     await expect(editor).toHaveCount(0);
 
-    // Var labeln och egenskapsraden ritas, före redigering.
-    const drawnLabel = await canvas.locator("[data-part='label-box']").boundingBox();
-    const drawnRow = await canvas.locator("[data-part='property-text'] tspan").boundingBox();
-    if (!drawnLabel || !drawnRow) throw new Error("ritade delar saknas");
-
     await canvas.dblclick({ position: { x: 450, y: 320 } });
     await expect(page.getByTestId("inline-editor")).toBeFocused();
-    const label = editor.getByLabel("Label", { exact: true });
-    const row = editor.getByLabel("Property (key: value)");
-    await expect(label).toHaveValue("Person");
-    await expect(row).toHaveValue("name: Alice");
-    // Fälten ligger på samma plats och har samma storlek som det ritade.
-    const labelBox = await label.boundingBox();
-    const rowBox = await row.boundingBox();
-    if (!labelBox || !rowBox) throw new Error("fält saknas");
-    expect(Math.abs(labelBox.x - drawnLabel.x)).toBeLessThan(3);
-    expect(Math.abs(labelBox.y - drawnLabel.y)).toBeLessThan(3);
-    expect(Math.abs(labelBox.height - drawnLabel.height)).toBeLessThan(3);
-    expect(Math.abs(rowBox.x - drawnRow.x)).toBeLessThan(3);
-    expect(Math.abs(rowBox.y - drawnRow.y)).toBeLessThan(4);
-    // Det ritade ersätts av fälten medan man redigerar, så inget syns dubbelt.
-    await expect(canvas.locator("[data-part='label-box']")).toHaveCount(0);
+    const labels = editor.locator("[data-details='labels']");
+    const properties = editor.locator("[data-details='properties']");
+    await expect(labels).toBeVisible();
+    await expect(properties).toBeVisible();
+    // Rutorna ligger mitt över respektive mitt under noden, utan att täcka den.
+    const node = await page.locator("[data-part='node-circle']").boundingBox();
+    const labelsBox = await labels.boundingBox();
+    const propertiesBox = await properties.boundingBox();
+    if (!node || !labelsBox || !propertiesBox) throw new Error("rutor saknas");
+    expect(labelsBox.y + labelsBox.height).toBeLessThan(node.y);
+    expect(propertiesBox.y).toBeGreaterThan(node.y + node.height);
+    const center = node.x + node.width / 2;
+    expect(Math.abs(labelsBox.x + labelsBox.width / 2 - center)).toBeLessThan(2);
+    expect(Math.abs(propertiesBox.x + propertiesBox.width / 2 - center)).toBeLessThan(2);
+    // Den ritade egenskapslistan ersätts av rutan medan man redigerar.
     await expect(canvas.locator("[data-part='property-text']")).toHaveCount(0);
 
-    // Rubrik, Tab, och sedan allt med tangentbordet: Enter sparar och går till nästa fält.
+    // Skriv om rubriken, gå vidare med Tab och fyll i labels och egenskaper utan musen.
     await page.keyboard.type("Alice Andersson");
     await page.keyboard.press("Tab");
-    await expect(label).toBeFocused();
-    await page.keyboard.type("Human");
+    await expect(labels.getByPlaceholder("New label")).toBeFocused();
+    await page.keyboard.type("Person");
     await page.keyboard.press("Enter");
-    await expect(editor.getByLabel("Add label")).toBeFocused();
     await page.keyboard.type("Employee");
     await page.keyboard.press("Enter");
-    await page.keyboard.type("Manager");
+    await expect(labels).toContainText("Person");
+    await expect(labels).toContainText("Employee");
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/details-editor.png`, animations: "disabled" });
+
+    await properties.getByPlaceholder("Key").click();
+    await page.keyboard.type("age");
     await page.keyboard.press("Enter");
-    await expect(label).toHaveCount(3);
-    await page.keyboard.press("Tab");
-    await expect(row.first()).toBeFocused();
-    await page.keyboard.press("Enter");
-    await expect(editor.getByLabel("Add property")).toBeFocused();
-    await page.keyboard.type("age: 42");
+    await page.keyboard.type("42");
     await page.keyboard.press("Enter");
     await page.keyboard.type("city: Lund");
     await page.keyboard.press("Enter");
-    await expect(row).toHaveCount(3);
-    await page.screenshot({ path: `${SCREENSHOT_DIR}/details-editor.png`, animations: "disabled" });
 
     // Esc avslutar; allt är sparat och ritas som vanligt igen.
     await page.keyboard.press("Escape");
     await expect(editor).toHaveCount(0);
     await expect(canvas.locator("[data-part='label-box'] + text")).toHaveText([
-      "Human",
+      "Person",
       "Employee",
-      "Manager",
     ]);
     await expect(canvas.locator("[data-part='property-text'] tspan")).toHaveText([
       "name: Alice Andersson",
@@ -76,69 +64,56 @@ test.describe("redigering direkt på ritytan", () => {
     ]);
   });
 
-  test("ändra, ta bort och felmeddelanden; klick utanför sparar", async ({ page }) => {
+  test("dubbelklick på en label eller egenskap sätter markören där; klick utanför sparar", async ({
+    page,
+  }) => {
     await freshApp(page);
-    await createNode(page, 250, 320, "A");
+    await createNode(page, 450, 320, "A");
     await page.getByPlaceholder("New label").fill("Person");
     await page.getByPlaceholder("New label").press("Enter");
-    await createNode(page, 650, 320, "B");
+    await page.keyboard.press("Escape");
     const canvas = page.getByTestId("canvas");
     const editor = page.getByTestId("details-editor");
-    const rows = canvas.locator("[data-part='property-text']").last().locator("tspan");
 
-    // Dubbelklick på egenskaperna sätter markören i första raden, färdig att skriva över.
-    await canvas.locator("[data-part='property-background']").last().dblclick();
-    const row = editor.getByLabel("Property (key: value)");
-    await expect(row.first()).toBeFocused();
+    // På en label: markören hamnar i labelfältet, rubriken står kvar som text.
+    await canvas.locator("[data-part='label-box']").dblclick();
+    await expect(
+      editor.locator("[data-details='labels']").getByPlaceholder("New label"),
+    ).toBeFocused();
     await expect(page.getByTestId("inline-editor")).toHaveCount(0);
-    await page.keyboard.type("name: Bea");
-    await page.keyboard.press("Enter");
-    // Nyckel som redan finns, eller bara siffror, sparas inte och förklaras.
-    await page.keyboard.type("name: again");
-    await page.keyboard.press("Enter");
-    await expect(page.getByTestId("details-error")).toContainText("already a property");
-    await editor.getByLabel("Add property").fill("2024: x");
-    await editor.getByLabel("Add property").press("Enter");
-    await expect(page.getByTestId("details-error")).toContainText("only digits");
-    await editor.getByLabel("Add property").fill("role: Lead");
-    await editor.getByLabel("Add property").press("Enter");
-    await expect(page.getByTestId("details-error")).toHaveCount(0);
-    // Byt nyckel och värde på en befintlig rad; en tömd rad tas bort.
-    await row.nth(1).fill("title: Head of design");
-    await row.nth(1).press("Enter");
-    await editor.getByLabel("Add property").fill("temp: 1");
-    await editor.getByLabel("Add property").press("Enter");
-    await row.nth(2).fill("");
-    // Text som står kvar i ett fält sparas när man klickar på ritytan.
-    await editor.getByLabel("Add property").fill("team: Blue");
-    await canvas.click({ position: { x: 450, y: 560 } });
+    // Text som står kvar i fältet sparas när man klickar på ritytan.
+    await page.keyboard.type("Manager");
+    await canvas.click({ position: { x: 120, y: 520 } });
     await expect(editor).toHaveCount(0);
-    await expect(rows).toHaveText(["name: Bea", "title: Head of design", "team: Blue"]);
+    await expect(canvas.locator("[data-part='label-box']")).toHaveCount(2);
 
-    // Dubbelklick på en label sätter markören i den. Samma label som en annan nod stoppas.
-    await canvas.dblclick({ position: { x: 650, y: 320 } });
-    await editor.getByLabel("Add label").fill("Person");
-    await editor.getByLabel("Add label").press("Enter");
-    await expect(page.getByTestId("details-error")).toContainText("already has the labels");
-    await editor.getByLabel("Add label").fill("Company");
-    await editor.getByLabel("Add label").press("Enter");
-    await page.keyboard.press("Escape");
-    await canvas.locator("[data-part='label-box']").last().dblclick();
-    await expect(editor.getByLabel("Label", { exact: true })).toBeFocused();
-    await page.keyboard.type("Organisation");
-    await page.keyboard.press("Escape");
-    await expect(canvas.locator("[data-part='label-box'] + text")).toHaveText([
-      "Person",
-      "Organisation",
+    // På egenskaperna: markören hamnar i första värdet, färdigt att skriva över.
+    await canvas.locator("[data-part='property-background']").dblclick();
+    await expect(editor.locator("[data-property-value='name']")).toBeFocused();
+    await page.keyboard.type("Anna");
+    await page.keyboard.press("Enter");
+    await page.keyboard.type("role: Lead");
+    await canvas.click({ position: { x: 120, y: 520 } });
+    await expect(canvas.locator("[data-part='property-text'] tspan")).toHaveText([
+      "name: Anna",
+      "role: Lead",
     ]);
-    // En tömd label tas bort.
-    await canvas.locator("[data-part='label-box']").last().dblclick();
-    await editor.getByLabel("Label", { exact: true }).fill("");
-    await page.keyboard.press("Escape");
-    await expect(canvas.locator("[data-part='label-box']")).toHaveCount(1);
+
+    // Enter i rubriken är klart, precis som förut: allt stängs.
+    await canvas.dblclick({ position: { x: 450, y: 320 } });
+    await expect(editor).toBeVisible();
+    await page.getByTestId("inline-editor").fill("Bea");
+    await page.getByTestId("inline-editor").press("Enter");
+    await expect(editor).toHaveCount(0);
+    await expect(canvas.locator("text").filter({ hasText: /^Bea$/ })).toHaveCount(1);
+
+    // En ny nod från knappen öppnar bara rubriken, så att det går fort att lägga till flera.
+    await page.getByTestId("add-node").click();
+    await expect(page.getByTestId("inline-editor")).toBeVisible();
+    await expect(editor).toHaveCount(0);
   });
 
-  test("Enter i rubriken är klart; ny nod öppnar bara rubriken; relationer får egenskaper", async ({
+  test("dubbelklick på en relation: typen på plats och egenskaperna under den", async ({
     page,
   }) => {
     await freshApp(page);
@@ -149,50 +124,36 @@ test.describe("redigering direkt på ritytan", () => {
     const canvas = page.getByTestId("canvas");
     const editor = page.getByTestId("details-editor");
 
-    await canvas.dblclick({ position: { x: 250, y: 300 } });
-    await expect(editor).toBeVisible();
-    await page.getByTestId("inline-editor").fill("Anna");
-    await page.getByTestId("inline-editor").press("Enter");
-    await expect(editor).toHaveCount(0);
-    await expect(canvas.locator("text").filter({ hasText: /^Anna$/ })).toHaveCount(1);
-
-    // Relation: typen redigeras på plats och egenskaperna direkt under den.
     await canvas.dblclick({ position: { x: 450, y: 300 } });
     await expect(page.getByTestId("inline-editor")).toBeFocused();
     await expect(editor.locator("[data-details='labels']")).toHaveCount(0);
+    await expect(editor.locator("[data-details='properties']")).toBeVisible();
     await page.keyboard.press("Tab");
-    await expect(editor.getByLabel("Add property")).toBeFocused();
     await page.keyboard.type("since: 2019");
     await page.keyboard.press("Enter");
     await page.keyboard.press("Escape");
+    await expect(editor).toHaveCount(0);
     await expect(
       canvas.locator("[data-ref^='relationship:'] [data-part='property-text']"),
     ).toHaveText("since: 2019");
-
-    // En ny nod från knappen öppnar bara rubriken, så att det går fort att lägga till flera.
-    await page.getByTestId("add-node").click();
-    await expect(page.getByTestId("inline-editor")).toBeVisible();
-    await expect(editor).toHaveCount(0);
   });
 
-  test("fälten följer zoomen och stämmer med det ritade även inzoomat", async ({ page }) => {
+  test("lång egenskapslista rullar i rutan utan att ritytan zoomar", async ({ page }) => {
     await freshApp(page);
-    await createNode(page, 450, 320, "A");
-    await page.keyboard.press("Escape");
-    const canvas = page.getByTestId("canvas");
-    await page.mouse.move(450, 400);
-    await page.mouse.wheel(0, -100);
-    await page.mouse.wheel(0, -100);
-    await expect(canvas).toHaveCSS("transform", "none");
-    const drawn = await canvas.locator("[data-part='property-text'] tspan").boundingBox();
-    const node = await page.locator("[data-part='node-circle']").boundingBox();
-    if (!drawn || !node) throw new Error("ritat saknas");
-    await page.mouse.dblclick(node.x + node.width / 2, node.y + node.height / 2);
-    const row = page.getByTestId("details-editor").getByLabel("Property (key: value)");
-    const box = await row.boundingBox();
-    if (!box) throw new Error("fält saknas");
-    expect(Math.abs(box.x - drawn.x)).toBeLessThan(4);
-    expect(Math.abs(box.y - drawn.y)).toBeLessThan(5);
-    expect(Math.abs(box.height - drawn.height)).toBeLessThan(5);
+    await page.goto("/?open=test-model-200.json");
+    await expect(page.getByLabel("Model name")).toHaveValue("Test model – 200 nodes");
+    const level = page.getByTitle("Reset zoom");
+    await expect(page.getByTestId("canvas")).toHaveCSS("transform", "none");
+    const zoomBefore = await level.textContent();
+    await page.locator("[data-part='node-circle']").first().dblclick();
+    const properties = page.locator("[data-details='properties']");
+    await expect(properties).toBeVisible();
+    const box = await properties.boundingBox();
+    if (!box) throw new Error("ruta saknas");
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.wheel(0, 300);
+    await page.waitForTimeout(300);
+    await expect(level).toHaveText(zoomBefore ?? "");
+    expect(await properties.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
   });
 });

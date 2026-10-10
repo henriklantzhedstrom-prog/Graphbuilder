@@ -128,14 +128,12 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   meddelande (`propertyKeyProblem`).
 - **Redigering direkt på ritytan** (dubbelklick eller Enter på ett markerat element): `startEditing`
   i `actions.ts` öppnar rubriken på plats (`InlineEditor`, `uiStore.editing`) och, för noder och
-  relationer, `DetailsEditor` (`uiStore.details`). Där är varje label en skrivbar bricka och varje
-  egenskap en skrivbar rad "nyckel: värde", på samma plats och i samma utseende som de ritas
-  (HTML ovanpå ritytan, skalad med zoomen; det ritade döljs så länge via `detailsKey`). Sist
-  finns en tom bricka/rad för att lägga till; den ligger utanför flödet så att de befintliga
-  inte flyttar sig. Enter sparar och går till nästa fält, tom text tar bort, Esc eller klick på
+  relationer, `DetailsEditor` (`uiStore.details`): en vit ruta med labels ovanför noden och en med
+  egenskaper under den, med samma fält som sidopanelen (`LabelsEditor`, `PropertiesEditor`). Det
+  ritade döljs så länge (`detailsKey`). Enter i ett fält sparar och går vidare, Esc eller klick på
   ritytan avslutar, Enter i rubriken avslutar allt. Dubbelklick på en label eller på egenskaperna
-  sätter markören där. En ny nod från "Add node" öppnar bara rubriken. Bygg aldrig om detta som
-  rutor som upprepar sidopanelen – kunden vill skriva direkt i det ritade.
+  sätter markören där. En ny nod från "Add node" öppnar bara rubriken. Kunden har valt rutorna
+  framför en variant där man skrev direkt i de ritade brickorna och raderna – byt inte tillbaka.
 - Varje ny funktion levereras med enhetstest (`tests/unit`) och, när den har UI, e2e-test (`tests/e2e`).
 - Commit-meddelanden: en kort rad i imperativ på engelska (`Add layers panel`), sedan valfri brödtext.
 - Importera med alias `@/` för `src/`.

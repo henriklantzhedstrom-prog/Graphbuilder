@@ -35,10 +35,6 @@ export const en = {
     image: "Image…",
   },
   canvas: {
-    editLabel: "Label",
-    addLabel: "+ label",
-    editProperty: "Property (key: value)",
-    addProperty: "+ key: value",
     emptyHint: "Click “Add node” in the side panel to create a node",
     dropImageHint: "Drop the image to place it on the canvas",
     newNodeCaption: "",

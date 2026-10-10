@@ -7,7 +7,7 @@ import { useDocumentStore } from "@/store/documentStore";
 import { commonValue } from "./common";
 
 /** Varför ett egenskapsnamn inte går att använda, eller null om det går bra. */
-export function propertyKeyProblem(key: string): string | null {
+function propertyKeyProblem(key: string): string | null {
   if (!key) return t.inspector.propertyKeyEmpty;
   // Namn som bara är siffror sorteras alltid först av webbläsaren och hamnar på fel plats.
   if (/^\d+$/.test(key)) return t.inspector.propertyKeyNumeric;

@@ -178,6 +178,8 @@ export function Canvas() {
     const svg = containerRef.current;
     if (!svg) return;
     const onWheel = (e: WheelEvent) => {
+      // Rullning i redigeringsrutan (lång egenskapslista) ska rulla rutan, inte zooma.
+      if (e.target instanceof Element && e.target.closest("[data-details-editor]")) return;
       e.preventDefault();
       const rect = svg.getBoundingClientRect();
       // Mushjul kan rapportera rader eller sidor i stället för pixlar.
