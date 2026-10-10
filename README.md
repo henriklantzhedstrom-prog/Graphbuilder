@@ -28,7 +28,7 @@ updated automatically with every new version.
 - Export to JSON, Cypher (Neo4j `CREATE` statements), SVG and PNG, optionally visible layers only.
 - Light theme by default; a button in the top bar switches to dark mode.
 - Calm, tool-like interface: the tools (select, pan, note, image) float at the top of the canvas,
-  zoom controls at the bottom left, and a subtle dot grid follows panning and zoom (never exported).
+  zoom controls at the bottom left. The canvas background is plain, without a grid.
 
 ## Run locally
 

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { createNode, freshApp } from "./helpers";
+import { freshApp } from "./helpers";
 
 test.describe("utseende", () => {
   test("verktyg och zoom ligger som flytande listor ovanpå ritytan", async ({ page }) => {
@@ -22,24 +22,9 @@ test.describe("utseende", () => {
     );
   });
 
-  test("prickrutnätet följer när ytan flyttas och kommer inte med i exporten", async ({ page }) => {
+  test("ritytan har ingen prickad bakgrund", async ({ page }) => {
     await freshApp(page);
-    const pattern = page.locator("#gb-dot-grid");
-    await expect(pattern).toHaveCount(1);
-    const before = Number(await pattern.getAttribute("x"));
-    const box = await page.getByTestId("canvas").boundingBox();
-    if (!box) throw new Error("canvas saknas");
-    await page.mouse.move(box.x + 400, box.y + 400);
-    await page.mouse.down();
-    await page.mouse.move(box.x + 470, box.y + 430, { steps: 5 });
-    await page.mouse.up();
-    expect(Number(await pattern.getAttribute("x"))).toBeCloseTo(before + 70, 0);
-
-    await createNode(page, 300, 300, "Person");
-    await page.getByRole("button", { name: "Export…" }).last().click();
-    await page.getByRole("tab", { name: "SVG" }).click();
-    const preview = page.getByTestId("export-preview");
-    await expect(preview).toContainText("Person");
-    expect(await preview.innerHTML()).not.toContain("gb-dot-grid");
+    await expect(page.getByTestId("dot-grid")).toHaveCount(0);
+    await expect(page.locator("#gb-dot-grid")).toHaveCount(0);
   });
 });

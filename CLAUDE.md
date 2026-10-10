@@ -129,7 +129,7 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   text och exporten använder fortfarande `system-ui` (`CANVAS_FONT_FAMILY`). Verktygen och zoomen är
   flytande listor ovanpå ritytan (`src/canvas/CanvasToolbar.tsx`); övre listen har logga,
   modellnamn, File-menyn (ikoner + kortkommandon), ångra/gör om, tema, hjälp och Export.
-  Prickrutnätet (`DotGrid` i `Canvas.tsx`) ritas bara på ritytan, aldrig i exporten.
+  Ritytan har slät bakgrund: kunden vill inte ha prickar eller rutnät i bakgrunden.
 - **Färgval för noder och anteckningar** (`NODE_PALETTE`, `NOTE_COLORS` i `src/model/defaults.ts`)
   är klara grundfärger med stor inbördes skillnad. Kunden vill inte ha pastell eller dämpade toner.
 - **Tema:** appen startar alltid ljust, oberoende av datorns inställning. Mörkt läge slås på med
