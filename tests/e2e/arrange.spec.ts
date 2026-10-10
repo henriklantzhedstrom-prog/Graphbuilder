@@ -91,6 +91,24 @@ test.describe("automatisk placering", () => {
     await expect(page.getByTestId("canvas")).toHaveCSS("transform", "none");
     expect(await crossings(page)).toBe(0);
     await expect(page.locator("[data-part='node-circle']")).toHaveCount(4);
+    // Luftigt: mellan två noders kanter finns alltid minst ungefär två noders bredd, så att
+    // relationens text ryms med marginal.
+    const scale =
+      Number((await page.getByTitle("Reset zoom").textContent())?.replace(/\D/g, "")) / 100;
+    const circles = [];
+    for (const circle of await page.locator("[data-part='node-circle']").all()) {
+      const b = await circle.boundingBox();
+      if (b) circles.push({ x: b.x + b.width / 2, y: b.y + b.height / 2, r: b.width / 2 });
+    }
+    for (let i = 0; i < circles.length; i++) {
+      for (let j = i + 1; j < circles.length; j++) {
+        const a = circles[i];
+        const b = circles[j];
+        if (!a || !b) continue;
+        const between = Math.hypot(a.x - b.x, a.y - b.y) - a.r - b.r;
+        expect(between / scale).toBeGreaterThan(200);
+      }
+    }
     // Anteckningen sitter kvar på samma avstånd från sin nod (vyn kan ha zoomats: jämför riktning).
     const after = await offset();
     expect(Math.sign(after.x)).toBe(Math.sign(before.x));

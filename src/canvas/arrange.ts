@@ -3,10 +3,22 @@ import { arrange, countCrossings, type LayoutEdge, type LayoutNode } from "@/mod
 import { unionBoxes } from "@/model/geometry";
 import type { Box, GraphDocument, Id, Point, Size } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
-import { isSelectable, noteBox, visibleNotes, visibleRelationships } from "@/store/selectors";
+import {
+  isSelectable,
+  noteBox,
+  resolvedRelationshipStyle,
+  visibleNotes,
+  visibleRelationships,
+} from "@/store/selectors";
 import { useUiStore } from "@/store/uiStore";
 import { fitToContent } from "./actions";
 import { drawnNodeBoxes } from "./render/bounds";
+import { measureTextWidth, propertyLines } from "./render/text";
+
+/** Minsta luft mellan två noders ritade ytor efter en automatisk placering. */
+const MIN_GAP = 220;
+/** Luft på var sida om relationens text, mellan texten och noderna (rymmer också pilspetsen). */
+const LABEL_MARGIN = 70;
 
 /** Så länge glider noderna till sina nya platser. */
 const GLIDE_MS = 450;
@@ -62,11 +74,26 @@ export function planArrangement(doc: GraphDocument, selectedNodeIds: Id[]): Arra
       bottom: box.y + box.h - node.position.y,
     };
   });
-  const edges: LayoutEdge[] = visibleRelationships(doc)
-    .filter((r) => ids.has(r.fromId) && ids.has(r.toId))
-    .map((r) => ({ from: r.fromId, to: r.toId }));
+  const relationships = visibleRelationships(doc).filter(
+    (r) => ids.has(r.fromId) && ids.has(r.toId),
+  );
+  const edges: LayoutEdge[] = relationships.map((r) => ({ from: r.fromId, to: r.toId }));
   const current = new Map(chosen.map((node) => [node.id, node.position]));
-  const arranged = arrange(layoutNodes, edges, { current });
+
+  // Luften mellan noderna ska rymma relationens text med marginal på båda sidor, i vilken
+  // riktning relationen än går. Den längsta texten bland relationerna bestämmer.
+  let widestLabel = 0;
+  for (const rel of relationships) {
+    const style = resolvedRelationshipStyle(doc, rel);
+    const lines = doc.propertiesVisible ? propertyLines(rel.properties) : [];
+    widestLabel = Math.max(
+      widestLabel,
+      measureTextWidth(rel.type, style.typeFontSize),
+      ...lines.map((line) => measureTextWidth(line, style.propertyFontSize)),
+    );
+  }
+  const gap = Math.max(MIN_GAP, widestLabel + LABEL_MARGIN * 2);
+  const arranged = arrange(layoutNodes, edges, { current, gapX: gap, gapY: gap });
 
   // Lägg den nya bilden mitt där den gamla låg.
   const centerOf = (points: Iterable<Point>) => {

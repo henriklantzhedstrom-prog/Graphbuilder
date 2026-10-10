@@ -211,7 +211,9 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   bland annat från nuvarande lägen. `planArrangement`/`arrangeAutomatically` i
   `src/canvas/arrange.ts` väljer noder (de markerade om minst två, annars alla synliga olåsta),
   låter dem glida på plats (`uiStore.previewPositions`) och sparar allt som ett ångra-steg
-  (`applyPositions`). Bilden ändras aldrig om antalet korsningar inte minskar. I en stor graf
+  (`applyPositions`). Bilden ändras aldrig om antalet korsningar inte minskar. Luften mellan
+  noderna är minst 220 och alltid tillräcklig för den längsta relationstexten plus marginal
+  (`MIN_GAP`, `LABEL_MARGIN`) – kunden tyckte att den första versionen lade noderna för tätt. I en stor graf
   går det inte att få bort alla korsningar; målet är att minimera dem.
 - **Zoom glider alltid mjukt** (`src/canvas/viewportAnimation.ts`): hjul, knappar, tangenter och
   "Fit to content" sätter ett mål och vyn tonas dit (logaritmiskt, tidsbaserat, ankarpunkten ligger

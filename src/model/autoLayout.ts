@@ -512,8 +512,8 @@ export function arrange(
   const n = nodes.length;
   const result = new Map<string, Point>();
   if (n === 0) return result;
-  const gapX = options.gapX ?? 120;
-  const gapY = options.gapY ?? 90;
+  const gapX = options.gapX ?? 220;
+  const gapY = options.gapY ?? 220;
   const ids = new Map(nodes.map((node, i) => [node.id, i]));
   const pairs = uniquePairs(ids, edges);
   const problem: Problem = {
