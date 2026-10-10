@@ -8,6 +8,7 @@ import {
   useState,
 } from "react";
 import { t } from "@/i18n";
+import { beginHistoryGroup, endHistoryGroup } from "@/store/documentStore";
 import { IconChevronDown, IconChevronUp } from "./icons";
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(" ");
@@ -280,6 +281,10 @@ export function ColorField({
             className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
             value={hex}
             onChange={(e) => onChange(e.target.value)}
+            // Färgväljaren skickar ett värde för varje liten rörelse; tills den stängs (fältet
+            // lämnas) räknas allt som ett enda steg att ångra.
+            onClick={beginHistoryGroup}
+            onBlur={endHistoryGroup}
           />
         </span>
       </div>
@@ -326,26 +331,35 @@ export function SliderField({
   /** De markerade elementen har olika värden: visa det i stället för ett tal. */
   mixed?: boolean;
 }) {
+  const id = useId();
   return (
-    <Field label={label}>
-      {(id) => (
-        <span className="flex items-center gap-3">
-          <input
-            id={id}
-            type="range"
-            min={min}
-            max={max}
-            step={step}
-            value={value}
-            onChange={(e) => onChange(Number(e.target.value))}
-            className="gb-range w-full"
-          />
-          <span className="w-14 text-right text-[0.88em] tabular-nums text-text-muted">
-            {mixed ? t.inspector.mixed : format(value)}
-          </span>
-        </span>
-      )}
-    </Field>
+    <div className="flex flex-col gap-0.5">
+      <div className="flex min-h-7 items-center justify-between gap-3">
+        <label htmlFor={id} className="text-[0.88em] text-text-muted">
+          {label}
+        </label>
+        <output htmlFor={id} className="text-[0.88em] text-text tabular-nums">
+          {mixed ? t.inspector.mixed : format(value)}
+        </output>
+      </div>
+      <input
+        id={id}
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        // En hel dragning (eller en nedhållen piltangent) blir ett enda steg att ångra.
+        onPointerDown={beginHistoryGroup}
+        onPointerUp={endHistoryGroup}
+        onPointerCancel={endHistoryGroup}
+        onKeyDown={beginHistoryGroup}
+        onKeyUp={endHistoryGroup}
+        onBlur={endHistoryGroup}
+        className="gb-range w-full"
+      />
+    </div>
   );
 }
 

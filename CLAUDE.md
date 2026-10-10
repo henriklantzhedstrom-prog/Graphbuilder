@@ -97,6 +97,10 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   dem alla. Dolda element som följde standarden får det gamla värdet som egen stil och ser därför
   likadana ut när de visas igen (`applyToVisible` i `documentStore.ts`). Med markering ändras bara
   de markerade (`setNodeStyle`/`setRelationshipStyle`).
+- **Nodens storlek ställs in med skjutreglage** (10–250, `slider: true` i `NODE_STYLE_FIELDS`),
+  inte med sifferfält. Värden som dras (skjutreglage, färgväljare) ska alltid ligga i en
+  ångra-grupp (`beginHistoryGroup`/`endHistoryGroup` i `documentStore.ts`), så att en hel dragning
+  blir ett enda steg att ångra.
 - **Sifferfält** (`NumberField`) har egen text medan man skriver: värden utanför `min`/`max`
   slår inte igenom förrän fältet lämnas, och rättas då till närmaste gräns. Skicka alltid med
   `min` för storlekar – schemat kräver positiva värden, och en modell med radie eller textstorlek

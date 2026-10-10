@@ -104,35 +104,73 @@ test.describe("egenskapspanel", () => {
     await freshApp(page);
     await createNode(page, 300, 300, "A");
     await page.keyboard.press("Escape");
-    const radius = page.getByLabel("Radius");
-    const node = page.locator("[data-part='node-circle']");
-    await expect(node).toHaveAttribute("data-radius", "50");
+    const size = page.getByLabel("Caption size");
+    const caption = captionText(page, "A");
+    await expect(caption).toHaveAttribute("font-size", "20");
 
     // Sudda siffra för siffra och skriv ett nytt värde.
-    await radius.click();
-    await radius.press("End");
-    await radius.press("Backspace");
-    await radius.press("Backspace");
-    await expect(radius).toHaveValue("");
-    await expect(node).toHaveAttribute("data-radius", "50");
-    await radius.pressSequentially("80");
-    await expect(node).toHaveAttribute("data-radius", "80");
+    await size.click();
+    await size.press("End");
+    await size.press("Backspace");
+    await size.press("Backspace");
+    await expect(size).toHaveValue("");
+    await expect(caption).toHaveAttribute("font-size", "20");
+    await size.pressSequentially("30");
+    await expect(caption).toHaveAttribute("font-size", "30");
 
-    // Noll är för litet: noden ändras inte medan man skriver, och fältet rättas till minsta värdet.
-    await radius.fill("0");
-    await expect(node).toHaveAttribute("data-radius", "80");
-    await radius.press("Enter");
-    await expect(radius).toHaveValue("10");
-    await expect(node).toHaveAttribute("data-radius", "10");
+    // Noll är för litet: texten ändras inte medan man skriver, och fältet rättas till minsta värdet.
+    await size.fill("0");
+    await expect(caption).toHaveAttribute("font-size", "30");
+    await size.press("Enter");
+    await expect(size).toHaveValue("6");
+    await expect(caption).toHaveAttribute("font-size", "6");
 
     // Tomt fält som lämnas återgår till det gällande värdet, och modellen går att öppna igen.
-    await radius.fill("");
-    await radius.press("Tab");
-    await expect(radius).toHaveValue("10");
+    await size.fill("");
+    await size.press("Tab");
+    await expect(size).toHaveValue("6");
     await page.waitForTimeout(900);
     await page.reload();
-    await expect(captionText(page, "A")).toBeVisible();
-    await expect(page.locator("[data-part='node-circle']")).toHaveAttribute("data-radius", "10");
+    await expect(captionText(page, "A")).toHaveAttribute("font-size", "6");
+  });
+
+  test("nodens storlek ställs in med ett skjutreglage mellan 10 och 250", async ({ page }) => {
+    await freshApp(page);
+    await createNode(page, 300, 300, "A");
+    const radius = page.getByLabel("Radius");
+    const circle = page.locator("[data-part='node-circle']");
+    await expect(radius).toHaveAttribute("type", "range");
+    await expect(radius).toHaveAttribute("min", "10");
+    await expect(radius).toHaveAttribute("max", "250");
+    await expect(radius).toHaveValue("50");
+
+    // Dra reglaget med tangenterna: noden växer direkt, och värdet visas bredvid.
+    await radius.focus();
+    await radius.press("ArrowRight");
+    await expect(circle).toHaveAttribute("data-radius", "51");
+    await radius.press("End");
+    await expect(circle).toHaveAttribute("data-radius", "250");
+    await expect(page.getByTestId("inspector")).toContainText("250");
+    await radius.press("Home");
+    await expect(circle).toHaveAttribute("data-radius", "10");
+
+    // Dra med musen till mitten av reglaget: ungefär mitt emellan 10 och 250.
+    const box = await radius.boundingBox();
+    if (!box) throw new Error("reglage saknas");
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    const value = Number(await circle.getAttribute("data-radius"));
+    expect(value).toBeGreaterThan(110);
+    expect(value).toBeLessThan(150);
+
+    // En hel dragning är ett enda steg att ångra, hur många mellanlägen den än passerar.
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.9, box.y + box.height / 2, { steps: 25 });
+    await page.mouse.up();
+    const dragged = Number(await circle.getAttribute("data-radius"));
+    expect(dragged).toBeGreaterThan(200);
+    await page.getByRole("button", { name: "Undo" }).click();
+    await expect(circle).toHaveAttribute("data-radius", String(value));
   });
 
   test("rubriken går att läsa när noden får mörk fyllning", async ({ page }) => {

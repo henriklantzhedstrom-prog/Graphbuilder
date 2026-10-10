@@ -675,3 +675,44 @@ export const redo = () => useDocumentStore.temporal.getState().redo();
 export const clearHistory = () => useDocumentStore.temporal.getState().clear();
 
 export type { DiagramStyle, Layer };
+
+/**
+ * Ångra-grupp: allt som ändras mellan `beginHistoryGroup` och `endHistoryGroup` blir ETT steg i
+ * ångra-historiken. Används när ett värde dras (skjutreglage, färgväljare), där varje liten
+ * rörelse annars skulle bli ett eget steg och fylla historiken.
+ */
+let historyGroupOpen = false;
+let historyPausedByGroup = false;
+let historyLengthBeforeGroup = 0;
+
+useDocumentStore.subscribe((state, prev) => {
+  if (!historyGroupOpen || historyPausedByGroup || state.doc === prev.doc) return;
+  // Första ändringen i gruppen sparas som vanligt (läget före dragningen). Historiken skriver
+  // sitt steg först efter att den här lyssnaren körts, så pausen sätts strax efteråt.
+  historyPausedByGroup = true;
+  queueMicrotask(() => {
+    if (historyGroupOpen && historyPausedByGroup) useDocumentStore.temporal.getState().pause();
+  });
+});
+
+export function beginHistoryGroup(): void {
+  if (historyGroupOpen) return;
+  historyGroupOpen = true;
+  historyLengthBeforeGroup = useDocumentStore.temporal.getState().pastStates.length;
+}
+
+export function endHistoryGroup(): void {
+  if (!historyGroupOpen) return;
+  historyGroupOpen = false;
+  const history = useDocumentStore.temporal;
+  if (historyPausedByGroup) {
+    history.getState().resume();
+    historyPausedByGroup = false;
+  }
+  // Ändringar som hann göras innan pausen slog till (flera i samma ögonblick) slås ihop: bara
+  // gruppens första steg, läget före dragningen, blir kvar.
+  const { pastStates } = history.getState();
+  if (pastStates.length > historyLengthBeforeGroup + 1) {
+    history.setState({ pastStates: pastStates.slice(0, historyLengthBeforeGroup + 1) });
+  }
+}

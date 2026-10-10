@@ -1,5 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { clearHistory, redo, undo, useDocumentStore } from "@/store/documentStore";
+import {
+  beginHistoryGroup,
+  clearHistory,
+  endHistoryGroup,
+  redo,
+  undo,
+  useDocumentStore,
+} from "@/store/documentStore";
 import {
   contentBounds,
   countElementsInLayer,
@@ -358,6 +365,29 @@ describe("element", () => {
     };
     expect(color(visibleRel)).toBe("#0000ff");
     expect(color(hiddenRel)).toBe("#000000");
+  });
+
+  it("en dragning i ett reglage blir ett enda steg att ångra", () => {
+    const a = store().addNode(firstLayer(), { x: 0, y: 0 });
+    clearHistory();
+    beginHistoryGroup();
+    for (let radius = 51; radius <= 120; radius++) store().setNodeStyle([a], { radius });
+    endHistoryGroup();
+    expect(store().doc.nodes[a]?.style.radius).toBe(120);
+    expect(useDocumentStore.temporal.getState().pastStates).toHaveLength(1);
+    undo();
+    expect(store().doc.nodes[a]?.style.radius).toBeUndefined();
+    redo();
+    expect(store().doc.nodes[a]?.style.radius).toBe(120);
+    // Efter gruppen spåras ändringar som vanligt igen, en i taget.
+    store().setNodeStyle([a], { radius: 30 });
+    store().setNodeStyle([a], { radius: 40 });
+    expect(useDocumentStore.temporal.getState().pastStates).toHaveLength(3);
+    // En grupp utan ändringar lämnar historiken orörd.
+    beginHistoryGroup();
+    endHistoryGroup();
+    store().setNodeStyle([a], { radius: 45 });
+    expect(useDocumentStore.temporal.getState().pastStates).toHaveLength(4);
   });
 
   it("parallella relationer grupperas", () => {

@@ -1,4 +1,4 @@
-import { CheckboxField, ColorField, NumberField } from "@/components/ui";
+import { CheckboxField, ColorField, NumberField, SliderField } from "@/components/ui";
 import { NODE_PALETTE } from "@/model/defaults";
 import { commonValue, type StyleFieldSpec } from "./common";
 
@@ -33,6 +33,21 @@ export function StyleFields<K extends string, S extends Record<K, string | numbe
               />
             );
           case "number":
+            if (field.slider) {
+              return (
+                <SliderField
+                  key={field.key}
+                  label={labels[field.key]}
+                  value={typeof common === "number" ? common : (field.min ?? 0)}
+                  mixed={common === null}
+                  min={field.min}
+                  max={field.max}
+                  step={field.step ?? 1}
+                  format={(v) => String(Math.round(v))}
+                  onChange={(v) => onChange(field.key, v)}
+                />
+              );
+            }
             return (
               <NumberField
                 key={field.key}

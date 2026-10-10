@@ -21,6 +21,8 @@ export function commonValue<T>(values: T[]): T | null {
 export interface StyleFieldSpec<K extends string> {
   key: K;
   type: "color" | "number" | "boolean";
+  /** Talet ställs in med ett skjutreglage i stället för ett sifferfält. */
+  slider?: boolean;
   min?: number;
   max?: number;
   step?: number;
@@ -45,7 +47,7 @@ export const NODE_STYLE_FIELDS: StyleFieldSpec<
   { key: "fill", type: "color" },
   { key: "stroke", type: "color" },
   { key: "strokeWidth", type: "number", min: 0, max: 30 },
-  { key: "radius", type: "number", min: 10, max: 400 },
+  { key: "radius", type: "number", min: 10, max: 250, slider: true },
   { key: "captionColor", type: "color" },
   { key: "captionFontSize", type: "number", min: 6, max: 100 },
   { key: "labelColor", type: "color" },
