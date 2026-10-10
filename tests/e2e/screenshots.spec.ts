@@ -3,6 +3,9 @@ import { createNode, dragRelationship, freshApp, SCREENSHOT_DIR } from "./helper
 
 test.use({ viewport: { width: 1280, height: 800 } });
 
+// Menyer och dialogrutor tonas in; bilden tas först när de har öppnats helt.
+const SHOT = { animations: "disabled" } as const;
+
 test("skärmdump: graf med tre noder och två relationer", async ({ page }) => {
   await freshApp(page);
   await createNode(page, 300, 300, "Person");
@@ -12,7 +15,7 @@ test("skärmdump: graf med tre noder och två relationer", async ({ page }) => {
   await dragRelationship(page, { x: 300, y: 300 }, { x: 475, y: 540 }, "LIVES_IN");
   await expect(page.locator("[data-ref^='relationship:']")).toHaveCount(2);
   await page.getByTestId("canvas").click({ position: { x: 300, y: 300 } });
-  await page.screenshot({ path: `${SCREENSHOT_DIR}/canvas-graph.png` });
+  await page.screenshot({ path: `${SCREENSHOT_DIR}/canvas-graph.png`, ...SHOT });
 });
 
 test("skärmdump: egenskapspanel och lagerpanel", async ({ page }) => {
@@ -26,15 +29,15 @@ test("skärmdump: egenskapspanel och lagerpanel", async ({ page }) => {
   await page.getByPlaceholder("Key").fill("name");
   await page.getByPlaceholder("Key").press("Enter");
   await page.getByLabel("Value").fill("Alice");
-  await page.getByTitle("#a9c9f5").click();
-  await page.screenshot({ path: `${SCREENSHOT_DIR}/inspector-node.png` });
+  await page.getByTitle("#c5ced8").click();
+  await page.screenshot({ path: `${SCREENSHOT_DIR}/inspector-node.png`, ...SHOT });
   await page.getByRole("tab", { name: "Layers" }).click();
   await page.getByTestId("add-layer").click();
   await createNode(page, 475, 540, "City");
   await page.getByTestId("layer-row").nth(0).getByTestId("layer-name").dblclick();
   await page.getByLabel("Layer name").fill("Platser");
   await page.getByLabel("Layer name").press("Enter");
-  await page.screenshot({ path: `${SCREENSHOT_DIR}/layers-panel.png` });
+  await page.screenshot({ path: `${SCREENSHOT_DIR}/layers-panel.png`, ...SHOT });
 });
 
 test("skärmdump: anteckning och bakgrundsbild i lager", async ({ page }) => {
@@ -63,9 +66,9 @@ test("skärmdump: anteckning och bakgrundsbild i lager", async ({ page }) => {
   await page.getByTestId("inline-editor").fill("Att göra: lägg till adress på Company");
   await page.getByTestId("canvas").click({ position: { x: 800, y: 650 } });
   await page.locator("[data-ref^='note:'] > rect").click();
-  await page.getByTitle("#ffcc80").click();
+  await page.getByTitle("#e9e2d3").click();
   await page.getByRole("tab", { name: "Layers" }).click();
-  await page.screenshot({ path: `${SCREENSHOT_DIR}/notes-and-image.png` });
+  await page.screenshot({ path: `${SCREENSHOT_DIR}/notes-and-image.png`, ...SHOT });
 });
 
 test("skärmdump: exportdialog med Cypher", async ({ page }) => {
@@ -79,7 +82,7 @@ test("skärmdump: exportdialog med Cypher", async ({ page }) => {
   await page.keyboard.press("Control+e");
   await page.getByRole("tab", { name: "Cypher" }).click();
   await expect(page.getByTestId("export-preview")).toContainText("CREATE");
-  await page.screenshot({ path: `${SCREENSHOT_DIR}/export-cypher.png` });
+  await page.screenshot({ path: `${SCREENSHOT_DIR}/export-cypher.png`, ...SHOT });
 });
 
 test.describe("mörkt tema", () => {
@@ -92,7 +95,7 @@ test.describe("mörkt tema", () => {
     await dragRelationship(page, { x: 300, y: 300 }, { x: 650, y: 300 }, "WORKS_AT");
     await page.getByRole("tab", { name: "Layers" }).click();
     await page.getByTestId("theme-toggle").click();
-    await page.screenshot({ path: `${SCREENSHOT_DIR}/dark-theme.png` });
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/dark-theme.png`, ...SHOT });
   });
 });
 
@@ -105,7 +108,7 @@ test("skärmdump: flera relationer mellan samma två noder", async ({ page }) =>
   await dragRelationship(page, { x: 200, y: 300 }, { x: 700, y: 300 }, "LIKES");
   await expect(page.locator("[data-ref^='relationship:']")).toHaveCount(3);
   await page.keyboard.press("Escape");
-  await page.screenshot({ path: `${SCREENSHOT_DIR}/parallel-relationships.png` });
+  await page.screenshot({ path: `${SCREENSHOT_DIR}/parallel-relationships.png`, ...SHOT });
 });
 
 test("skärmdump: relation passerar bakom egenskaper", async ({ page }) => {
@@ -130,7 +133,7 @@ test("skärmdump: relation passerar bakom egenskaper", async ({ page }) => {
     [box.x + 4, box.y + box.height / 2],
   );
   expect(hit?.startsWith("node:")).toBe(true);
-  await page.screenshot({ path: `${SCREENSHOT_DIR}/property-background.png` });
+  await page.screenshot({ path: `${SCREENSHOT_DIR}/property-background.png`, ...SHOT });
 });
 
 test("skärmdump: labels med olika längd", async ({ page }) => {
@@ -143,6 +146,38 @@ test("skärmdump: labels med olika längd", async ({ page }) => {
   await page.keyboard.press("Escape");
   await page.screenshot({
     path: `${SCREENSHOT_DIR}/label-margins.png`,
+    ...SHOT,
     clip: { x: 150, y: 180, width: 600, height: 120 },
   });
+});
+
+test("skärmdump: File-menyn och modellens standardstil", async ({ page }) => {
+  await freshApp(page);
+  await createNode(page, 300, 300, "Person");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("heading", { name: "Model default style" })).toBeVisible();
+  await page.getByRole("button", { name: "File" }).click();
+  await expect(page.getByRole("menuitem", { name: "Save as file…" })).toBeVisible();
+  await page.screenshot({ path: `${SCREENSHOT_DIR}/file-menu.png`, ...SHOT });
+});
+
+test("skärmdump: relation markerad i egenskapspanelen", async ({ page }) => {
+  await freshApp(page);
+  await createNode(page, 300, 300, "Person");
+  await createNode(page, 650, 300, "Company");
+  await dragRelationship(page, { x: 300, y: 300 }, { x: 650, y: 300 }, "WORKS_AT");
+  await expect(page.getByTestId("inspector-type")).toHaveValue("WORKS_AT");
+  await page.screenshot({ path: `${SCREENSHOT_DIR}/inspector-relationship.png`, ...SHOT });
+});
+
+test("skärmdump: mina modeller och kortkommandon", async ({ page }) => {
+  await freshApp(page);
+  await createNode(page, 300, 300, "Person");
+  await page.getByRole("button", { name: "My models" }).click();
+  await expect(page.getByTestId("document-row")).toHaveCount(1);
+  await page.screenshot({ path: `${SCREENSHOT_DIR}/my-models.png`, ...SHOT });
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Keyboard shortcuts" }).click();
+  await expect(page.getByRole("heading", { name: "Keyboard shortcuts" })).toBeVisible();
+  await page.screenshot({ path: `${SCREENSHOT_DIR}/shortcuts.png`, ...SHOT });
 });

@@ -110,6 +110,18 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
 - **Textstorlek i högermenyn:** sidopanelen har grundstorlek 17px (`text-[17px]` på `<aside>` i
   `SidePanel.tsx`); komponenterna i `src/components/ui.tsx` och panelerna använder storlekar i `em`
   så att de följer den. Använd inte `text-xs`/`text-sm`/`text-base` där (roten är 14px).
+- **Utseende (menyer, paneler, dialogrutor).** Allt byggs av byggstenarna i `src/components/ui.tsx`:
+  `Button` (default/primary/ghost/danger), `IconButton`, `TextInput`, `Select`, `NumberField`
+  (egna stegknappar), `ColorField` (färgruta + färgkod, färgprickar på egen rad), `CheckboxField`
+  (reglage i panelen, `variant="check"` i dialogrutor), `SliderField`, `Segmented`/`SegmentedItem`
+  (flikar, format, justering) och `Section`. Använd aldrig webbläsarens egna `<select>`, kryssrutor
+  eller färgväljare direkt. Färger, skuggor och mörkt läge är variabler i `src/index.css`
+  (`--color-*`, `--shadow-*`); klasserna `gb-control`, `gb-select`, `gb-check`, `gb-switch`,
+  `gb-range` ger fälten samma kant och fokusmarkering. Kontroller är 36 px höga med 8 px hörn;
+  kontrollen till höger i en rad har fast bredd (`CONTROL_WIDTH`) så att fälten bildar en kolumn.
+  `dark:`-klasser följer appens tema (`@custom-variant dark` i `index.css`), inte datorns.
+  Egna regler för `button`/`input` ska ligga i `@layer base`, annars slår de ut Tailwind-klasserna.
+  Ikonerna i `icons.tsx` är dekorativa och har ingen `<title>`; knappen runt ger namnet.
 - **Tema:** appen startar alltid ljust, oberoende av datorns inställning. Mörkt läge slås på med
   knappen i verktygsfältet (`src/store/theme.ts`, sätter `data-theme` på `<html>`, valet sparas i
   localStorage). CSS för mörkt läge ligger under `:root[data-theme="dark"]` i `src/index.css`.
@@ -123,5 +135,7 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   github.io-adressen går inte att hämta från den här miljön (egress blockerad).
 - `npm run build:single` ger en fristående `dist-single/index.html` (skript som data-URL) för att
   skicka appen som fil eller visa den inne i Claude. Kunden föredrar webbadressen ovan.
+- På kundens Mac finns en äldre testwebbläsare i `~/Library/Caches/ms-playwright`. Kör e2e där med
+  `PLAYWRIGHT_CHROMIUM_PATH=<sökväg till chrome-headless-shell> npm run e2e`.
 - Lokalt pekar `playwright.config.ts` på `/opt/pw-browsers/chromium` när den finns; i CI
   installeras Chromium med `npx playwright install --with-deps chromium`.

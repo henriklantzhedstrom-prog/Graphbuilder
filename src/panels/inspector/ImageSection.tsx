@@ -48,7 +48,7 @@ export function ImageSection({ images }: { images: BackgroundImage[] }) {
           />
           {asset && (
             <Button
-              variant="ghost"
+              className="mt-1"
               onClick={() =>
                 updateImage(single.id, {
                   size: { w: single.size.w, h: (single.size.w * asset.height) / asset.width },
@@ -61,6 +61,7 @@ export function ImageSection({ images }: { images: BackgroundImage[] }) {
         </>
       )}
       <Button
+        className="mt-1"
         onClick={() => {
           const layerId = ensureBackgroundLayer();
           moveElementsToLayer(

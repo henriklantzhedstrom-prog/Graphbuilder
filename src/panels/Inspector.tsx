@@ -1,6 +1,6 @@
 import { deleteSelection, duplicateSelection } from "@/canvas/actions";
 import { IconCopy, IconTrash } from "@/components/icons";
-import { Button, Field, Section } from "@/components/ui";
+import { Button, Field, Section, Select } from "@/components/ui";
 import { t } from "@/i18n";
 import { useDocumentStore } from "@/store/documentStore";
 import { elementLayerId } from "@/store/selectors";
@@ -38,10 +38,10 @@ export function Inspector() {
         {layered.length > 0 && (
           <Field label={t.inspector.layer} inline>
             {(id) => (
-              <select
+              <Select
                 id={id}
                 data-testid="inspector-layer"
-                className="h-8 rounded-md border border-border bg-surface px-1 text-[1em]"
+                className="w-44"
                 value={layerId ?? ""}
                 onChange={(e) => moveElementsToLayer(layered, e.target.value)}
               >
@@ -51,11 +51,11 @@ export function Inspector() {
                     {l.name}
                   </option>
                 ))}
-              </select>
+              </Select>
             )}
           </Field>
         )}
-        <div className="flex gap-1">
+        <div className="mt-1 grid grid-cols-2 gap-2">
           <Button onClick={duplicateSelection}>
             <IconCopy size={16} />
             {t.inspector.duplicate}

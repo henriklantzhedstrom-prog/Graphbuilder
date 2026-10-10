@@ -123,16 +123,18 @@ export function DocumentsDialog() {
       }
     >
       {docs.length === 0 ? (
-        <p className="text-sm text-text-muted">{t.documents.empty}</p>
+        <p className="py-8 text-center text-text-muted">{t.documents.empty}</p>
       ) : (
-        <ul className="flex flex-col divide-y divide-border" data-testid="documents-list">
+        <ul className="flex flex-col gap-1.5" data-testid="documents-list">
           {docs.map((d) => (
             <li
               key={d.id}
               data-testid="document-row"
               className={cx(
-                "flex items-center gap-2 py-2",
-                d.id === currentId && "bg-accent-soft/40",
+                "flex min-h-16 items-center gap-1 rounded-xl border py-2 pr-2 pl-4",
+                d.id === currentId
+                  ? "border-accent/40 bg-accent-soft/50"
+                  : "border-border hover:bg-surface-2",
               )}
             >
               <div className="min-w-0 flex-1">
@@ -151,25 +153,27 @@ export function DocumentsDialog() {
                 ) : (
                   <button
                     type="button"
-                    className="block w-full truncate text-left font-medium text-sm hover:underline"
+                    className="block w-full truncate text-left font-semibold text-[1.04em] hover:underline"
                     onClick={() => onOpen(d.id)}
                   >
                     {d.name}
                     {d.id === currentId && (
-                      <span className="ml-2 rounded-full bg-accent px-2 py-0.5 text-white text-xs">
+                      <span className="ml-2 rounded-full bg-accent px-2 py-0.5 align-middle font-medium text-[0.72em] text-white dark:text-surface">
                         {t.documents.current}
                       </span>
                     )}
                   </button>
                 )}
-                <div className="text-text-muted text-xs">
+                <div className="mt-0.5 text-[0.88em] text-text-muted">
                   {t.documents.updated} {formatDate(d.updatedAt)} ·{" "}
                   {t.documents.nodeCount(d.nodeCount)}
                 </div>
               </div>
               {confirmDelete === d.id ? (
                 <>
-                  <span className="text-sm">{t.documents.removeConfirm(d.name)}</span>
+                  <span className="mr-2 max-w-64 text-[0.92em] leading-snug">
+                    {t.documents.removeConfirm(d.name)}
+                  </span>
                   <Button
                     variant="danger"
                     onClick={() => onDelete(d.id)}
@@ -181,11 +185,10 @@ export function DocumentsDialog() {
                 </>
               ) : (
                 <>
-                  <Button variant="ghost" onClick={() => onOpen(d.id)}>
-                    {t.documents.open}
-                  </Button>
+                  <Button onClick={() => onOpen(d.id)}>{t.documents.open}</Button>
                   <Button
                     variant="ghost"
+                    className="font-normal"
                     onClick={() => {
                       setDraft(d.name);
                       setRenaming(d.id);
@@ -193,12 +196,12 @@ export function DocumentsDialog() {
                   >
                     {t.documents.rename}
                   </Button>
-                  <Button variant="ghost" onClick={() => onDuplicate(d.id)}>
+                  <Button variant="ghost" className="font-normal" onClick={() => onDuplicate(d.id)}>
                     {t.documents.duplicate}
                   </Button>
                   <Button
                     variant="ghost"
-                    className="text-danger"
+                    className="font-normal text-danger hover:bg-danger/10"
                     onClick={() => setConfirmDelete(d.id)}
                   >
                     {t.documents.remove}

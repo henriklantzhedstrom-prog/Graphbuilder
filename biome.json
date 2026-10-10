@@ -25,6 +25,18 @@
       }
     }
   },
+  "overrides": [
+    {
+      "includes": ["src/components/icons.tsx"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "noSvgWithoutTitle": "off"
+          }
+        }
+      }
+    }
+  ],
   "javascript": {
     "formatter": {
       "quoteStyle": "double",

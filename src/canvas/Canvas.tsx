@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { IconPlus } from "@/components/icons";
 import { useElementSize } from "@/hooks/useElementSize";
 import { t } from "@/i18n";
 import { DEFAULT_NOTE } from "@/model/defaults";
@@ -548,12 +549,15 @@ export function Canvas() {
         </g>
       </svg>
       {dropActive && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center border-4 border-accent border-dashed bg-accent/5 text-accent">
+        <div className="pointer-events-none absolute inset-3 flex items-center justify-center rounded-2xl border-2 border-accent border-dashed bg-accent/5 font-medium text-[16px] text-accent">
           {t.canvas.dropImageHint}
         </div>
       )}
       {isEmpty && !editing && !dropActive && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-text-muted">
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 text-[16px] text-text-muted">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-border-strong border-dashed">
+            <IconPlus size={22} />
+          </span>
           {t.canvas.emptyHint}
         </div>
       )}
@@ -572,7 +576,7 @@ function DragOverlay({ drag, zoom, visible }: { drag: DragState; zoom: number; v
         y={box.y}
         width={box.w}
         height={box.h}
-        fill={drag.kind === "note" ? "rgba(255,245,157,0.5)" : "var(--color-accent)"}
+        fill={drag.kind === "note" ? "rgba(233,226,211,0.6)" : "var(--color-accent)"}
         fillOpacity={drag.kind === "note" ? 1 : 0.08}
         stroke="var(--color-accent)"
         strokeWidth={1 / zoom}

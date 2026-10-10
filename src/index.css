@@ -1,31 +1,56 @@
 @import "tailwindcss";
 
+/* `dark:` följer appens eget tema (data-theme), inte datorns inställning. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 @theme {
   --color-surface: #ffffff;
-  --color-surface-2: #f5f6f8;
+  --color-surface-2: #f4f5f7;
   --color-surface-3: #e9ebef;
-  --color-border: #d6d9df;
-  --color-text: #1b1f27;
-  --color-text-muted: #5d6573;
-  --color-accent: #2f6fed;
-  --color-accent-soft: #dce7ff;
-  --color-danger: #d64545;
+  --color-border: #e2e5ea;
+  --color-border-strong: #cfd4dc;
+  --color-text: #171a21;
+  --color-text-muted: #5f6877;
+  --color-accent: #2f6bea;
+  --color-accent-soft: #e5edff;
+  --color-danger: #d13c3c;
+  --color-warning: #b45309;
   --color-canvas: #fafbfc;
+  --color-toast: #1d212b;
+  --color-toast-text: #f4f5f8;
+
+  --shadow-control: 0 1px 1px rgb(16 24 40 / 0.05);
+  --shadow-raised: 0 1px 2px rgb(16 24 40 / 0.1), 0 0 0 1px rgb(16 24 40 / 0.04);
+  --shadow-pop:
+    0 12px 32px -8px rgb(16 24 40 / 0.2), 0 4px 10px -4px rgb(16 24 40 / 0.1),
+    0 0 0 1px rgb(16 24 40 / 0.05);
+  --shadow-dialog: 0 32px 64px -16px rgb(16 24 40 / 0.35), 0 0 0 1px rgb(16 24 40 / 0.06);
 }
 
 /* Mörkt läge slås på med knappen i verktygsfältet (data-theme), inte av datorns inställning. */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --color-surface: #1d2029;
-  --color-surface-2: #242834;
-  --color-surface-3: #2d3240;
-  --color-border: #3a4050;
-  --color-text: #e8eaf0;
+  --color-surface: #1b1e26;
+  --color-surface-2: #242833;
+  --color-surface-3: #2f3441;
+  --color-border: #313746;
+  --color-border-strong: #454d60;
+  --color-text: #e9ebf1;
   --color-text-muted: #9aa3b5;
-  --color-accent: #6b9cff;
-  --color-accent-soft: #2a3a60;
-  --color-danger: #ff6b6b;
+  --color-accent: #7aa5ff;
+  --color-accent-soft: #26365c;
+  --color-danger: #ff7b7b;
+  --color-warning: #f0b35a;
   --color-canvas: #151821;
+  --color-toast: #e9ebf1;
+  --color-toast-text: #171a21;
+
+  --shadow-control: 0 1px 1px rgb(0 0 0 / 0.3);
+  --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.5), 0 0 0 1px rgb(255 255 255 / 0.06);
+  --shadow-pop:
+    0 12px 32px -8px rgb(0 0 0 / 0.6), 0 4px 10px -4px rgb(0 0 0 / 0.4),
+    0 0 0 1px rgb(255 255 255 / 0.08);
+  --shadow-dialog: 0 32px 64px -16px rgb(0 0 0 / 0.7), 0 0 0 1px rgb(255 255 255 / 0.08);
 }
 
 html,
@@ -38,18 +63,201 @@ body,
   color: var(--color-text);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 * {
   box-sizing: border-box;
 }
 
-button,
-input,
-select,
-textarea {
-  font: inherit;
-  color: inherit;
+/* I baslagret, så att Tailwind-klasser för textfärg och storlek på knappar och fält gäller. */
+@layer base {
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+  }
+
+  button:not(:disabled),
+  select {
+    cursor: pointer;
+  }
+}
+
+/* Utan lager (@layer) går regeln före alla Tailwind-klasser, så ingen !important behövs. */
+:root.gb-theme-switching * {
+  transition: none;
+}
+
+/* Gemensam fokusmarkering för alla textfält, listor och färgväljare. */
+.gb-control {
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-control);
+  transition:
+    border-color 120ms,
+    box-shadow 120ms;
+}
+.gb-control:hover {
+  border-color: color-mix(in srgb, var(--color-text-muted) 60%, var(--color-border-strong));
+}
+.gb-control:focus,
+.gb-control:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 22%, transparent);
+  outline: none;
+}
+
+/* Sifferfält: webbläsarens egna pilar göms, egna stegknappar visas i stället. */
+.gb-number::-webkit-outer-spin-button,
+.gb-number::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+.gb-number {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.gb-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237b8494' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 30px;
+}
+
+/* Kryssruta ritad som en ruta med bock. */
+.gb-check {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin: 0;
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: 5px;
+  background: var(--color-surface);
+  cursor: pointer;
+  transition:
+    background-color 120ms,
+    border-color 120ms;
+}
+.gb-check:hover {
+  border-color: var(--color-accent);
+}
+.gb-check:checked {
+  border-color: var(--color-accent);
+  background:
+    var(--color-accent)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5'/%3E%3C/svg%3E")
+    center / 13px no-repeat;
+}
+
+/* Av/på-reglage. */
+.gb-switch {
+  appearance: none;
+  position: relative;
+  width: 36px;
+  height: 22px;
+  flex-shrink: 0;
+  margin: 0;
+  border-radius: 999px;
+  background: var(--color-border-strong);
+  cursor: pointer;
+  transition: background-color 140ms;
+}
+.gb-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgb(16 24 40 / 0.3);
+  transition: transform 140ms;
+}
+.gb-switch:checked {
+  background: var(--color-accent);
+}
+.gb-switch:checked::after {
+  transform: translateX(14px);
+}
+
+.gb-check:focus-visible,
+.gb-switch:focus-visible,
+.gb-range:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Skjutreglage. */
+.gb-range {
+  appearance: none;
+  height: 18px;
+  background: transparent;
+  cursor: pointer;
+}
+.gb-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--color-surface-3);
+}
+.gb-range::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--color-surface-3);
+}
+.gb-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;
+  border: 2px solid var(--color-accent);
+  border-radius: 50%;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-control);
+}
+.gb-range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--color-accent);
+  border-radius: 50%;
+  background: var(--color-surface);
+}
+
+/* Diskret rullningslist i paneler och dialogrutor. */
+.gb-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+
+dialog.gb-dialog::backdrop {
+  background: rgb(16 20 30 / 0.45);
+  backdrop-filter: blur(3px);
+}
+dialog.gb-dialog[open] {
+  animation: gb-pop 140ms ease-out;
+}
+.gb-menu {
+  animation: gb-pop 110ms ease-out;
+  transform-origin: top left;
+}
+@keyframes gb-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.985);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  dialog.gb-dialog[open],
+  .gb-menu {
+    animation: none;
+  }
 }
 
 .gb-node:hover .gb-halo,

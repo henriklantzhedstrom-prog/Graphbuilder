@@ -38,22 +38,21 @@ export function Dialog({
         if (e.key === "Escape") e.stopPropagation();
       }}
       className={cx(
-        "m-auto w-[calc(100%-2rem)] rounded-xl border border-border bg-surface p-0 text-text shadow-2xl",
-        "backdrop:bg-black/40",
+        "gb-dialog m-auto w-[calc(100%-2rem)] overflow-hidden rounded-2xl bg-surface p-0 text-[15px] text-text shadow-dialog",
         width,
       )}
     >
       {open && (
         <div className="flex max-h-[85vh] flex-col">
-          <header className="flex items-center justify-between border-border border-b px-4 py-3">
-            <h2 className="font-semibold text-base">{title}</h2>
+          <header className="flex items-center justify-between gap-4 py-3 pr-3 pl-6">
+            <h2 className="font-semibold text-[1.2em]">{title}</h2>
             <IconButton label={t.common.close} onClick={onClose}>
               <IconClose />
             </IconButton>
           </header>
-          <div className="flex-1 overflow-auto px-4 py-3">{children}</div>
+          <div className="gb-scroll flex-1 overflow-auto px-6 pt-1 pb-6">{children}</div>
           {footer && (
-            <footer className="flex justify-end gap-2 border-border border-t px-4 py-3">
+            <footer className="flex justify-end gap-2 border-border border-t bg-surface-2 px-6 py-3.5">
               {footer}
             </footer>
           )}

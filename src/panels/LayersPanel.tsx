@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { selectLayer } from "@/canvas/actions";
 import { Dialog } from "@/components/Dialog";
 import {
@@ -13,7 +13,7 @@ import {
   IconTrash,
   IconUnlock,
 } from "@/components/icons";
-import { Button, cx, IconButton, TextInput } from "@/components/ui";
+import { Button, cx, IconButton, Select, TextInput } from "@/components/ui";
 import { t } from "@/i18n";
 import type { Id, Layer } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
@@ -41,16 +41,16 @@ export function LayersPanel() {
 
   return (
     <div className="flex flex-col" data-testid="layers-panel">
-      <div className="flex items-center justify-between px-3 py-2">
-        <span className="text-text-muted text-[0.86em]">{t.layers.hint}</span>
-      </div>
-      <div className="px-3 pb-2">
-        <Button onClick={onAdd} data-testid="add-layer">
+      <div className="flex items-center justify-between gap-2 px-4 pt-4 pb-2">
+        <h3 className="font-semibold text-[0.74em] text-text-muted uppercase tracking-[0.08em]">
+          {t.layers.title}
+        </h3>
+        <Button onClick={onAdd} data-testid="add-layer" className="h-8 px-2.5">
           <IconPlus size={16} />
           {t.layers.add}
         </Button>
       </div>
-      <ul className="flex flex-col">
+      <ul className="flex flex-col gap-1 px-2 pb-2">
         {layersTopFirst.map((layer, visualIndex) => (
           <LayerRow
             key={layer.id}
@@ -79,6 +79,9 @@ export function LayersPanel() {
           />
         ))}
       </ul>
+      <p className="border-border border-t px-4 py-3 text-[0.82em] text-text-muted leading-snug">
+        {t.layers.hint}
+      </p>
       {toRemove && <RemoveLayerDialog layer={toRemove} onClose={() => setToRemove(null)} />}
     </div>
   );
@@ -150,30 +153,30 @@ function LayerRow({
       }}
       onDragEnd={onDragEnd}
       className={cx(
-        "border-border border-b",
-        active ? "bg-accent-soft/60" : "hover:bg-surface-2",
+        "rounded-[10px] transition-colors",
+        active ? "bg-accent-soft" : "hover:bg-surface-2",
         dropHighlight && "outline-2 outline-accent -outline-offset-2",
-        !layer.visible && "opacity-60",
       )}
     >
-      <div className="flex items-center gap-1 px-2 py-1.5">
-        <span className="cursor-grab text-text-muted" title={t.layers.moveUp}>
+      <div className="flex items-center gap-0.5 py-1 pr-3 pl-1">
+        <span className="cursor-grab text-text-muted/60 hover:text-text-muted">
           <IconGrip size={16} />
         </span>
         <IconButton
           label={layer.visible ? t.layers.hide : t.layers.show}
           data-testid="layer-visibility"
           onClick={() => setLayerVisible(layer.id, !layer.visible)}
+          className={cx("hover:bg-text/5", !layer.visible && "text-text-muted/50")}
         >
-          {layer.visible ? <IconEye size={16} /> : <IconEyeOff size={16} />}
+          {layer.visible ? <IconEye size={18} /> : <IconEyeOff size={18} />}
         </IconButton>
         <IconButton
           label={layer.locked ? t.layers.unlock : t.layers.lock}
           data-testid="layer-lock"
           onClick={() => setLayerLocked(layer.id, !layer.locked)}
-          className={layer.locked ? "text-accent" : ""}
+          className={cx("hover:bg-text/5", layer.locked ? "text-accent" : "text-text-muted/50")}
         >
-          {layer.locked ? <IconLock size={16} /> : <IconUnlock size={16} />}
+          {layer.locked ? <IconLock size={18} /> : <IconUnlock size={18} />}
         </IconButton>
         {editing ? (
           <TextInput
@@ -194,7 +197,11 @@ function LayerRow({
           <button
             type="button"
             data-testid="layer-name"
-            className={cx("min-w-0 flex-1 truncate text-left text-[1em]", active && "font-medium")}
+            className={cx(
+              "ml-1 h-9 min-w-0 flex-1 truncate rounded-md text-left text-[1em]",
+              active && "font-semibold",
+              !layer.visible && "text-text-muted/70",
+            )}
             title={`${layer.name} – ${t.layers.rename}`}
             onClick={onActivate}
             onDoubleClick={() => {
@@ -206,35 +213,50 @@ function LayerRow({
           </button>
         )}
         <span
-          className="text-text-muted text-[0.86em] tabular-nums"
+          className={cx(
+            "ml-2 min-w-6 rounded-full px-2 py-0.5 text-center text-[0.76em] tabular-nums",
+            active ? "bg-surface/70 text-accent" : "bg-surface-3 text-text-muted",
+          )}
           title={t.layers.elementCount(count)}
         >
           {count}
         </span>
       </div>
       {active && (
-        <div className="flex flex-col gap-2 px-3 pb-2">
-          <div className="flex gap-0.5">
-            <IconButton label={t.layers.moveUp} onClick={onMoveUp} disabled={isTop}>
-              <IconChevronUp size={16} />
-            </IconButton>
-            <IconButton label={t.layers.moveDown} onClick={onMoveDown} disabled={isBottom}>
-              <IconChevronDown size={16} />
-            </IconButton>
-            <IconButton label={t.layers.selectAll} onClick={() => selectLayer(layer.id)}>
-              <IconSelectAll size={16} />
-            </IconButton>
-            <div className="flex-1" />
-            <IconButton
-              label={t.layers.remove}
-              data-testid="layer-remove"
-              onClick={onRemove}
-              disabled={!canRemove}
-              className="text-danger"
-            >
-              <IconTrash size={16} />
-            </IconButton>
-          </div>
+        <div className="flex gap-0.5 px-1 pb-1">
+          <IconButton
+            label={t.layers.moveUp}
+            onClick={onMoveUp}
+            disabled={isTop}
+            className="hover:bg-text/5"
+          >
+            <IconChevronUp size={18} />
+          </IconButton>
+          <IconButton
+            label={t.layers.moveDown}
+            onClick={onMoveDown}
+            disabled={isBottom}
+            className="hover:bg-text/5"
+          >
+            <IconChevronDown size={18} />
+          </IconButton>
+          <IconButton
+            label={t.layers.selectAll}
+            onClick={() => selectLayer(layer.id)}
+            className="hover:bg-text/5"
+          >
+            <IconSelectAll size={18} />
+          </IconButton>
+          <div className="flex-1" />
+          <IconButton
+            label={t.layers.remove}
+            data-testid="layer-remove"
+            onClick={onRemove}
+            disabled={!canRemove}
+            className="hover:bg-danger/10 hover:text-danger"
+          >
+            <IconTrash size={18} />
+          </IconButton>
         </div>
       )}
     </li>
@@ -247,6 +269,7 @@ function RemoveLayerDialog({ layer, onClose }: { layer: Layer; onClose: () => vo
   const count = countElementsInLayer(doc, layer.id);
   const others = doc.layers.filter((l) => l.id !== layer.id);
   const [target, setTarget] = useState<Id>(others[others.length - 1]?.id ?? "");
+  const targetId = useId();
 
   const remove = (moveTo?: Id) => {
     removeLayer(layer.id, moveTo);
@@ -276,12 +299,13 @@ function RemoveLayerDialog({ layer, onClose }: { layer: Layer; onClose: () => vo
         </>
       }
     >
-      <p className="mb-3 text-[1em]">{t.layers.removeBody(count)}</p>
+      <p className="mb-4 text-[1em] leading-snug">{t.layers.removeBody(count)}</p>
       {count > 0 && (
-        <label className="flex items-center gap-2 text-[1em]">
+        <label htmlFor={targetId} className="flex items-center gap-3 text-[1em]">
           {t.layers.removeMoveTo}
-          <select
-            className="h-8 rounded-md border border-border bg-surface px-1"
+          <Select
+            id={targetId}
+            className="min-w-40"
             value={target}
             onChange={(e) => setTarget(e.target.value)}
           >
@@ -290,7 +314,7 @@ function RemoveLayerDialog({ layer, onClose }: { layer: Layer; onClose: () => vo
                 {l.name}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
       )}
     </Dialog>

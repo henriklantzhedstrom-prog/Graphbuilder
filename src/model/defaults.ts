@@ -47,26 +47,27 @@ export const DEFAULT_DIAGRAM_STYLE: DiagramStyle = {
   background: "#ffffff",
 };
 
+// Neutral, dämpad skala (sand, lera, salvia, skiffer, grått) i stället för klara pastellfärger.
 export const NOTE_COLORS = [
-  "#fff59d",
-  "#ffcc80",
-  "#f48fb1",
-  "#ce93d8",
-  "#90caf9",
-  "#a5d6a7",
-  "#e0e0e0",
+  "#f4f1ea",
+  "#e9e2d3",
+  "#e3d2c8",
+  "#d5d9cd",
+  "#cfd8e0",
+  "#dedee2",
+  "#b9bec7",
   "#ffffff",
 ] as const;
 
 export const NODE_PALETTE = [
   "#ffffff",
-  "#fbe7a1",
-  "#f7c59f",
-  "#f4a6a6",
-  "#d9b3e6",
-  "#a9c9f5",
-  "#a6e3c4",
-  "#cfd8dc",
+  "#f3f1ec",
+  "#e4dfd5",
+  "#d8c9bd",
+  "#cdd3c6",
+  "#c5ced8",
+  "#d4d4d8",
+  "#9ca3af",
   "#1b1f27",
 ] as const;
 

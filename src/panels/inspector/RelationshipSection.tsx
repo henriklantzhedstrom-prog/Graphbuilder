@@ -61,7 +61,7 @@ export function RelationshipSection({ relationships }: { relationships: Relation
           onChange={(key, value) => setRelationshipStyle(ids, { [key]: value })}
         />
         {hasCustomStyle && (
-          <Button variant="ghost" onClick={() => resetElementStyle(refs)}>
+          <Button className="mt-2" onClick={() => resetElementStyle(refs)}>
             {t.inspector.resetStyle}
           </Button>
         )}

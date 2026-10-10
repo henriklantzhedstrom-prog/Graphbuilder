@@ -64,18 +64,18 @@ export function NodeSection({ nodes }: { nodes: GraphNode[] }) {
       <Section title={nodes.length === 1 ? t.inspector.node : t.inspector.nodes(nodes.length)}>
         <Field label={t.inspector.labels}>
           {(id) => (
-            <div className="flex flex-col gap-1">
-              <div className="flex flex-wrap gap-1">
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap gap-1.5 empty:hidden">
                 {labels.map((label) => (
                   <span
                     key={label}
-                    className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 py-0.5 pr-1 pl-2 text-[0.86em]"
+                    className="inline-flex h-7 items-center gap-0.5 rounded-full bg-accent-soft pr-1 pl-3 font-medium text-[0.86em] text-accent"
                   >
                     {label}
                     <button
                       type="button"
                       aria-label={`${t.inspector.removeLabel}: ${label}`}
-                      className="rounded-full p-0.5 hover:bg-surface-3"
+                      className="flex h-5 w-5 items-center justify-center rounded-full opacity-70 hover:bg-accent/15 hover:opacity-100"
                       onClick={() => removeLabel(label)}
                     >
                       <IconClose size={12} />
@@ -83,7 +83,7 @@ export function NodeSection({ nodes }: { nodes: GraphNode[] }) {
                   </span>
                 ))}
               </div>
-              <div className="flex gap-1">
+              <div className="flex gap-1.5">
                 <TextInput
                   id={id}
                   placeholder={t.inspector.labelPlaceholder}
@@ -100,17 +100,25 @@ export function NodeSection({ nodes }: { nodes: GraphNode[] }) {
                   onClick={addLabel}
                   disabled={!newLabel.trim()}
                   aria-label={t.inspector.addLabel}
+                  className="w-9 px-0"
                 >
                   <IconPlus size={16} />
                 </Button>
               </div>
               {labelError && (
-                <p role="alert" data-testid="label-error" className="text-danger text-[1em]">
+                <p
+                  role="alert"
+                  data-testid="label-error"
+                  className="rounded-lg bg-danger/10 px-3 py-2 text-[0.88em] text-danger leading-snug"
+                >
                   {labelError}
                 </p>
               )}
               {!labelError && inConflict && (
-                <p data-testid="label-warning" className="text-[1em] text-amber-600">
+                <p
+                  data-testid="label-warning"
+                  className="rounded-lg bg-warning/10 px-3 py-2 text-[0.88em] text-warning leading-snug"
+                >
                   {t.inspector.labelConflictExisting}
                 </p>
               )}
@@ -136,7 +144,7 @@ export function NodeSection({ nodes }: { nodes: GraphNode[] }) {
           onChange={(key, value) => setNodeStyle(ids, { [key]: value })}
         />
         {hasCustomStyle && (
-          <Button variant="ghost" onClick={() => resetElementStyle(refs)}>
+          <Button className="mt-2" onClick={() => resetElementStyle(refs)}>
             {t.inspector.resetStyle}
           </Button>
         )}

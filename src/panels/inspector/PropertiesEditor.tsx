@@ -31,25 +31,27 @@ export function PropertiesEditor({
   };
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1.5">
       {caption && keys.length > 0 && (
-        <div className="flex items-center gap-1 text-text-muted text-[0.86em]">
-          <span className="w-12 shrink-0 text-center">{t.inspector.captionColumn}</span>
+        <div className="flex items-center gap-1.5 text-[0.74em] text-text-muted">
+          <span className="w-14 shrink-0">{t.inspector.captionColumn}</span>
+          <span className="w-[32%] shrink-0">{t.inspector.propertyKey}</span>
+          <span>{t.inspector.propertyValue}</span>
         </div>
       )}
       {keys.map((key) => {
         const common = commonValue(propertySets.map((p) => p[key] ?? ""));
         const isCaption = caption ? caption.keys.every((k) => k === key) : false;
         return (
-          <div key={key} className="flex items-center gap-1">
+          <div key={key} className="flex items-center gap-1.5">
             {caption && (
-              <span className="flex w-12 shrink-0 justify-center">
+              <span className="flex w-14 shrink-0 pl-1">
                 <input
                   type="checkbox"
                   data-testid="caption-toggle"
                   aria-label={t.inspector.captionToggleLabel(key)}
                   title={t.inspector.captionToggleLabel(key)}
-                  className="h-4 w-4 accent-accent"
+                  className="gb-check"
                   checked={isCaption}
                   onChange={(e) => caption.onToggle(key, e.target.checked)}
                 />
@@ -57,7 +59,7 @@ export function PropertiesEditor({
             )}
             <TextInput
               aria-label={t.inspector.propertyKey}
-              className="w-2/5"
+              className={caption ? "max-w-[32%] shrink-0" : "max-w-[40%] shrink-0"}
               defaultValue={key}
               onBlur={(e) => {
                 const next = e.target.value.trim();
@@ -76,12 +78,12 @@ export function PropertiesEditor({
               label={t.inspector.removeProperty}
               onClick={() => removeProperty(refs, key)}
             >
-              <IconTrash size={16} />
+              <IconTrash size={17} />
             </IconButton>
           </div>
         );
       })}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1.5">
         <TextInput
           aria-label={t.inspector.addProperty}
           placeholder={t.inspector.propertyKey}
@@ -91,7 +93,12 @@ export function PropertiesEditor({
             if (e.key === "Enter") addKey();
           }}
         />
-        <Button onClick={addKey} disabled={!newKey.trim()} aria-label={t.inspector.addProperty}>
+        <Button
+          onClick={addKey}
+          disabled={!newKey.trim()}
+          aria-label={t.inspector.addProperty}
+          className="w-9 px-0"
+        >
           <IconPlus size={16} />
         </Button>
       </div>

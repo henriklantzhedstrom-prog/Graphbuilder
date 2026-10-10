@@ -23,6 +23,10 @@ export const en = {
     darkMode: "Switch to dark mode",
     lightMode: "Switch to light mode",
   },
+  keys: {
+    modMac: "⌘",
+    modOther: "Ctrl+",
+  },
   tools: {
     select: "Select",
     pan: "Pan",

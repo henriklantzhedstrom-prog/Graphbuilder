@@ -18,7 +18,7 @@ export function StyleFields<K extends string, S extends Record<K, string | numbe
   onChange: (key: K, value: string | number | boolean) => void;
 }) {
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-1.5">
       {fields.map((field) => {
         const common = commonValue(values.map((v) => v[field.key]));
         switch (field.type) {

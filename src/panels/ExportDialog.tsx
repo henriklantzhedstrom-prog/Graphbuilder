@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { Dialog } from "@/components/Dialog";
-import { Button, CheckboxField, cx } from "@/components/ui";
+import { Button, CheckboxField, Segmented, SegmentedItem, Select } from "@/components/ui";
 import { exportCypher } from "@/export/cypher";
 import { exportJson } from "@/export/json";
 import { exportPng } from "@/export/png";
@@ -28,6 +28,7 @@ export function ExportDialog() {
   const [onlyVisible, setOnlyVisible] = useState(true);
   const [transparent, setTransparent] = useState(false);
   const [scale, setScale] = useState(2);
+  const scaleId = useId();
   const [pngUrl, setPngUrl] = useState<string | null>(null);
   const [pngBlob, setPngBlob] = useState<Blob | null>(null);
 
@@ -121,44 +122,44 @@ export function ExportDialog() {
       }
     >
       <div className="flex flex-col gap-3">
-        <div role="tablist" className="flex gap-1">
+        <Segmented role="tablist" className="self-start">
           {FORMATS.map((f) => (
-            <button
+            <SegmentedItem
               key={f.id}
-              type="button"
               role="tab"
               aria-selected={format === f.id}
+              selected={format === f.id}
+              className="min-w-20"
               onClick={() => setFormat(f.id)}
-              className={cx(
-                "rounded-md border px-3 py-1 text-sm",
-                format === f.id
-                  ? "border-accent bg-accent-soft text-accent"
-                  : "border-border hover:bg-surface-2",
-              )}
             >
               {f.label}
-            </button>
+            </SegmentedItem>
           ))}
-        </div>
-        <p className="text-text-muted text-xs">{FORMATS.find((f) => f.id === format)?.hint}</p>
-        <div className="flex flex-wrap items-center gap-4">
+        </Segmented>
+        <p className="text-[0.92em] text-text-muted">
+          {FORMATS.find((f) => f.id === format)?.hint}
+        </p>
+        <div className="flex min-h-9 flex-wrap items-center gap-x-6 gap-y-2">
           <CheckboxField
+            variant="check"
             label={t.export.onlyVisibleLayers}
             checked={onlyVisible}
             onChange={setOnlyVisible}
           />
           {(format === "svg" || format === "png") && (
             <CheckboxField
+              variant="check"
               label={t.export.transparentBackground}
               checked={transparent}
               onChange={setTransparent}
             />
           )}
           {format === "png" && (
-            <label className="flex items-center gap-2 text-sm">
+            <label htmlFor={scaleId} className="flex items-center gap-2">
               {t.export.scale}
-              <select
-                className="h-7 rounded-md border border-border bg-surface px-1"
+              <Select
+                id={scaleId}
+                className="h-8"
                 value={scale}
                 onChange={(e) => setScale(Number(e.target.value))}
               >
@@ -167,16 +168,16 @@ export function ExportDialog() {
                     {s}×
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
           )}
         </div>
         <div
-          className="max-h-[50vh] overflow-auto rounded-md border border-border bg-surface-2 p-2"
+          className="gb-scroll max-h-[50vh] min-h-32 overflow-auto rounded-xl border border-border bg-surface-2 p-4"
           data-testid="export-preview"
         >
           {isEmpty ? (
-            <p className="text-sm text-text-muted">{t.export.empty}</p>
+            <p className="py-8 text-center text-text-muted">{t.export.empty}</p>
           ) : format === "svg" && svg ? (
             <div
               className="[&>svg]:h-auto [&>svg]:max-w-full"
@@ -187,10 +188,12 @@ export function ExportDialog() {
             pngUrl ? (
               <img src={pngUrl} alt={t.export.preview} className="max-w-full" />
             ) : (
-              <p className="text-sm text-text-muted">{t.app.loading}</p>
+              <p className="py-8 text-center text-text-muted">{t.app.loading}</p>
             )
           ) : (
-            <pre className="whitespace-pre-wrap break-all font-mono text-xs">{text}</pre>
+            <pre className="whitespace-pre-wrap break-all font-mono text-[13px] leading-relaxed">
+              {text}
+            </pre>
           )}
         </div>
       </div>

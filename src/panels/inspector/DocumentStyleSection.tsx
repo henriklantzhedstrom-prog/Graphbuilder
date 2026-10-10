@@ -9,9 +9,11 @@ export function DocumentStyleSection() {
   const setDocumentStyle = useDocumentStore((s) => s.setDocumentStyle);
   return (
     <>
-      <div className="px-3 py-3 text-text-muted text-[0.86em]">
-        <p className="mb-1 font-medium text-text">{t.inspector.nothingSelected}</p>
-        <p>{t.inspector.nothingSelectedHint}</p>
+      <div className="border-border border-b px-4 py-4">
+        <p className="mb-1 font-semibold text-[1em]">{t.inspector.nothingSelected}</p>
+        <p className="text-[0.86em] text-text-muted leading-snug">
+          {t.inspector.nothingSelectedHint}
+        </p>
       </div>
       <Section title={t.inspector.documentStyle}>
         <ColorField

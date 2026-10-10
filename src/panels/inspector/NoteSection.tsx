@@ -1,4 +1,4 @@
-import { Button, ColorField, Field, NumberField, Section } from "@/components/ui";
+import { ColorField, Field, NumberField, Section, Segmented, SegmentedItem } from "@/components/ui";
 import { t } from "@/i18n";
 import { NOTE_COLORS } from "@/model/defaults";
 import type { Note } from "@/model/types";
@@ -21,7 +21,7 @@ export function NoteSection({ notes }: { notes: Note[] }) {
           <textarea
             id={id}
             data-testid="inspector-note-text"
-            className="min-h-24 w-full resize-y rounded-md border border-border bg-surface px-2 py-1 text-[1em] focus:border-accent focus:outline-none"
+            className="gb-control min-h-24 w-full resize-y rounded-lg px-2.5 py-2 text-[1em] leading-snug placeholder:text-text-muted/70"
             value={text ?? ""}
             placeholder={text === null ? t.inspector.mixed : t.inspector.textPlaceholder}
             onChange={(e) => setAll({ text: e.target.value })}
@@ -48,14 +48,22 @@ export function NoteSection({ notes }: { notes: Note[] }) {
       />
       <Field label={t.inspector.align} inline>
         {() => (
-          <span className="flex gap-1">
-            <Button active={align === "left"} onClick={() => setAll({ align: "left" })}>
+          <Segmented className="w-44">
+            <SegmentedItem
+              selected={align === "left"}
+              aria-pressed={align === "left"}
+              onClick={() => setAll({ align: "left" })}
+            >
               {t.inspector.alignLeft}
-            </Button>
-            <Button active={align === "center"} onClick={() => setAll({ align: "center" })}>
+            </SegmentedItem>
+            <SegmentedItem
+              selected={align === "center"}
+              aria-pressed={align === "center"}
+              onClick={() => setAll({ align: "center" })}
+            >
               {t.inspector.alignCenter}
-            </Button>
-          </span>
+            </SegmentedItem>
+          </Segmented>
         )}
       </Field>
       {single && (
