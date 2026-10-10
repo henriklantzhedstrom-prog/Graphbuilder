@@ -1,13 +1,10 @@
-import { useState } from "react";
-import { IconClose, IconPlus } from "@/components/icons";
-import { Button, Field, Section, TextInput } from "@/components/ui";
+import { Button, Field, Section } from "@/components/ui";
 import { t } from "@/i18n";
-import { nodeCaption } from "@/model/caption";
-import { conflictingNodeIds, type LabelConflict } from "@/model/labels";
 import type { GraphNode } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
 import { resolvedNodeStyle } from "@/store/selectors";
 import { captionColorFor, NODE_STYLE_FIELDS } from "./common";
+import { LabelsEditor } from "./LabelsEditor";
 import { PropertiesEditor } from "./PropertiesEditor";
 import { StyleFields } from "./StyleFields";
 
@@ -16,116 +13,15 @@ export function NodeSection({ nodes }: { nodes: GraphNode[] }) {
   const setNodeStyle = useDocumentStore((s) => s.setNodeStyle);
   const resetElementStyle = useDocumentStore((s) => s.resetElementStyle);
   const setCaptionKey = useDocumentStore((s) => s.setCaptionKey);
-  const setNodeLabels = useDocumentStore((s) => s.setNodeLabels);
-  const [newLabel, setNewLabel] = useState("");
-  const [labelError, setLabelError] = useState<string | null>(null);
   const ids = nodes.map((n) => n.id);
   const refs = ids.map((id) => ({ kind: "node" as const, id }));
-  const labels = [...new Set(nodes.flatMap((n) => n.labels))];
   const hasCustomStyle = nodes.some((n) => Object.keys(n.style).length > 0);
-
-  const inConflict = nodes.some((n) => conflictingNodeIds(doc.nodes).has(n.id));
-
-  const describeConflict = (conflict: LabelConflict, labels: string[]) => {
-    const other = doc.nodes[conflict.otherId];
-    return t.inspector.labelConflict(labels.join(", "), other ? nodeCaption(other) : "");
-  };
-
-  const applyLabels = (changes: { id: string; labels: string[] }[]): boolean => {
-    if (changes.length === 0) return true;
-    const result = setNodeLabels(changes);
-    if (result.ok) {
-      setLabelError(null);
-      return true;
-    }
-    const attempted = changes.find((c) => c.id === result.conflict.nodeId)?.labels ?? [];
-    setLabelError(describeConflict(result.conflict, attempted));
-    return false;
-  };
-
-  const addLabel = () => {
-    const label = newLabel.trim();
-    if (!label) return;
-    const changes = nodes
-      .filter((n) => !n.labels.includes(label))
-      .map((n) => ({ id: n.id, labels: [...n.labels, label] }));
-    if (applyLabels(changes)) setNewLabel("");
-  };
-  const removeLabel = (label: string) => {
-    applyLabels(
-      nodes
-        .filter((n) => n.labels.includes(label))
-        .map((n) => ({ id: n.id, labels: n.labels.filter((l) => l !== label) })),
-    );
-  };
 
   return (
     <>
       <Section title={nodes.length === 1 ? t.inspector.node : t.inspector.nodes(nodes.length)}>
         <Field label={t.inspector.labels}>
-          {(id) => (
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-wrap gap-1.5 empty:hidden">
-                {labels.map((label) => (
-                  <span
-                    key={label}
-                    className="inline-flex h-7 items-center gap-0.5 rounded-full bg-accent-soft pr-1 pl-3 font-medium text-[0.86em] text-accent"
-                  >
-                    {label}
-                    <button
-                      type="button"
-                      aria-label={`${t.inspector.removeLabel}: ${label}`}
-                      className="flex h-5 w-5 items-center justify-center rounded-full opacity-70 hover:bg-accent/15 hover:opacity-100"
-                      onClick={() => removeLabel(label)}
-                    >
-                      <IconClose size={12} />
-                    </button>
-                  </span>
-                ))}
-              </div>
-              <div className="flex gap-1.5">
-                <TextInput
-                  id={id}
-                  placeholder={t.inspector.labelPlaceholder}
-                  value={newLabel}
-                  onChange={(e) => {
-                    setNewLabel(e.target.value);
-                    setLabelError(null);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") addLabel();
-                  }}
-                  // Det som står i fältet sparas även när man klickar någon annanstans.
-                  onBlur={addLabel}
-                />
-                <Button
-                  onClick={addLabel}
-                  disabled={!newLabel.trim()}
-                  aria-label={t.inspector.addLabel}
-                  className="w-9 px-0"
-                >
-                  <IconPlus size={16} />
-                </Button>
-              </div>
-              {labelError && (
-                <p
-                  role="alert"
-                  data-testid="label-error"
-                  className="rounded-lg bg-danger/10 px-3 py-2 text-[0.88em] text-danger leading-snug"
-                >
-                  {labelError}
-                </p>
-              )}
-              {!labelError && inConflict && (
-                <p
-                  data-testid="label-warning"
-                  className="rounded-lg bg-warning/10 px-3 py-2 text-[0.88em] text-warning leading-snug"
-                >
-                  {t.inspector.labelConflictExisting}
-                </p>
-              )}
-            </div>
-          )}
+          {(id) => <LabelsEditor nodes={nodes} inputId={id} />}
         </Field>
       </Section>
       <Section title={t.inspector.properties}>

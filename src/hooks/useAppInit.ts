@@ -123,6 +123,7 @@ export function useAppInit(): boolean {
           ui.setActiveLayer(state.doc.layers.at(-1)?.id ?? null);
           ui.clearSelection();
           ui.setEditing(null);
+          ui.setDetails(null);
         }
       }),
     [],

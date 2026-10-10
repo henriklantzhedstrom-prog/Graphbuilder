@@ -102,6 +102,7 @@ export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
         case "Escape":
           ui.setDrag(null);
           ui.setEditing(null);
+          ui.setDetails(null);
           if (ui.tool !== "select") ui.setTool("select");
           else ui.clearSelection();
           return;

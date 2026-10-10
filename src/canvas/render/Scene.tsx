@@ -35,6 +35,8 @@ export interface SceneProps {
   layerFilter?: (layerId: Id) => boolean;
   selectedKeys?: ReadonlySet<string>;
   highlightNodeId?: Id | null;
+  /** Element vars labels och egenskaper redigeras på ritytan just nu; de ritas då inte. */
+  detailsKey?: string | null;
   zoom?: number;
   /** Sant om elementet går att ändra storlek på (olåst). */
   canResize?: (ref: ElementRef) => boolean;
@@ -91,6 +93,7 @@ export const Scene = memo(function Scene({
   layerFilter,
   selectedKeys,
   highlightNodeId,
+  detailsKey,
   zoom = 1,
   canResize,
 }: SceneProps) {
@@ -147,7 +150,7 @@ export const Scene = memo(function Scene({
               hideType={isEditing({ kind: "relationship", id: rel.id })}
               selected={isSelected(`relationship:${rel.id}`)}
               zoom={zoom}
-              showProperties={doc.propertiesVisible}
+              showProperties={doc.propertiesVisible && detailsKey !== `relationship:${rel.id}`}
             />
           );
         })}
@@ -166,7 +169,8 @@ export const Scene = memo(function Scene({
               highlighted={highlightNodeId === node.id}
               conflict={conflicts.has(node.id)}
               zoom={zoom}
-              showProperties={doc.propertiesVisible}
+              showProperties={doc.propertiesVisible && detailsKey !== `node:${node.id}`}
+              hideLabels={detailsKey === `node:${node.id}`}
             />
           ))}
         </g>

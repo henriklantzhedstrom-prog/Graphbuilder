@@ -41,6 +41,7 @@ export function InlineEditor({
   const [value, setValue] = useState(() => initialText(doc, target));
   const committed = useRef(false);
   const setEditing = useUiStore((s) => s.setEditing);
+  const setDetails = useUiStore((s) => s.setDetails);
 
   useEffect(() => {
     const el = ref.current;
@@ -75,15 +76,22 @@ export function InlineEditor({
         data-testid="inline-editor"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        onBlur={() => commit(value)}
+        onBlur={(e) => {
+          commit(value);
+          // Går markören vidare till labels eller egenskaper fortsätter redigeringen där.
+          const next = e.relatedTarget;
+          if (!(next instanceof Element && next.closest("[data-details-editor]"))) setDetails(null);
+        }}
         onKeyDown={(e) => {
           e.stopPropagation();
           if (e.key === "Escape") {
             e.preventDefault();
             cancel();
+            setDetails(null);
           } else if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             commit(value);
+            setDetails(null);
           }
         }}
         onPointerDown={(e) => e.stopPropagation()}

@@ -37,7 +37,14 @@ import {
   resolvedNodeStyle,
 } from "@/store/selectors";
 import { type DragState, useUiStore } from "@/store/uiStore";
-import { createNodeAt, createNoteAt, createRelationship, movableSelection } from "./actions";
+import {
+  createNodeAt,
+  createNoteAt,
+  createRelationship,
+  movableSelection,
+  startEditing,
+} from "./actions";
+import { DetailsEditor } from "./DetailsEditor";
 import { InlineEditor } from "./InlineEditor";
 import { addImageFromFile, imageFilesFrom } from "./images";
 import { NOTE_PADDING } from "./render/NoteView";
@@ -135,6 +142,8 @@ export function Canvas() {
   const drag = useUiStore((s) => s.drag);
   const setDrag = useUiStore((s) => s.setDrag);
   const editing = useUiStore((s) => s.editing);
+  const detailsRef = useUiStore((s) => s.details?.ref ?? null);
+  const detailsKey = detailsRef ? refKey(detailsRef) : null;
   const tool = useUiStore((s) => s.tool);
   const spacePressed = useUiStore((s) => s.spacePressed);
   const gesture = useRef<Gesture | null>(null);
@@ -227,7 +236,9 @@ export function Canvas() {
     // Ett klick på ritytan flyttar inte markören ur ett fält i sidopanelen av sig självt. Lämna
     // fältet först, så att det som står där sparas innan markeringen ändras.
     const active = document.activeElement;
-    if (active instanceof HTMLElement && !containerRef.current?.contains(active)) active.blur();
+    if (active instanceof HTMLElement && !svgRef.current?.contains(active)) active.blur();
+    // Ett klick på ritytan avslutar redigeringen av labels och egenskaper.
+    if (useUiStore.getState().details) useUiStore.getState().setDetails(null);
     const ui = useUiStore.getState();
     const docState = useDocumentStore.getState();
     const currentDoc = docState.doc;
@@ -493,11 +504,17 @@ export function Canvas() {
     const ui = useUiStore.getState();
     const currentDoc = useDocumentStore.getState().doc;
     // Pekarfångst gör att e.target kan vara själva ritytan; slå upp elementet under markören.
-    const { ref } = hitTarget(document.elementFromPoint(e.clientX, e.clientY));
+    const under = document.elementFromPoint(e.clientX, e.clientY);
+    const { ref } = hitTarget(under);
     if (ref && isSelectable(currentDoc, ref)) {
       if (ref.kind === "image") return;
       ui.setSelection([ref]);
-      ui.setEditing(ref);
+      // Dubbelklick på labels eller egenskaper sätter markören där; annars i rubriken.
+      const part = under?.closest("[data-part]")?.getAttribute("data-part");
+      startEditing(
+        ref,
+        part === "label-box" ? "labels" : part === "property-background" ? "properties" : "caption",
+      );
     }
   };
 
@@ -584,6 +601,7 @@ export function Canvas() {
             editing={editing}
             selectedKeys={selectedKeys}
             highlightNodeId={drag?.kind === "relationship" ? drag.targetId : null}
+            detailsKey={detailsKey}
             zoom={committed.zoom}
             canResize={canResize}
           />
@@ -591,6 +609,7 @@ export function Canvas() {
           {editing && <EditorHost editing={editing} overrides={overrides} zoom={committed.zoom} />}
         </g>
       </svg>
+      <DetailsEditor viewport={viewport} />
       {dropActive && (
         <div className="pointer-events-none absolute inset-3 flex items-center justify-center rounded-2xl border-2 border-accent border-dashed bg-accent/5 font-medium text-[16px] text-accent">
           {t.canvas.dropImageHint}

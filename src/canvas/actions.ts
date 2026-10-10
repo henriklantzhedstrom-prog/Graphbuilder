@@ -10,7 +10,7 @@ import {
   isSelectable,
   layerById,
 } from "@/store/selectors";
-import { useUiStore } from "@/store/uiStore";
+import { type DetailFocus, useUiStore } from "@/store/uiStore";
 import { drawnBounds } from "./render/bounds";
 import { moveViewportSmoothlyTo, zoomSmoothlyBy, zoomSmoothlyTo } from "./viewportAnimation";
 
@@ -77,6 +77,7 @@ export function deleteSelection(): void {
   docState().deleteElements(selection);
   setSelection([]);
   setEditing(null);
+  ui().setDetails(null);
 }
 
 /** Antal kopierade noder som tappade sina labels för att labelkombinationen redan fanns. */
@@ -150,10 +151,23 @@ export function reverseSelectedRelationships(): void {
   if (ids.length > 0) docState().reverseRelationships(ids);
 }
 
+/**
+ * Öppnar redigering direkt på ritytan. För noder och relationer visas även labels och egenskaper
+ * (`DetailsEditor`); `focus` anger vilken del markören börjar i.
+ */
+export function startEditing(ref: ElementRef, focus: DetailFocus): void {
+  if (ref.kind === "image") return;
+  const { setEditing, setDetails } = ui();
+  const hasDetails = ref.kind === "node" || ref.kind === "relationship";
+  setDetails(hasDetails ? { ref, focus } : null);
+  // Rubriken (nodens namn, relationens typ, anteckningens text) redigeras på plats när det är
+  // den som valts; annars står den kvar som vanlig text.
+  setEditing(focus === "caption" ? ref : null);
+}
+
 export function startEditingSelection(): void {
-  const { selection, setEditing } = ui();
-  const only = selection.length === 1 ? selection[0] : undefined;
-  if (only && only.kind !== "image") setEditing(only);
+  const only = ui().selection.length === 1 ? ui().selection[0] : undefined;
+  if (only) startEditing(only, "caption");
 }
 
 export function fitToContent(viewportSize: Size): void {

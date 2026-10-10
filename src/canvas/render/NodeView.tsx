@@ -23,6 +23,8 @@ export interface NodeViewProps {
   zoom?: number;
   /** Falskt när lagret "Properties" är dolt: egenskapsraderna under noden ritas inte. */
   showProperties?: boolean;
+  /** Sant medan labels redigeras på ritytan: redigeringsrutan ligger där de annars ritas. */
+  hideLabels?: boolean;
 }
 
 export function NodeView({
@@ -36,6 +38,7 @@ export function NodeView({
   conflict = false,
   zoom = 1,
   showProperties = true,
+  hideLabels = false,
 }: NodeViewProps) {
   const { x, y } = position;
   const r = style.radius;
@@ -48,7 +51,7 @@ export function NodeView({
   // `r` är den fyllda ytans radie. Kanten ligger utanför den och växer utåt; allt runt noden
   // (labels, egenskaper, markeringsringar) räknas från kantens ytterkant.
   const outerR = nodeOuterRadius(style);
-  const labels = labelLayout(node.labels, style, x, y - outerR).boxes;
+  const labels = hideLabels ? [] : labelLayout(node.labels, style, x, y - outerR).boxes;
   const labelBorder = style.labelBorderWidth;
 
   // Alla egenskaper listas under noden, även den som också visas som rubrik.
@@ -132,7 +135,7 @@ export function NodeView({
         </text>
       )}
       {labels.map(({ label, inner }, i) => (
-        <g key={`${label}-${i}`} style={{ pointerEvents: "none" }}>
+        <g key={`${label}-${i}`}>
           {/* Kanten ligger utanför labelns inre yta: linjens mitt är en halv kantbredd utanför. */}
           <rect
             data-part="label-box"
@@ -153,7 +156,7 @@ export function NodeView({
             fontSize={style.labelFontSize}
             fill={style.labelColor}
             fontFamily="system-ui, sans-serif"
-            style={{ userSelect: "none" }}
+            style={{ pointerEvents: "none", userSelect: "none" }}
           >
             {label}
           </text>

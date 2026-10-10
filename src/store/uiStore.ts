@@ -6,6 +6,7 @@ import { refKey } from "./selectors";
 
 export type Tool = "select" | "pan" | "note";
 export type Panel = "inspector" | "layers";
+export type DetailFocus = "caption" | "labels" | "properties";
 export type Dialog = "export" | "documents" | "shortcuts" | null;
 
 export type DragState =
@@ -28,6 +29,11 @@ export interface UiState {
   tool: Tool;
   viewport: Viewport;
   editing: ElementRef | null;
+  /**
+   * Nod eller relation vars labels och egenskaper redigeras direkt på ritytan (dubbelklick), och
+   * vilken del markören ska börja i.
+   */
+  details: { ref: ElementRef; focus: DetailFocus } | null;
   panel: Panel;
   dialog: Dialog;
   drag: DragState;
@@ -45,6 +51,7 @@ export interface UiState {
   setTool(tool: Tool): void;
   setViewport(vp: Viewport): void;
   setEditing(ref: ElementRef | null): void;
+  setDetails(details: { ref: ElementRef; focus: DetailFocus } | null): void;
   setPanel(panel: Panel): void;
   setDialog(dialog: Dialog): void;
   setDrag(drag: DragState): void;
@@ -65,6 +72,7 @@ export const useUiStore = create<UiState>()((set, get) => ({
   tool: "select",
   viewport: { x: 0, y: 0, zoom: 1 },
   editing: null,
+  details: null,
   panel: "inspector",
   dialog: null,
   drag: null,
@@ -107,6 +115,7 @@ export const useUiStore = create<UiState>()((set, get) => ({
   setTool: (tool) => set({ tool }),
   setViewport: (viewport) => set({ viewport }),
   setEditing: (editing) => set({ editing }),
+  setDetails: (details) => set({ details }),
   setPanel: (panel) => set({ panel }),
   setDialog: (dialog) => set({ dialog }),
   setDrag: (drag) => set({ drag }),
