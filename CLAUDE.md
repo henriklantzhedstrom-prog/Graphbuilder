@@ -193,6 +193,9 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   `node scripts/generate-test-model.mjs` och vaktas av `tests/unit/testModel.test.ts`. Öppnas med
   länken `?open=test-model-200.json` (`openLinkedModel` i `useAppInit.ts`; bara filnamn som ligger
   bredvid appen tillåts). Använd den för att mäta prestanda före och efter ändringar i ritytan.
+- Anteckningar skapas med knappen **Add note** bredvid Add node (`addNoteInView`), eller med
+  anteckningsverktyget i den flytande listen / tangenten N för att klicka eller dra ut en på
+  valfri plats. Knappen finns för att verktygsikonen ensam inte gick att hitta.
 - Noder skapas med knappen **Add node** överst i sidopanelen (`addNodeInView` i `src/canvas/actions.ts`),
   aldrig genom dubbelklick på tom yta. Dubbelklick på ett element redigerar det (träffas via
   `document.elementFromPoint`, eftersom pekarfångst gör `e.target` till ritytan).

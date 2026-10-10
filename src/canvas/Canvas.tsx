@@ -629,6 +629,7 @@ export function Canvas() {
             <IconPlus size={22} />
           </span>
           {t.canvas.emptyHint}
+          <span className="text-[14px] opacity-80">{t.canvas.emptyHintNote}</span>
         </div>
       )}
     </div>

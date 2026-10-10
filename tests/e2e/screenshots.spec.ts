@@ -61,7 +61,7 @@ test("skärmdump: anteckning och bakgrundsbild i lager", async ({ page }) => {
   await createNode(page, 300, 300, "Person");
   await createNode(page, 650, 300, "Company");
   await dragRelationship(page, { x: 300, y: 300 }, { x: 650, y: 300 }, "WORKS_AT");
-  await page.getByRole("button", { name: "Note" }).click();
+  await page.getByRole("button", { name: "Note", exact: true }).click();
   await page.getByTestId("canvas").click({ position: { x: 420, y: 470 } });
   await page.getByTestId("inline-editor").fill("Att göra: lägg till adress på Company");
   await page.getByTestId("canvas").click({ position: { x: 800, y: 650 } });

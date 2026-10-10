@@ -4,7 +4,7 @@ import { freshApp } from "./helpers";
 test.describe("anteckningar", () => {
   test("skapa med verktyget, skriv text, byt färg och ändra storlek", async ({ page }) => {
     await freshApp(page);
-    await page.getByRole("button", { name: "Note" }).click();
+    await page.getByRole("button", { name: "Note", exact: true }).click();
     await page.getByTestId("canvas").click({ position: { x: 200, y: 200 } });
     const editor = page.getByTestId("inline-editor");
     await expect(editor).toBeVisible();
@@ -53,7 +53,7 @@ test.describe("anteckningar", () => {
 
   test("textstorlek, bredd och höjd ställs in med skjutreglage", async ({ page }) => {
     await freshApp(page);
-    await page.getByRole("button", { name: "Note" }).click();
+    await page.getByRole("button", { name: "Note", exact: true }).click();
     await page.getByTestId("canvas").click({ position: { x: 200, y: 200 } });
     await page.getByTestId("inline-editor").fill("Anteckning");
     await page.getByTestId("canvas").click({ position: { x: 700, y: 600 } });
@@ -79,7 +79,7 @@ test.describe("anteckningar", () => {
 
   test("anteckningens text syns mot sin färg, utan eget färgval för texten", async ({ page }) => {
     await freshApp(page);
-    await page.getByRole("button", { name: "Note" }).click();
+    await page.getByRole("button", { name: "Note", exact: true }).click();
     await page.getByTestId("canvas").click({ position: { x: 200, y: 200 } });
     await page.getByTestId("inline-editor").fill("Anteckning");
     await page.getByTestId("canvas").click({ position: { x: 700, y: 600 } });
@@ -89,5 +89,32 @@ test.describe("anteckningar", () => {
     await expect(text).toHaveAttribute("fill", "#1b1f27");
     await page.locator("[data-field='Color']").locator("input[type='color']").fill("#101010");
     await expect(text).toHaveAttribute("fill", "#ffffff");
+  });
+
+  test("knappen Add note lägger en anteckning mitt i vyn, färdig att skriva i", async ({
+    page,
+  }) => {
+    await freshApp(page);
+    await expect(page.getByText("“Add note” adds a free-text note")).toBeVisible();
+    await page.getByTestId("add-note").click();
+    const editor = page.getByTestId("inline-editor");
+    await expect(editor).toBeFocused();
+    await editor.fill("Kom ihåg detta");
+    await page.getByTestId("canvas").click({ position: { x: 80, y: 600 } });
+    const notes = page.locator("[data-ref^='note:'] > rect");
+    await expect(notes).toHaveCount(1);
+    await expect(page.locator("svg text", { hasText: "Kom ihåg detta" })).toBeVisible();
+    // Anteckningen ligger mitt i ritytan.
+    const canvas = await page.getByTestId("canvas").boundingBox();
+    const note = await notes.first().boundingBox();
+    if (!canvas || !note) throw new Error("anteckning saknas");
+    expect(Math.abs(note.x + note.width / 2 - (canvas.x + canvas.width / 2))).toBeLessThan(3);
+    expect(Math.abs(note.y + note.height / 2 - (canvas.y + canvas.height / 2))).toBeLessThan(3);
+    // En till hamnar bredvid, inte exakt ovanpå.
+    await page.getByTestId("add-note").click();
+    await page.keyboard.press("Escape");
+    await expect(notes).toHaveCount(2);
+    const second = await notes.nth(1).boundingBox();
+    expect(Math.abs((second?.x ?? 0) - note.x)).toBeGreaterThan(20);
   });
 });

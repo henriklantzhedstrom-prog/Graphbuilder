@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { addNodeInView } from "@/canvas/actions";
-import { IconLayers, IconPalette, IconPlus } from "@/components/icons";
+import { addNodeInView, addNoteInView } from "@/canvas/actions";
+import { IconLayers, IconNote, IconPalette, IconPlus } from "@/components/icons";
 import { Button, Segmented, SegmentedItem } from "@/components/ui";
 import { t } from "@/i18n";
 import type { Size } from "@/model/types";
@@ -19,15 +19,25 @@ export function SidePanel({ getViewportSize }: { getViewportSize: () => Size }) 
   return (
     <aside className="flex w-[23rem] shrink-0 flex-col border-border border-l bg-surface text-[17px]">
       <div className="flex flex-col gap-3 border-border border-b p-4">
-        <Button
-          variant="primary"
-          data-testid="add-node"
-          className="h-11 w-full text-[1em]"
-          onClick={() => addNodeInView(getViewportSize())}
-        >
-          <IconPlus size={18} />
-          {t.tools.addNode}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="primary"
+            data-testid="add-node"
+            className="h-11 flex-1 text-[1em]"
+            onClick={() => addNodeInView(getViewportSize())}
+          >
+            <IconPlus size={18} />
+            {t.tools.addNode}
+          </Button>
+          <Button
+            data-testid="add-note"
+            className="h-11 flex-1 text-[1em]"
+            onClick={() => addNoteInView(getViewportSize())}
+          >
+            <IconNote size={18} />
+            {t.tools.addNote}
+          </Button>
+        </div>
         <Segmented role="tablist">
           {TABS.map((tab) => (
             <SegmentedItem

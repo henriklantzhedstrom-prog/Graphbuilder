@@ -1,4 +1,5 @@
 import { t } from "@/i18n";
+import { DEFAULT_NOTE } from "@/model/defaults";
 import { fitBoxInViewport } from "@/model/geometry";
 import type { Box, ElementRef, Id, Point, Size } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
@@ -210,6 +211,26 @@ export function addNodeInView(viewportSize: Size): Id | null {
     position.y += NEW_NODE_OFFSET;
   }
   return createNodeAt(position);
+}
+
+/**
+ * Skapar en anteckning mitt i den synliga ytan (knappen "Add note") och öppnar den för text.
+ * Ligger det redan en anteckning där förskjuts den nya snett nedåt.
+ */
+export function addNoteInView(viewportSize: Size): Id | null {
+  const { doc } = docState();
+  const center = viewportCenter(viewportSize);
+  const { w, h } = DEFAULT_NOTE.size;
+  const position = { x: center.x - w / 2, y: center.y - h / 2 };
+  const taken = (p: Point) =>
+    Object.values(doc.notes).some(
+      (n) => Math.abs(n.position.x - p.x) < 10 && Math.abs(n.position.y - p.y) < 10,
+    );
+  for (let i = 0; i < 50 && taken(position); i++) {
+    position.x += NEW_NODE_OFFSET;
+    position.y += NEW_NODE_OFFSET;
+  }
+  return createNoteAt({ ...position, w, h });
 }
 
 /** Rensa markering/redigering som pekar på borttagna eller dolda element. */
