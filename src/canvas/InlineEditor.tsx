@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import { flushSync } from "react-dom";
+import { type CSSProperties, type KeyboardEvent, useEffect, useRef, useState } from "react";
+import { RichTextEditor } from "@/components/RichTextEditor";
 import { nodeCaption } from "@/model/caption";
-import { toggleMarkup } from "@/model/noteText";
 import type { Box, ElementRef, GraphDocument, GraphNode } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
 import { useUiStore } from "@/store/uiStore";
@@ -41,6 +40,9 @@ export function InlineEditor({
 }: InlineEditorProps) {
   const ref = useRef<HTMLTextAreaElement>(null);
   const [value, setValue] = useState(() => initialText(doc, target));
+  // Senaste texten, för tangenthanteringen i fältet med fet och kursiv stil.
+  const valueRef = useRef(value);
+  valueRef.current = value;
   const committed = useRef(false);
   const setEditing = useUiStore((s) => s.setEditing);
   const setDetails = useUiStore((s) => s.setDetails);
@@ -71,72 +73,76 @@ export function InlineEditor({
     setEditing(null);
   };
 
+  const editorStyle: CSSProperties = {
+    width: "100%",
+    height: "100%",
+    resize: "none",
+    border: `${1 / zoom}px solid var(--color-accent)`,
+    borderRadius: 4,
+    outline: "none",
+    padding: 2,
+    margin: 0,
+    background: "rgba(255,255,255,0.92)",
+    color,
+    fontSize,
+    lineHeight: 1.25,
+    textAlign: align,
+    fontFamily: "system-ui, sans-serif",
+    boxSizing: "border-box",
+    overflow: "hidden",
+  };
+  /** Fokus lämnar fältet: spara. Går markören vidare till labels/egenskaper fortsätter man där. */
+  const leave = (text: string, next: EventTarget | null) => {
+    commit(text);
+    if (!(next instanceof Element && next.closest("[data-details-editor]"))) setDetails(null);
+  };
+  /** Esc avbryter, Enter (utan Shift) sparar och avslutar. */
+  const keys = (e: KeyboardEvent<HTMLElement>, text: string) => {
+    e.stopPropagation();
+    if (e.key === "Escape") {
+      e.preventDefault();
+      cancel();
+      setDetails(null);
+    } else if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      commit(text);
+      setDetails(null);
+    }
+  };
+
   return (
     <foreignObject x={box.x} y={box.y} width={box.w} height={box.h} style={{ overflow: "visible" }}>
-      <textarea
-        ref={ref}
-        data-testid="inline-editor"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onBlur={(e) => {
-          commit(value);
-          // Går markören vidare till labels eller egenskaper fortsätter redigeringen där.
-          const next = e.relatedTarget;
-          if (!(next instanceof Element && next.closest("[data-details-editor]"))) setDetails(null);
-        }}
-        onKeyDown={(e) => {
-          e.stopPropagation();
-          // I anteckningar: Ctrl/Cmd+B och Ctrl/Cmd+I gör den markerade texten fet eller kursiv.
-          const style = e.key.toLowerCase();
-          if (
-            target.kind === "note" &&
-            (e.ctrlKey || e.metaKey) &&
-            (style === "b" || style === "i")
-          ) {
-            e.preventDefault();
-            const el = e.currentTarget;
-            const next = toggleMarkup(
-              value,
-              el.selectionStart,
-              el.selectionEnd,
-              style === "b" ? "**" : "*",
-            );
-            // Texten måste hinna in i fältet innan markeringen sätts, annars hamnar markören sist.
-            flushSync(() => setValue(next.value));
-            el.setSelectionRange(next.start, next.end);
-            return;
-          }
-          if (e.key === "Escape") {
-            e.preventDefault();
-            cancel();
-            setDetails(null);
-          } else if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            commit(value);
-            setDetails(null);
-          }
-        }}
-        onPointerDown={(e) => e.stopPropagation()}
-        onDoubleClick={(e) => e.stopPropagation()}
-        style={{
-          width: "100%",
-          height: "100%",
-          resize: "none",
-          border: `${1 / zoom}px solid var(--color-accent)`,
-          borderRadius: 4,
-          outline: "none",
-          padding: 2,
-          margin: 0,
-          background: "rgba(255,255,255,0.92)",
-          color,
-          fontSize,
-          lineHeight: 1.25,
-          textAlign: align,
-          fontFamily: "system-ui, sans-serif",
-          boxSizing: "border-box",
-          overflow: "hidden",
-        }}
-      />
+      {target.kind === "note" ? (
+        // Anteckningar: texten syns fet och kursiv medan man skriver (B och I vid rutan).
+        // biome-ignore lint/a11y/noStaticElementInteractions: hindrar bara att klick i fältet når ritytan
+        <div
+          style={{ width: "100%", height: "100%" }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onDoubleClick={(e) => e.stopPropagation()}
+        >
+          <RichTextEditor
+            testId="inline-editor"
+            autoFocus
+            value={value}
+            onChange={setValue}
+            onBlur={leave}
+            onKeyDown={(e) => keys(e, valueRef.current)}
+            style={editorStyle}
+          />
+        </div>
+      ) : (
+        <textarea
+          ref={ref}
+          data-testid="inline-editor"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onBlur={(e) => leave(value, e.relatedTarget)}
+          onKeyDown={(e) => keys(e, value)}
+          onPointerDown={(e) => e.stopPropagation()}
+          onDoubleClick={(e) => e.stopPropagation()}
+          style={editorStyle}
+        />
+      )}
     </foreignObject>
   );
 }

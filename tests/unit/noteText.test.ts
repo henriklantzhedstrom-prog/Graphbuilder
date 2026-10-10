@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { layoutRichText, parseRuns, plainText, toggleMarkup } from "@/model/noteText";
+import { layoutRichText, parseRuns, plainText } from "@/model/noteText";
 
 const styled = (text: string) =>
   parseRuns(text).map((r) => `${r.bold ? "B" : ""}${r.italic ? "I" : ""}:${r.text}`);
@@ -34,26 +34,5 @@ describe("fet och kursiv text i anteckningar", () => {
       "",
       "def",
     ]);
-  });
-
-  it("slår på och av stil för markerad text", () => {
-    const text = "En fet text";
-    const on = toggleMarkup(text, 3, 6, "**");
-    expect(on.value).toBe("En **fet** text");
-    expect(on.value.slice(on.start, on.end)).toBe("fet");
-    // Samma markering en gång till tar bort märkena.
-    const off = toggleMarkup(on.value, on.start, on.end, "**");
-    expect(off).toEqual({ value: text, start: 3, end: 6 });
-    // Kursiv ovanpå fet ger båda.
-    const both = toggleMarkup(on.value, on.start, on.end, "*");
-    expect(both.value).toBe("En ***fet*** text");
-    expect(styled(both.value)).toEqual([":En ", "BI:fet", ": text"]);
-    // Kursiv av igen lämnar feten kvar.
-    expect(toggleMarkup(both.value, both.start, both.end, "*").value).toBe("En **fet** text");
-    // Mellanslag i kanterna av markeringen hamnar utanför märkena.
-    expect(toggleMarkup("a b c", 1, 4, "*").value).toBe("a *b* c");
-    // Flera rader får märken var för sig; ingen markering ändrar ingenting.
-    expect(toggleMarkup("ett\ntvå", 0, 7, "**").value).toBe("**ett**\n**två**");
-    expect(toggleMarkup(text, 2, 2, "**").value).toBe(text);
   });
 });

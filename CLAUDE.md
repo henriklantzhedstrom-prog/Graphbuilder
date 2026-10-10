@@ -91,10 +91,13 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
 - **En ny anteckning är vit med svart ram** (`DEFAULT_NOTE`). Färg, ramens färg och ramens
   tjocklek (`borderColor`, `borderWidth`, 0–10) ställs in i panelen; ramen ritas utanför ytan och
   växer utåt. Bredd och höjd finns inte i panelen – storleken ändras genom att dra i hörnen.
-- **Fet och kursiv text i anteckningar** skrivs med märken i texten, `**fet**` och `*kursiv*`
-  (`src/model/noteText.ts`: `parseRuns`, `layoutRichText`, `toggleMarkup`). Märkena syns när man
-  redigerar och ritas inte ut. Stilen sätts på markerad text med knapparna B och I i panelen eller
-  Ctrl/Cmd+B och Ctrl/Cmd+I, både i panelens textfält och när man skriver direkt på ritytan.
+- **Fet och kursiv text i anteckningar.** Texten sparas med märken, `**fet**` och `*kursiv*`
+  (`src/model/noteText.ts`), men märkena visas aldrig: anteckningar redigeras i `RichTextEditor`
+  (`src/components/RichTextEditor.tsx`, ett redigerbart fält som visar stilen direkt; översättning
+  i `richText.ts`), både på ritytan (`InlineEditor`) och i panelen. Markerad text görs fet eller
+  kursiv med B och I vid rutan (`NoteFormatBar`), med knapparna i panelen eller Ctrl/Cmd+B/I.
+  Knapparna får aldrig ta fokus från fältet (`onMouseDown` med `preventDefault`). Ny rad i en
+  anteckning är Shift+Enter; Enter sparar. Visa aldrig stjärnorna för användaren.
 - **Anteckningar har ett eget fast lager, "Notes"** (`doc.notesVisible`, `NotesRow` i
   `LayersPanel.tsx`), och hör inte till de vanliga lagren (`Note` har inget `layerId`; äldre filer
   migreras, dokumentversion 6). De ritas överst och är aldrig låsta av ett lager.

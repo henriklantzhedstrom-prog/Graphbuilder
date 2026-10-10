@@ -50,6 +50,7 @@ import {
 import { DetailsEditor } from "./DetailsEditor";
 import { InlineEditor } from "./InlineEditor";
 import { addImageFromFile, imageFilesFrom } from "./images";
+import { NoteFormatBar } from "./NoteFormatBar";
 import { NOTE_PADDING } from "./render/NoteView";
 import { computeRelationshipGeometry, Scene, type SceneOverrides } from "./render/Scene";
 import { type Handle, handlePosition } from "./render/SelectionBox";
@@ -655,6 +656,7 @@ export function Canvas() {
         </g>
       </svg>
       <DetailsEditor viewport={viewport} />
+      <NoteFormatBar viewport={viewport} />
       {attaching && (
         <div
           data-testid="attach-hint"

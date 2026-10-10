@@ -296,3 +296,14 @@ dialog.gb-dialog[open] {
 .gb-relationship {
   cursor: pointer;
 }
+
+/* Textfält med fet och kursiv stil: platshållare när det är tomt. */
+.gb-rich-text:empty::before {
+  content: attr(data-placeholder);
+  color: color-mix(in srgb, var(--color-text-muted) 70%, transparent);
+  pointer-events: none;
+}
+.gb-rich-text {
+  outline: none;
+  cursor: text;
+}

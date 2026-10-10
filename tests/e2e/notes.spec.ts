@@ -275,58 +275,113 @@ test.describe("anteckningar", () => {
     await expect(page.getByRole("button", { name: "Hide notes" })).toBeVisible();
   });
 
-  test("delar av texten i en anteckning kan göras feta och kursiva", async ({ page }) => {
+  test("markera text direkt i anteckningen och gör den fet eller kursiv", async ({ page }) => {
     await freshApp(page);
     await page.getByTestId("add-note").click();
     const editor = page.getByTestId("inline-editor");
-    // Skriv direkt på ritytan, markera ett ord och tryck Ctrl+B.
-    await editor.fill("Viktig sak att minnas");
-    await editor.evaluate((el: HTMLTextAreaElement) => el.setSelectionRange(0, 6));
-    await editor.press("Control+b");
-    await expect(editor).toHaveValue("**Viktig** sak att minnas");
-    await page.getByTestId("canvas").click({ position: { x: 80, y: 620 } });
-    const noteText = page.locator("[data-ref^='note:'] text");
-    const bold = noteText.locator("tspan[font-weight='700']");
-    const italic = noteText.locator("tspan[font-style='italic']");
-    await expect(bold).toHaveText("Viktig");
-    await expect(italic).toHaveCount(0);
-    // Stjärnorna ritas inte ut.
-    await expect(noteText).toHaveText("Viktig sak att minnas");
+    const bar = page.getByTestId("note-format-bar");
+    await expect(editor).toBeFocused();
+    // Knapparna B och I visas vid rutan så länge man skriver i den.
+    await expect(bar).toBeVisible();
+    await page.keyboard.type("Viktig sak att minnas");
 
-    // I panelen: markera ett annat ord och klicka I. Markeringen ligger kvar på ordet.
-    await page.locator("[data-ref^='note:'] > rect").first().click();
-    const field = page.getByTestId("inspector-note-text");
-    await field.evaluate((el: HTMLTextAreaElement) => {
-      el.focus();
-      const start = el.value.indexOf("minnas");
-      el.setSelectionRange(start, start + 6);
-    });
-    await page.getByTestId("note-italic").click();
-    await expect(field).toHaveValue("**Viktig** sak att *minnas*");
-    await expect(italic).toHaveText("minnas");
-    // Samma ord fett också, med tangenterna: fet och kursiv på en gång.
-    await field.press("ControlOrMeta+b");
-    await expect(field).toHaveValue("**Viktig** sak att ***minnas***");
-    await expect(noteText.locator("tspan[font-weight='700'][font-style='italic']")).toHaveText(
-      "minnas",
-    );
-    // Klicka I igen: kursiven tas bort, feten är kvar.
-    await page.getByTestId("note-italic").click();
-    await expect(field).toHaveValue("**Viktig** sak att **minnas**");
-    await expect(italic).toHaveCount(0);
-    await expect(bold).toHaveText(["Viktig", "minnas"]);
-    await expect(noteText).toHaveText("Viktig sak att minnas");
+    /** Markerar ett ord i fältet, som när man dubbelklickar på det. */
+    const selectWord = (target: typeof editor, word: string) =>
+      target.evaluate((el, w) => {
+        const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+          const at = (node.textContent ?? "").indexOf(w);
+          if (at < 0) continue;
+          const range = document.createRange();
+          range.setStart(node, at);
+          range.setEnd(node, at + w.length);
+          const selection = window.getSelection();
+          selection?.removeAllRanges();
+          selection?.addRange(range);
+          return;
+        }
+        throw new Error(`hittar inte ${w}`);
+      }, word);
+
+    // Markera ett ord och klicka B: ordet blir fett direkt i rutan, utan några märken.
+    await selectWord(editor, "Viktig");
+    await page.getByTestId("canvas-note-bold").click();
+    await expect(editor).toBeFocused();
+    await expect(editor.locator("b, strong")).toHaveText("Viktig");
+    await expect(editor).toHaveText("Viktig sak att minnas");
+    await expect(page.getByTestId("canvas-note-bold")).toHaveAttribute("aria-pressed", "true");
+    // Markera ett annat ord och tryck Ctrl/Cmd+I.
+    await selectWord(editor, "minnas");
+    await page.keyboard.press("ControlOrMeta+i");
+    await expect(editor.locator("i, em")).toHaveText("minnas");
+    // Knapparna visar stilen på det som är markerat: kursiv, inte fet.
+    await expect(page.getByTestId("canvas-note-italic")).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("canvas-note-bold")).toHaveAttribute("aria-pressed", "false");
+    await page.mouse.move(40, 400);
     await page.screenshot({
       path: `${SCREENSHOT_DIR}/note-bold-italic.png`,
       animations: "disabled",
     });
 
-    // Stilen följer med i en exporterad bild.
+    // Klicka utanför: anteckningen ritas med samma stil.
+    await page.getByTestId("canvas").click({ position: { x: 80, y: 620 } });
+    await expect(bar).toHaveCount(0);
+    const noteText = page.locator("[data-ref^='note:'] text");
+    await expect(noteText.locator("tspan[font-weight='700']")).toHaveText("Viktig");
+    await expect(noteText.locator("tspan[font-style='italic']")).toHaveText("minnas");
+    await expect(noteText).toHaveText("Viktig sak att minnas");
+
+    // Öppna igen: stilen syns i rutan. Samma knapp en gång till tar bort den.
+    await page.locator("[data-ref^='note:'] > rect").first().dblclick();
+    await expect(editor.locator("b, strong")).toHaveText("Viktig");
+    await selectWord(editor, "Viktig");
+    await page.getByTestId("canvas-note-bold").click();
+    await expect(editor.locator("b, strong")).toHaveCount(0);
+    await page.getByTestId("canvas").click({ position: { x: 80, y: 620 } });
+    await expect(noteText.locator("tspan[font-weight='700']")).toHaveCount(0);
+    await expect(noteText.locator("tspan[font-style='italic']")).toHaveText("minnas");
+
+    // Samma sak går i sidopanelens textfält, som också visar stilen.
+    await page.locator("[data-ref^='note:'] > rect").first().click();
+    const field = page.getByTestId("inspector-note-text");
+    await expect(field.locator("i, em")).toHaveText("minnas");
+    await selectWord(field, "sak");
+    await page.getByTestId("note-bold").click();
+    await expect(noteText.locator("tspan[font-weight='700']")).toHaveText("sak");
+    await selectWord(field, "sak");
+    await page.getByTestId("note-italic").click();
+    await expect(noteText.locator("tspan[font-weight='700'][font-style='italic']")).toHaveText(
+      "sak",
+    );
+
+    // Stilen följer med i en exporterad bild, och finns kvar efter omladdning.
     await page.keyboard.press("Escape");
     await page.getByRole("button", { name: "Export…" }).last().click();
     await page.getByRole("tab", { name: "SVG" }).click();
     await expect(
-      page.getByTestId("export-preview").locator("tspan[font-weight='700']").first(),
-    ).toHaveText("Viktig");
+      page.getByTestId("export-preview").locator("tspan[font-style='italic']").last(),
+    ).toHaveText("minnas");
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(900);
+    await page.reload();
+    await expect(page.locator("[data-ref^='note:'] text tspan[font-weight='700']")).toHaveText(
+      "sak",
+    );
+  });
+
+  test("flera rader i en anteckning skrivs med Shift+Enter och sparas som rader", async ({
+    page,
+  }) => {
+    await freshApp(page);
+    await page.getByTestId("add-note").click();
+    await page.keyboard.type("Rad ett");
+    await page.keyboard.press("Shift+Enter");
+    await page.keyboard.type("Rad två");
+    await page.keyboard.press("Enter");
+    await expect(page.getByTestId("inline-editor")).toHaveCount(0);
+    await expect(page.locator("[data-ref^='note:'] text > tspan")).toHaveText([
+      "Rad ett",
+      "Rad två",
+    ]);
   });
 });

@@ -1,7 +1,7 @@
-import { useId, useRef } from "react";
-import { flushSync } from "react-dom";
+import { useId } from "react";
 import { attachNotes } from "@/canvas/actions";
 import { IconLink } from "@/components/icons";
+import { RichTextEditor, toggleTextStyle, useTextStyleState } from "@/components/RichTextEditor";
 import {
   Button,
   ColorField,
@@ -15,7 +15,6 @@ import {
 import { t } from "@/i18n";
 import { nodeDisplayName } from "@/model/caption";
 import { NOTE_COLORS } from "@/model/defaults";
-import { toggleMarkup } from "@/model/noteText";
 import type { GraphDocument, Note } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
 import { useUiStore } from "@/store/uiStore";
@@ -37,18 +36,7 @@ export function NoteSection({ notes }: { notes: Note[] }) {
   const borderWidth = commonValue(notes.map((n) => n.borderWidth));
 
   const textId = useId();
-  const textRef = useRef<HTMLTextAreaElement>(null);
-  /** Gör den markerade texten i textfältet fet eller kursiv (eller tar bort stilen igen). */
-  const applyStyle = (marker: "**" | "*") => {
-    const el = textRef.current;
-    if (!el || text === null) return;
-    const next = toggleMarkup(text, el.selectionStart, el.selectionEnd, marker);
-    if (next.value === text) return;
-    // Texten måste hinna in i fältet innan markeringen sätts, annars hamnar markören sist.
-    flushSync(() => setAll({ text: next.value }));
-    el.focus();
-    el.setSelectionRange(next.start, next.end);
-  };
+  const textStyle = useTextStyleState();
   const doc = useDocumentStore((s) => s.doc);
   const attaching = useUiStore((s) => s.attachingNotes !== null);
   const setAttachingNotes = useUiStore((s) => s.setAttachingNotes);
@@ -97,9 +85,9 @@ export function NoteSection({ notes }: { notes: Note[] }) {
       </div>
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between gap-3">
-          <label htmlFor={textId} className="text-[0.88em] text-text-muted">
+          <span id={`${textId}-label`} className="text-[0.88em] text-text-muted">
             {t.inspector.text}
-          </label>
+          </span>
           <span className="flex gap-1">
             <IconButton
               label={t.inspector.bold}
@@ -107,7 +95,8 @@ export function NoteSection({ notes }: { notes: Note[] }) {
               className="h-8 w-8 font-bold text-[1em] text-text"
               // Behåll markeringen i textfältet när knappen klickas.
               onMouseDown={(e) => e.preventDefault()}
-              onClick={() => applyStyle("**")}
+              active={textStyle.bold}
+              onClick={() => toggleTextStyle("bold")}
             >
               B
             </IconButton>
@@ -116,27 +105,21 @@ export function NoteSection({ notes }: { notes: Note[] }) {
               data-testid="note-italic"
               className="h-8 w-8 font-serif text-[1em] text-text italic"
               onMouseDown={(e) => e.preventDefault()}
-              onClick={() => applyStyle("*")}
+              active={textStyle.italic}
+              onClick={() => toggleTextStyle("italic")}
             >
               I
             </IconButton>
           </span>
         </div>
-        <textarea
+        <RichTextEditor
           id={textId}
-          ref={textRef}
-          data-testid="inspector-note-text"
-          className="gb-control min-h-24 w-full resize-y rounded-lg px-2.5 py-2 text-[1em] leading-snug placeholder:text-text-muted/70"
+          testId="inspector-note-text"
+          ariaLabel={t.inspector.text}
+          className="gb-control min-h-24 w-full rounded-lg px-2.5 py-2 text-[1em] leading-snug"
           value={text ?? ""}
           placeholder={text === null ? t.inspector.mixed : t.inspector.textPlaceholder}
-          onChange={(e) => setAll({ text: e.target.value })}
-          onKeyDown={(e) => {
-            const key = e.key.toLowerCase();
-            if ((e.ctrlKey || e.metaKey) && (key === "b" || key === "i")) {
-              e.preventDefault();
-              applyStyle(key === "b" ? "**" : "*");
-            }
-          }}
+          onChange={(value) => setAll({ text: value })}
         />
         <p className="text-[0.82em] text-text-muted leading-snug">{t.inspector.textStyleHint}</p>
       </div>

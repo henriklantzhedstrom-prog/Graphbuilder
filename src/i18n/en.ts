@@ -100,8 +100,9 @@ export const en = {
     textPlaceholder: "Write your note…",
     bold: "Bold",
     italic: "Italic",
-    textStyleHint:
-      "Select text and press B or I. Bold is written as **text** and italic as *text*; the stars are not shown on the canvas.",
+    boldHint: "Bold (Ctrl+B)",
+    italicHint: "Italic (Ctrl+I)",
+    textStyleHint: "Select part of the text and press B or I – here or directly in the note.",
     borderColor: "Border color",
     borderWidth: "Border width",
     attachedTo: "Attached to",
