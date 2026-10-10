@@ -429,8 +429,13 @@ function initialSlots(problem: Problem, cols: number, rows: number, rand: () => 
   const { n, incident, ea, eb } = problem;
   const order: number[] = [];
   const seen: boolean[] = new Array(n).fill(false);
+  // Slumpad men bestämd ordning mellan noder med lika många relationer. Varje nod får sitt
+  // slumptal en gång, så att sorteringen ger samma resultat i alla webbläsare.
+  const tieBreak = Array.from({ length: n }, () => rand());
   const starts = [...Array(n).keys()].sort(
-    (a, b) => (incident[b] as number[]).length - (incident[a] as number[]).length || rand() - 0.5,
+    (a, b) =>
+      (incident[b] as number[]).length - (incident[a] as number[]).length ||
+      (tieBreak[a] as number) - (tieBreak[b] as number),
   );
   for (const start of starts) {
     if (seen[start]) continue;
