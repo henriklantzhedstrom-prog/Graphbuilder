@@ -441,4 +441,53 @@ test.describe("egenskapspanel", () => {
       /ring-accent/,
     );
   });
+
+  test("en nod utan rubrik visar sin label inne i cirkeln, utan bricka ovanför", async ({
+    page,
+  }) => {
+    await freshApp(page);
+    // Ny nod utan rubrik: avbryt rubrikfältet och ge noden en label i panelen.
+    await page.getByTestId("add-node").click();
+    await page.getByTestId("inline-editor").press("Escape");
+    const canvas = page.getByTestId("canvas");
+    const box = await canvas.boundingBox();
+    const circle = page.locator("[data-part='node-circle']");
+    await circle.click();
+    await page.getByPlaceholder("New label").fill("Product");
+    await page.getByPlaceholder("New label").press("Enter");
+    const pills = canvas.locator("[data-part='label-box']");
+    const inside = canvas.locator("text").filter({ hasText: /^Product$/ });
+    // Labeln står mitt i noden, och ingen bricka ritas.
+    await expect(pills).toHaveCount(0);
+    await expect(inside).toHaveCount(1);
+    const node = await circle.boundingBox();
+    const text = await inside.boundingBox();
+    if (!node || !text || !box) throw new Error("mått saknas");
+    expect(Math.abs(text.x + text.width / 2 - (node.x + node.width / 2))).toBeLessThan(2);
+    expect(Math.abs(text.y + text.height / 2 - (node.y + node.height / 2))).toBeLessThan(3);
+
+    // Två labels står på var sin rad.
+    await page.getByPlaceholder("New label").fill("Item");
+    await page.getByPlaceholder("New label").press("Enter");
+    await expect(canvas.locator("[data-ref^='node:'] > text:not([data-part]) tspan")).toHaveText([
+      "Product",
+      "Item",
+    ]);
+    await expect(pills).toHaveCount(0);
+
+    // Får noden en rubrik står rubriken i noden och labels blir brickor ovanför.
+    await page.mouse.dblclick(node.x + node.width / 2, node.y + node.height / 2);
+    await page.getByTestId("inline-editor").fill("Chai");
+    await page.getByTestId("inline-editor").press("Enter");
+    await expect(captionText(page, "Chai")).toHaveCount(1);
+    await expect(pills).toHaveCount(2);
+
+    // Tas rubriken bort igen flyttar labels tillbaka in i noden.
+    await page.getByLabel("Use “name” as caption").uncheck();
+    await expect(pills).toHaveCount(0);
+    await expect(canvas.locator("[data-ref^='node:'] > text:not([data-part]) tspan")).toHaveText([
+      "Product",
+      "Item",
+    ]);
+  });
 });

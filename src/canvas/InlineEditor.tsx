@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { nodeCaption } from "@/model/caption";
+import { toggleMarkup } from "@/model/noteText";
 import type { Box, ElementRef, GraphDocument, GraphNode } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
 import { useUiStore } from "@/store/uiStore";
@@ -84,6 +86,26 @@ export function InlineEditor({
         }}
         onKeyDown={(e) => {
           e.stopPropagation();
+          // I anteckningar: Ctrl/Cmd+B och Ctrl/Cmd+I gör den markerade texten fet eller kursiv.
+          const style = e.key.toLowerCase();
+          if (
+            target.kind === "note" &&
+            (e.ctrlKey || e.metaKey) &&
+            (style === "b" || style === "i")
+          ) {
+            e.preventDefault();
+            const el = e.currentTarget;
+            const next = toggleMarkup(
+              value,
+              el.selectionStart,
+              el.selectionEnd,
+              style === "b" ? "**" : "*",
+            );
+            // Texten måste hinna in i fältet innan markeringen sätts, annars hamnar markören sist.
+            flushSync(() => setValue(next.value));
+            el.setSelectionRange(next.start, next.end);
+            return;
+          }
           if (e.key === "Escape") {
             e.preventDefault();
             cancel();

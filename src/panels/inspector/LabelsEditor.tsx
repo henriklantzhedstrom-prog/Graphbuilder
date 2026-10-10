@@ -2,7 +2,7 @@ import { type Ref, useState } from "react";
 import { IconClose, IconPlus } from "@/components/icons";
 import { Button, TextInput } from "@/components/ui";
 import { t } from "@/i18n";
-import { nodeCaption } from "@/model/caption";
+import { nodeDisplayName } from "@/model/caption";
 import { conflictingNodeIds, type LabelConflict } from "@/model/labels";
 import type { GraphNode } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
@@ -29,7 +29,7 @@ export function LabelsEditor({
 
   const describeConflict = (conflict: LabelConflict, attempted: string[]) => {
     const other = doc.nodes[conflict.otherId];
-    return t.inspector.labelConflict(attempted.join(", "), other ? nodeCaption(other) : "");
+    return t.inspector.labelConflict(attempted.join(", "), other ? nodeDisplayName(other) : "");
   };
 
   const applyLabels = (changes: { id: string; labels: string[] }[]): boolean => {

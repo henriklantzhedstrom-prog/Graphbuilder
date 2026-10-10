@@ -1,6 +1,7 @@
 import { textOn } from "@/model/color";
+import { layoutRichText } from "@/model/noteText";
 import type { Box, Note } from "@/model/types";
-import { LINE_HEIGHT, wrapToWidth } from "./text";
+import { CHAR_WIDTH_FACTOR, LINE_HEIGHT } from "./text";
 
 export const NOTE_PADDING = 10;
 
@@ -11,12 +12,10 @@ export interface NoteViewProps {
   hideText?: boolean;
 }
 
-/** Anteckningar har alltid en svart kant, oavsett bakgrundsfärg. */
-export const NOTE_BORDER_COLOR = "#000000";
-export const NOTE_BORDER_WIDTH = 2;
-
 export function NoteView({ note, box, interactive = false, hideText = false }: NoteViewProps) {
-  const lines = hideText ? [] : wrapToWidth(note.text, box.w - NOTE_PADDING * 2, note.fontSize);
+  // Radbrytning per ord; **fet** och *kursiv* i texten blir stil på orden, märkena ritas inte.
+  const maxChars = Math.floor((box.w - NOTE_PADDING * 2) / (note.fontSize * CHAR_WIDTH_FACTOR));
+  const lines = hideText ? [] : layoutRichText(note.text, maxChars);
   const lineHeight = note.fontSize * LINE_HEIGHT;
   const clipId = `note-clip-${note.id}`;
   const textX = note.align === "center" ? box.x + box.w / 2 : box.x + NOTE_PADDING;
@@ -32,14 +31,17 @@ export function NoteView({ note, box, interactive = false, hideText = false }: N
         </clipPath>
       </defs>
       <rect
-        x={box.x}
-        y={box.y}
-        width={box.w}
-        height={box.h}
-        rx={6}
+        // Ramen ligger utanför anteckningens yta: linjens mitt är en halv rambredd utanför.
+        data-width={box.w}
+        data-height={box.h}
+        x={box.x - note.borderWidth / 2}
+        y={box.y - note.borderWidth / 2}
+        width={box.w + note.borderWidth}
+        height={box.h + note.borderWidth}
+        rx={6 + note.borderWidth / 2}
         fill={note.color}
-        stroke={NOTE_BORDER_COLOR}
-        strokeWidth={NOTE_BORDER_WIDTH}
+        stroke={note.borderColor}
+        strokeWidth={note.borderWidth}
       />
       {lines.length > 0 && (
         <text
@@ -54,7 +56,17 @@ export function NoteView({ note, box, interactive = false, hideText = false }: N
         >
           {lines.map((line, i) => (
             <tspan key={i} x={textX} dy={i === 0 ? 0 : lineHeight}>
-              {line || " "}
+              {line.length === 0
+                ? " "
+                : line.map((run, j) => (
+                    <tspan
+                      key={j}
+                      fontWeight={run.bold ? 700 : undefined}
+                      fontStyle={run.italic ? "italic" : undefined}
+                    >
+                      {run.text}
+                    </tspan>
+                  ))}
             </tspan>
           ))}
         </text>

@@ -9,7 +9,7 @@
 //  - Neo4js regler för att gå från relationsmodell till graf: främmande nycklar blir relationer
 //    (och tas bort som egenskaper), kopplingstabeller blir relationer med egenskaper.
 // Namnsättning enligt Neo4js rekommendation: Labels i CamelCase, RELATIONER_MED_VERSALER,
-// egenskaper i camelCase. Varje nod har `name` = label, som i `db.schema.visualization()`.
+// egenskaper i camelCase. Noderna har ingen rubrik; i en typmodell är labeln nodens namn.
 // Kör: node scripts/generate-northwind-model.mjs
 import { writeFileSync } from "node:fs";
 
@@ -246,9 +246,10 @@ const nodes = Object.fromEntries(
       id: nodeId(label),
       layerId,
       position: { x, y },
-      captionKey: "name",
+      // Ingen rubrik: noden visar sin label inne i cirkeln.
+      captionKey: null,
       labels: [label],
-      properties: { name: label, ...properties },
+      properties,
       style: { fill },
     },
   ]),
@@ -278,6 +279,8 @@ const notes = Object.fromEntries(
         size: { w, h },
         text,
         color: "#ffffff",
+        borderColor: "#000000",
+        borderWidth: 2,
         textColor: "#1b1f27",
         fontSize: 14,
         align: "left",

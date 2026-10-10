@@ -75,8 +75,10 @@ export const NODE_PALETTE = [
 export const DEFAULT_NOTE: Omit<Note, "id" | "position" | "attachedTo"> = {
   size: { w: 200, h: 120 },
   text: "",
-  // Vit med svart kant som standard; färgen går att byta, kanten är alltid svart.
+  // Vit med svart ram som standard.
   color: "#ffffff",
+  borderColor: "#000000",
+  borderWidth: 2,
   textColor: "#1b1f27",
   fontSize: 14,
   align: "left",

@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { exportCypher } from "@/export/cypher";
+import { nodeDisplayName, showsLabelsAsCaption } from "@/model/caption";
 import { findLabelConflict } from "@/model/labels";
 import { parseDocument } from "@/model/schema";
 import { visibleNotes, visibleRelationships } from "@/store/selectors";
@@ -51,8 +52,11 @@ describe("Northwind som testmodell", () => {
     for (const node of nodes) {
       const unique = Object.values(node.properties).filter((v) => v.includes("unique"));
       expect(unique, node.labels[0]).toHaveLength(1);
-      // Rubriken är labelns namn, som i db.schema.visualization().
-      expect(node.properties.name).toBe(node.labels[0]);
+      // Ingen rubrik och ingen egenskap som upprepar labeln: noden visar sin label.
+      expect(node.captionKey).toBeNull();
+      expect(node.properties).not.toHaveProperty("name");
+      expect(nodeDisplayName(node)).toBe(node.labels[0]);
+      expect(showsLabelsAsCaption(node)).toBe(true);
     }
     // Främmande nycklar är relationer, inte egenskaper; kopplingstabellens kolumner sitter på relationen.
     expect(product?.properties).not.toHaveProperty("supplierID");

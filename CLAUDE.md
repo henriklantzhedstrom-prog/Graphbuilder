@@ -88,8 +88,13 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   anteckningar och bilder.
 - **Show all / Hide all** överst i lagerpanelen visar eller döljer alla lager i ett steg
   (`setAllLayersVisible`). Det fasta lagret "Properties" påverkas inte.
-- **En ny anteckning är vit med svart kant** (`DEFAULT_NOTE`, `NOTE_BORDER_*` i `NoteView.tsx`).
-  Färgen går att byta i panelen; kanten är alltid svart.
+- **En ny anteckning är vit med svart ram** (`DEFAULT_NOTE`). Färg, ramens färg och ramens
+  tjocklek (`borderColor`, `borderWidth`, 0–10) ställs in i panelen; ramen ritas utanför ytan och
+  växer utåt. Bredd och höjd finns inte i panelen – storleken ändras genom att dra i hörnen.
+- **Fet och kursiv text i anteckningar** skrivs med märken i texten, `**fet**` och `*kursiv*`
+  (`src/model/noteText.ts`: `parseRuns`, `layoutRichText`, `toggleMarkup`). Märkena syns när man
+  redigerar och ritas inte ut. Stilen sätts på markerad text med knapparna B och I i panelen eller
+  Ctrl/Cmd+B och Ctrl/Cmd+I, både i panelens textfält och när man skriver direkt på ritytan.
 - **Anteckningar har ett eget fast lager, "Notes"** (`doc.notesVisible`, `NotesRow` i
   `LayersPanel.tsx`), och hör inte till de vanliga lagren (`Note` har inget `layerId`; äldre filer
   migreras, dokumentversion 6). De ritas överst och är aldrig låsta av ett lager.
@@ -168,6 +173,11 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   Access API) så att det fungerar i alla webbläsare och går att testa med Playwright.
 - Ritytans vyer i `src/canvas/render` är rena komponenter utan store-hooks; samma komponenter
   renderar SVG-exporten via `renderToStaticMarkup`. Inga `foreignObject` i visningsläge.
+- **En nod utan rubrik visar sin label inne i cirkeln** (flera labels på var sin rad), och då
+  ritas inga labelbrickor ovanför (`showsLabelsAsCaption`, `nodeDisplayName` i
+  `src/model/caption.ts`). Verktyget ritar modeller över typer – en nod per label – så labeln är
+  nodens namn; rubriken finns för den som vill ha en annan text i noden. Skriv aldrig labeln en
+  gång till som rubrik.
 - **Nodens rubrik är en egenskap.** `GraphNode.captionKey` pekar ut vilken egenskap som visas som
   rubrik (kryssruta i egenskapslistan). Rubrikegenskapen visas både i noden och, som alla andra
   egenskaper, i listan under noden. Läs rubriken med `nodeCaption()` i `src/model/caption.ts`;
@@ -206,7 +216,8 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   labels, tio relationstyper, egenskaper med Cypher-typer, tre lager, knutna anteckningar). Den
   skapas med `node scripts/generate-northwind-model.mjs` (källorna står överst i skriptet), vaktas
   av `tests/unit/northwindModel.test.ts` och öppnas med `?open=northwind.json`. Använd den som
-  realistiskt testfall; `test-model-200.json` är till för prestanda.
+  realistiskt testfall; `test-model-200.json` är till för prestanda. Noderna där har ingen
+  rubrik, bara label.
 - **Relation från en nod till sig själv** ritas som en ögla snett uppe till höger (sedan vänster,
   nere höger, nere vänster; `SELF_LOOP_ANGLES` i `geometry.ts`), aldrig rakt upp där nodens
   labels ligger eller rakt ned där egenskaperna ligger.

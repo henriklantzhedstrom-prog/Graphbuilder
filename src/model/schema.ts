@@ -90,6 +90,8 @@ const note = z.object({
   size,
   text: z.string().default(""),
   color: z.string(),
+  borderColor: z.string().default("#000000"),
+  borderWidth: z.number().min(0).default(2),
   textColor: z.string().default("#1b1f27"),
   fontSize: z.number().positive().default(14),
   align: z.enum(["left", "center"]).default("left"),

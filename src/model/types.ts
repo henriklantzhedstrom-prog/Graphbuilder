@@ -111,6 +111,9 @@ export interface Note {
   size: Size;
   text: string;
   color: string;
+  /** Ramens färg och tjocklek. Ramen ritas utanför anteckningens yta och växer utåt. */
+  borderColor: string;
+  borderWidth: number;
   textColor: string;
   fontSize: number;
   align: NoteAlign;

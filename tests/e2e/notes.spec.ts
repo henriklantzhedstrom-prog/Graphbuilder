@@ -44,14 +44,16 @@ test.describe("anteckningar", () => {
     await page.mouse.up();
     await page.getByTestId("inline-editor").press("Escape");
     const rect = page.locator("[data-ref^='note:'] > rect").first();
-    expect(Number(await rect.getAttribute("width"))).toBeCloseTo(300, 0);
+    expect(Number(await rect.getAttribute("data-width"))).toBeCloseTo(300, 0);
     await page.getByTestId("inspector-note-text").fill("Via panelen");
     await expect(page.locator("svg text", { hasText: "Via panelen" })).toBeVisible();
     await page.getByRole("button", { name: "Center" }).click();
     await expect(page.locator("[data-ref^='note:'] text[text-anchor='middle']")).toHaveCount(1);
   });
 
-  test("textstorlek, bredd och höjd ställs in med skjutreglage", async ({ page }) => {
+  test("textstorlek och ram ställs in i panelen; storleken ändras genom att dra i hörnen", async ({
+    page,
+  }) => {
     await freshApp(page);
     await page.getByRole("button", { name: "Note", exact: true }).click();
     await page.getByTestId("canvas").click({ position: { x: 200, y: 200 } });
@@ -59,22 +61,30 @@ test.describe("anteckningar", () => {
     await page.getByTestId("canvas").click({ position: { x: 700, y: 600 } });
     const rect = page.locator("[data-ref^='note:'] > rect").first();
     await rect.click();
-    for (const [label, min, max] of [
-      ["Text size", "6", "80"],
-      ["Width", "20", "2000"],
-      ["Height", "20", "2000"],
-    ]) {
-      const slider = page.getByLabel(label ?? "", { exact: true });
-      await expect(slider).toHaveAttribute("type", "range");
-      await expect(slider).toHaveAttribute("min", min ?? "");
-      await expect(slider).toHaveAttribute("max", max ?? "");
-    }
-    await page.getByLabel("Width").fill("320");
-    await page.getByLabel("Height").fill("90");
-    await expect(rect).toHaveAttribute("width", "320");
-    await expect(rect).toHaveAttribute("height", "90");
+    const panel = page.locator("aside");
+    // Bredd och höjd finns inte i panelen.
+    await expect(panel.getByText("Width", { exact: true })).toHaveCount(0);
+    await expect(panel.getByText("Height", { exact: true })).toHaveCount(0);
+
     await page.getByLabel("Text size").fill("24");
     await expect(page.locator("[data-ref^='note:'] text")).toHaveAttribute("font-size", "24");
+
+    // Ramens färg och tjocklek. En tjockare ram växer utåt: anteckningens yta är lika stor.
+    await expect(rect).toHaveAttribute("stroke", "#000000");
+    await expect(rect).toHaveAttribute("stroke-width", "2");
+    const before = await rect.evaluate((el) => (el as SVGRectElement).getBBox().width);
+    await panel.locator("[data-field='Border color']").getByTitle("#ff3b30").click();
+    await expect(rect).toHaveAttribute("stroke", "#ff3b30");
+    const width = page.getByLabel("Border width");
+    await expect(width).toHaveAttribute("min", "0");
+    await expect(width).toHaveAttribute("max", "10");
+    await width.fill("8");
+    await expect(rect).toHaveAttribute("stroke-width", "8");
+    const after = await rect.evaluate((el) => (el as SVGRectElement).getBBox().width);
+    expect(after - before).toBeCloseTo(6, 5);
+    // Ingen ram alls går också.
+    await width.fill("0");
+    await expect(rect).toHaveAttribute("stroke-width", "0");
   });
 
   test("anteckningens text syns mot sin färg, utan eget färgval för texten", async ({ page }) => {
@@ -263,5 +273,60 @@ test.describe("anteckningar", () => {
     await page.getByTestId("add-note").click();
     await page.keyboard.press("Escape");
     await expect(page.getByRole("button", { name: "Hide notes" })).toBeVisible();
+  });
+
+  test("delar av texten i en anteckning kan göras feta och kursiva", async ({ page }) => {
+    await freshApp(page);
+    await page.getByTestId("add-note").click();
+    const editor = page.getByTestId("inline-editor");
+    // Skriv direkt på ritytan, markera ett ord och tryck Ctrl+B.
+    await editor.fill("Viktig sak att minnas");
+    await editor.evaluate((el: HTMLTextAreaElement) => el.setSelectionRange(0, 6));
+    await editor.press("Control+b");
+    await expect(editor).toHaveValue("**Viktig** sak att minnas");
+    await page.getByTestId("canvas").click({ position: { x: 80, y: 620 } });
+    const noteText = page.locator("[data-ref^='note:'] text");
+    const bold = noteText.locator("tspan[font-weight='700']");
+    const italic = noteText.locator("tspan[font-style='italic']");
+    await expect(bold).toHaveText("Viktig");
+    await expect(italic).toHaveCount(0);
+    // Stjärnorna ritas inte ut.
+    await expect(noteText).toHaveText("Viktig sak att minnas");
+
+    // I panelen: markera ett annat ord och klicka I. Markeringen ligger kvar på ordet.
+    await page.locator("[data-ref^='note:'] > rect").first().click();
+    const field = page.getByTestId("inspector-note-text");
+    await field.evaluate((el: HTMLTextAreaElement) => {
+      el.focus();
+      const start = el.value.indexOf("minnas");
+      el.setSelectionRange(start, start + 6);
+    });
+    await page.getByTestId("note-italic").click();
+    await expect(field).toHaveValue("**Viktig** sak att *minnas*");
+    await expect(italic).toHaveText("minnas");
+    // Samma ord fett också, med tangenterna: fet och kursiv på en gång.
+    await field.press("ControlOrMeta+b");
+    await expect(field).toHaveValue("**Viktig** sak att ***minnas***");
+    await expect(noteText.locator("tspan[font-weight='700'][font-style='italic']")).toHaveText(
+      "minnas",
+    );
+    // Klicka I igen: kursiven tas bort, feten är kvar.
+    await page.getByTestId("note-italic").click();
+    await expect(field).toHaveValue("**Viktig** sak att **minnas**");
+    await expect(italic).toHaveCount(0);
+    await expect(bold).toHaveText(["Viktig", "minnas"]);
+    await expect(noteText).toHaveText("Viktig sak att minnas");
+    await page.screenshot({
+      path: `${SCREENSHOT_DIR}/note-bold-italic.png`,
+      animations: "disabled",
+    });
+
+    // Stilen följer med i en exporterad bild.
+    await page.keyboard.press("Escape");
+    await page.getByRole("button", { name: "Export…" }).last().click();
+    await page.getByRole("tab", { name: "SVG" }).click();
+    await expect(
+      page.getByTestId("export-preview").locator("tspan[font-weight='700']").first(),
+    ).toHaveText("Viktig");
   });
 });

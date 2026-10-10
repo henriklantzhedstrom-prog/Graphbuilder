@@ -1,25 +1,29 @@
+import { useId, useRef } from "react";
+import { flushSync } from "react-dom";
 import { attachNotes } from "@/canvas/actions";
 import { IconLink } from "@/components/icons";
 import {
   Button,
   ColorField,
   Field,
+  IconButton,
   Section,
   Segmented,
   SegmentedItem,
   SliderField,
 } from "@/components/ui";
 import { t } from "@/i18n";
-import { nodeCaption } from "@/model/caption";
+import { nodeDisplayName } from "@/model/caption";
 import { NOTE_COLORS } from "@/model/defaults";
+import { toggleMarkup } from "@/model/noteText";
 import type { GraphDocument, Note } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
 import { useUiStore } from "@/store/uiStore";
-import { commonValue, MAX_ELEMENT_SIZE, MIN_ELEMENT_SIZE } from "./common";
+import { commonValue } from "./common";
 
-const nodeCaptionOf = (doc: GraphDocument, id: string): string => {
+const nodeDisplayNameOf = (doc: GraphDocument, id: string): string => {
   const node = doc.nodes[id];
-  return node ? nodeCaption(node) : "";
+  return node ? nodeDisplayName(node) : "";
 };
 
 export function NoteSection({ notes }: { notes: Note[] }) {
@@ -29,9 +33,22 @@ export function NoteSection({ notes }: { notes: Note[] }) {
   };
   const text = commonValue(notes.map((n) => n.text));
   const align = commonValue(notes.map((n) => n.align));
-  const single = notes.length === 1 ? notes[0] : undefined;
   const fontSize = commonValue(notes.map((n) => n.fontSize));
+  const borderWidth = commonValue(notes.map((n) => n.borderWidth));
 
+  const textId = useId();
+  const textRef = useRef<HTMLTextAreaElement>(null);
+  /** Gör den markerade texten i textfältet fet eller kursiv (eller tar bort stilen igen). */
+  const applyStyle = (marker: "**" | "*") => {
+    const el = textRef.current;
+    if (!el || text === null) return;
+    const next = toggleMarkup(text, el.selectionStart, el.selectionEnd, marker);
+    if (next.value === text) return;
+    // Texten måste hinna in i fältet innan markeringen sätts, annars hamnar markören sist.
+    flushSync(() => setAll({ text: next.value }));
+    el.focus();
+    el.setSelectionRange(next.start, next.end);
+  };
   const doc = useDocumentStore((s) => s.doc);
   const attaching = useUiStore((s) => s.attachingNotes !== null);
   const setAttachingNotes = useUiStore((s) => s.setAttachingNotes);
@@ -45,7 +62,7 @@ export function NoteSection({ notes }: { notes: Note[] }) {
       : !anchor
         ? t.inspector.attachedNothing
         : anchor.kind === "node"
-          ? t.inspector.attachedNode(nodeCaptionOf(doc, anchor.id))
+          ? t.inspector.attachedNode(nodeDisplayNameOf(doc, anchor.id))
           : t.inspector.attachedRelationship(doc.relationships[anchor.id]?.type ?? "");
   const isAttached = anchors.some((a) => a !== "");
 
@@ -78,23 +95,70 @@ export function NoteSection({ notes }: { notes: Note[] }) {
         </div>
         <p className="text-[0.82em] text-text-muted leading-snug">{t.inspector.attachedHint}</p>
       </div>
-      <Field label={t.inspector.text}>
-        {(id) => (
-          <textarea
-            id={id}
-            data-testid="inspector-note-text"
-            className="gb-control min-h-24 w-full resize-y rounded-lg px-2.5 py-2 text-[1em] leading-snug placeholder:text-text-muted/70"
-            value={text ?? ""}
-            placeholder={text === null ? t.inspector.mixed : t.inspector.textPlaceholder}
-            onChange={(e) => setAll({ text: e.target.value })}
-          />
-        )}
-      </Field>
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center justify-between gap-3">
+          <label htmlFor={textId} className="text-[0.88em] text-text-muted">
+            {t.inspector.text}
+          </label>
+          <span className="flex gap-1">
+            <IconButton
+              label={t.inspector.bold}
+              data-testid="note-bold"
+              className="h-8 w-8 font-bold text-[1em] text-text"
+              // Behåll markeringen i textfältet när knappen klickas.
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => applyStyle("**")}
+            >
+              B
+            </IconButton>
+            <IconButton
+              label={t.inspector.italic}
+              data-testid="note-italic"
+              className="h-8 w-8 font-serif text-[1em] text-text italic"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => applyStyle("*")}
+            >
+              I
+            </IconButton>
+          </span>
+        </div>
+        <textarea
+          id={textId}
+          ref={textRef}
+          data-testid="inspector-note-text"
+          className="gb-control min-h-24 w-full resize-y rounded-lg px-2.5 py-2 text-[1em] leading-snug placeholder:text-text-muted/70"
+          value={text ?? ""}
+          placeholder={text === null ? t.inspector.mixed : t.inspector.textPlaceholder}
+          onChange={(e) => setAll({ text: e.target.value })}
+          onKeyDown={(e) => {
+            const key = e.key.toLowerCase();
+            if ((e.ctrlKey || e.metaKey) && (key === "b" || key === "i")) {
+              e.preventDefault();
+              applyStyle(key === "b" ? "**" : "*");
+            }
+          }}
+        />
+        <p className="text-[0.82em] text-text-muted leading-snug">{t.inspector.textStyleHint}</p>
+      </div>
       <ColorField
         label={t.inspector.color}
         value={commonValue(notes.map((n) => n.color))}
         swatches={NOTE_COLORS}
         onChange={(color) => setAll({ color })}
+      />
+      <ColorField
+        label={t.inspector.borderColor}
+        value={commonValue(notes.map((n) => n.borderColor))}
+        onChange={(borderColor) => setAll({ borderColor })}
+      />
+      <SliderField
+        label={t.inspector.borderWidth}
+        value={borderWidth ?? 0}
+        mixed={borderWidth === null}
+        min={0}
+        max={10}
+        step={0.5}
+        onChange={(value) => setAll({ borderWidth: value })}
       />
       <SliderField
         label={t.inspector.fontSize}
@@ -125,26 +189,6 @@ export function NoteSection({ notes }: { notes: Note[] }) {
           </Segmented>
         )}
       </Field>
-      {single && (
-        <>
-          <SliderField
-            label={t.inspector.width}
-            value={single.size.w}
-            min={MIN_ELEMENT_SIZE}
-            max={MAX_ELEMENT_SIZE}
-            step={1}
-            onChange={(w) => updateNote(single.id, { size: { ...single.size, w } })}
-          />
-          <SliderField
-            label={t.inspector.height}
-            value={single.size.h}
-            min={MIN_ELEMENT_SIZE}
-            max={MAX_ELEMENT_SIZE}
-            step={1}
-            onChange={(h) => updateNote(single.id, { size: { ...single.size, h } })}
-          />
-        </>
-      )}
     </Section>
   );
 }

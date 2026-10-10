@@ -68,6 +68,8 @@ function sampleDoc(): GraphDocument {
     size: { w: 100, h: 50 },
     text: "Hej",
     color: "#fff59d",
+    borderColor: "#000000",
+    borderWidth: 2,
     textColor: "#000",
     fontSize: 14,
     align: "left",
@@ -76,13 +78,15 @@ function sampleDoc(): GraphDocument {
 }
 
 describe("Cypher", () => {
-  it("skriver CREATE-satser med variabelnamn från rubriken", () => {
+  it("skriver CREATE-satser med variabelnamn från rubriken, eller från labels utan rubrik", () => {
     const out = exportCypher(sampleDoc(), { onlyVisible: true });
     expect(out).toContain(
       'CREATE (AliceAndersson:Person {fullName: "Alice Andersson", name: "Alice", age: 42, vip: true, note: "säger \\"hej\\""})',
     );
-    expect(out).toContain("CREATE (n1:Company:`Legal Entity`)");
-    expect(out).toContain("CREATE (AliceAndersson)-[:`WORKS AT` {since: 2020}]->(n1)");
+    expect(out).toContain("CREATE (CompanyLegalEntity:Company:`Legal Entity`)");
+    expect(out).toContain(
+      "CREATE (AliceAndersson)-[:`WORKS AT` {since: 2020}]->(CompanyLegalEntity)",
+    );
     expect(out).not.toContain("Hidden");
   });
   it("tar med dolda lager när det begärs, oriktad relation utan pil", () => {

@@ -123,6 +123,8 @@ describe("parseDocument", () => {
     const doc = parseDocument(raw);
     expect(doc.notesVisible).toBe(true);
     expect(doc.notes.old).not.toHaveProperty("layerId");
+    // Äldre anteckningar får standardramen: svart, 2 punkter.
+    expect(doc.notes.old).toMatchObject({ borderColor: "#000000", borderWidth: 2 });
     expect(doc.notes.attached?.attachedTo).toEqual({ kind: "node", id: "a" });
     expect(doc.notes.broken).not.toHaveProperty("attachedTo");
   });

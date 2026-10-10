@@ -98,6 +98,12 @@ export const en = {
       "Shown when this layer and both of its nodes are shown. Locked when the layer is locked.",
     text: "Text",
     textPlaceholder: "Write your note…",
+    bold: "Bold",
+    italic: "Italic",
+    textStyleHint:
+      "Select text and press B or I. Bold is written as **text** and italic as *text*; the stars are not shown on the canvas.",
+    borderColor: "Border color",
+    borderWidth: "Border width",
     attachedTo: "Attached to",
     attachedNothing: "Nothing – the note stays where you put it",
     attachedHint: "An attached note follows along when you move what it belongs to.",

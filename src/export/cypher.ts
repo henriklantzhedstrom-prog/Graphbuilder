@@ -1,4 +1,4 @@
-import { nodeCaption } from "@/model/caption";
+import { nodeDisplayName } from "@/model/caption";
 import type { GraphDocument } from "@/model/types";
 import { selectDocument } from "./filter";
 
@@ -42,7 +42,7 @@ export const DEFAULT_RELATIONSHIP_TYPE = "RELATED";
 export function exportCypher(doc: GraphDocument, options: { onlyVisible: boolean }): string {
   const d = selectDocument(doc, options.onlyVisible);
   const nodes = Object.values(d.nodes);
-  const names = variableNames(nodes.map((n) => ({ id: n.id, caption: nodeCaption(n) })));
+  const names = variableNames(nodes.map((n) => ({ id: n.id, caption: nodeDisplayName(n) })));
   const lines: string[] = [];
   for (const node of nodes) {
     const labels = node.labels.map((l) => `:${escapeIdentifier(l)}`).join("");

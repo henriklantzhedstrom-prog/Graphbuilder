@@ -1,4 +1,4 @@
-import { nodeCaption } from "@/model/caption";
+import { nodeCaption, showsLabelsAsCaption } from "@/model/caption";
 import { textOn } from "@/model/color";
 import type { GraphNode, NodeStyle, Point } from "@/model/types";
 import { nodeOuterRadius } from "@/store/selectors";
@@ -43,16 +43,21 @@ export function NodeView({
 }: NodeViewProps) {
   const { x, y } = position;
   const r = style.radius;
+  // Utan rubrik står nodens labels inne i cirkeln i stället för som brickor ovanför.
+  const labelsInside = showsLabelsAsCaption(node);
   const captionLines = hideCaption
     ? []
-    : wrapToWidth(nodeCaption(node), r * 2 * 0.82, style.captionFontSize);
+    : labelsInside
+      ? node.labels
+      : wrapToWidth(nodeCaption(node), r * 2 * 0.82, style.captionFontSize);
   const captionLineHeight = style.captionFontSize * LINE_HEIGHT;
   const captionStartY = y - ((captionLines.length - 1) * captionLineHeight) / 2;
 
   // `r` är den fyllda ytans radie. Kanten ligger utanför den och växer utåt; allt runt noden
   // (labels, egenskaper, markeringsringar) räknas från kantens ytterkant.
   const outerR = nodeOuterRadius(style);
-  const labels = hideLabels ? [] : labelLayout(node.labels, style, x, y - outerR).boxes;
+  const labels =
+    hideLabels || labelsInside ? [] : labelLayout(node.labels, style, x, y - outerR).boxes;
   const labelBorder = style.labelBorderWidth;
 
   // Alla egenskaper listas under noden, även den som också visas som rubrik.

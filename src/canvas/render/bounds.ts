@@ -1,3 +1,4 @@
+import { showsLabelsAsCaption } from "@/model/caption";
 import { unionBoxes } from "@/model/geometry";
 import type { Box, GraphDocument, GraphNode, Relationship } from "@/model/types";
 import {
@@ -20,7 +21,10 @@ export function drawnNodeBoxes(doc: GraphDocument, node: GraphNode): Box[] {
   const { x, y } = node.position;
   const outerR = nodeOuterRadius(style);
   const boxes: Box[] = [{ x: x - outerR, y: y - outerR, w: outerR * 2, h: outerR * 2 }];
-  const labels = labelLayout(node.labels, style, x, y - outerR).outer;
+  // Labels som står inne i noden (ingen rubrik) tar ingen plats ovanför den.
+  const labels = showsLabelsAsCaption(node)
+    ? null
+    : labelLayout(node.labels, style, x, y - outerR).outer;
   if (labels) boxes.push(labels);
   const lines = doc.propertiesVisible ? propertyLines(node.properties) : [];
   if (lines.length > 0) {
@@ -84,7 +88,16 @@ export function drawnBounds(doc: GraphDocument, onlyVisible = true): Box | null 
     if (shown("image", image.id)) boxes.push(imageBox(image));
   }
   for (const note of Object.values(doc.notes)) {
-    if (shown("note", note.id)) boxes.push(noteBox(note));
+    if (shown("note", note.id)) {
+      const box = noteBox(note);
+      const frame = note.borderWidth;
+      boxes.push({
+        x: box.x - frame,
+        y: box.y - frame,
+        w: box.w + frame * 2,
+        h: box.h + frame * 2,
+      });
+    }
   }
   for (const node of Object.values(doc.nodes)) {
     if (shown("node", node.id)) boxes.push(...drawnNodeBoxes(doc, node));
