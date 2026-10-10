@@ -114,6 +114,11 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   fast marginal (`LABEL_PADDING_X`, `TYPE_PADDING_X`) – använd aldrig teckenantal för rutbredd.
 - **Dra på tom bakgrund flyttar hela ytan** (panorering); Shift+dra på tom yta = ram-markering.
   Dra i ett låst element räknas som bakgrund. Klick utan drag på tom yta avmarkerar.
+- **Zoom glider alltid mjukt** (`src/canvas/viewportAnimation.ts`): hjul, knappar, tangenter och
+  "Fit to content" sätter ett mål och vyn tonas dit (logaritmiskt, tidsbaserat, ankarpunkten ligger
+  still). Sätt aldrig zoomen direkt med `setViewport`; använd `zoomBy`/`resetZoom`/`fitToContent`
+  eller `zoomSmoothlyBy`. Hjulrörelsen per händelse har ett tak (`WHEEL_ZOOM_MAX_DELTA`) så att ett
+  hack på ett mushjul ger ca 25 %. Vid "minskad rörelse" i datorn hoppar zoomen direkt.
 - Noder skapas med knappen **Add node** överst i sidopanelen (`addNodeInView` i `src/canvas/actions.ts`),
   aldrig genom dubbelklick på tom yta. Dubbelklick på ett element redigerar det (träffas via
   `document.elementFromPoint`, eftersom pekarfångst gör `e.target` till ritytan).

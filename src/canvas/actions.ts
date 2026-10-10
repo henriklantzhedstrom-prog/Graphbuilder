@@ -1,5 +1,5 @@
 import { t } from "@/i18n";
-import { fitBoxInViewport, zoomAt } from "@/model/geometry";
+import { fitBoxInViewport } from "@/model/geometry";
 import type { Box, ElementRef, Id, Point, Size } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
 import {
@@ -12,6 +12,7 @@ import {
   layerById,
 } from "@/store/selectors";
 import { useUiStore } from "@/store/uiStore";
+import { moveViewportSmoothlyTo, zoomSmoothlyBy, zoomSmoothlyTo } from "./viewportAnimation";
 
 const docState = () => useDocumentStore.getState();
 const ui = () => useUiStore.getState();
@@ -157,19 +158,15 @@ export function startEditingSelection(): void {
 
 export function fitToContent(viewportSize: Size): void {
   const bounds = contentBounds(docState().doc) ?? { x: 0, y: 0, w: 0, h: 0 };
-  ui().setViewport(fitBoxInViewport(bounds, viewportSize, 60));
+  moveViewportSmoothlyTo(fitBoxInViewport(bounds, viewportSize, 60));
 }
 
 export function zoomBy(factor: number, viewportSize: Size): void {
-  const { viewport, setViewport } = ui();
-  setViewport(zoomAt(viewport, { x: viewportSize.w / 2, y: viewportSize.h / 2 }, factor));
+  zoomSmoothlyBy(factor, { x: viewportSize.w / 2, y: viewportSize.h / 2 });
 }
 
 export function resetZoom(viewportSize: Size): void {
-  const { viewport, setViewport } = ui();
-  setViewport(
-    zoomAt(viewport, { x: viewportSize.w / 2, y: viewportSize.h / 2 }, 1 / viewport.zoom),
-  );
+  zoomSmoothlyTo(1, { x: viewportSize.w / 2, y: viewportSize.h / 2 });
 }
 
 /** Mittpunkten av synlig yta i canvas-koordinater – där nya element hamnar från knappar. */

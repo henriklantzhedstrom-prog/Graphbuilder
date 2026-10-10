@@ -18,7 +18,6 @@ import {
   screenToCanvas,
   snapToPoints,
   sub,
-  zoomAt,
 } from "@/model/geometry";
 import type { Box, ElementRef, Id, Point } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
@@ -42,6 +41,7 @@ import { addImageFromFile, imageFilesFrom } from "./images";
 import { NOTE_PADDING } from "./render/NoteView";
 import { computeRelationshipGeometry, Scene, type SceneOverrides } from "./render/Scene";
 import { type Handle, handlePosition } from "./render/SelectionBox";
+import { cancelViewportAnimation, zoomSmoothlyBy } from "./viewportAnimation";
 
 const DRAG_THRESHOLD_PX = 4;
 const SNAP_TOLERANCE_PX = 8;
@@ -111,6 +111,10 @@ function resizeBox(start: Box, handle: Handle, delta: Point, aspect: number | nu
   return { x, y, w, h };
 }
 
+/** Zoomhastighet per pixel hjulrörelse, och största rörelse som räknas per hjulhändelse. */
+const WHEEL_ZOOM_SPEED = 0.01;
+const WHEEL_ZOOM_MAX_DELTA = 22;
+
 export function Canvas() {
   const svgRef = useRef<SVGSVGElement>(null);
   const size = useElementSize(svgRef);
@@ -144,14 +148,25 @@ export function Canvas() {
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       const rect = svg.getBoundingClientRect();
-      const vp = useUiStore.getState().viewport;
+      // Mushjul kan rapportera rader eller sidor i stället för pixlar.
+      const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? rect.height : 1;
       if (e.ctrlKey || e.metaKey) {
-        const factor = Math.exp(-e.deltaY * 0.01);
+        // Ett hack på ett mushjul ger ca 100 px på en gång; utan tak blir det ett hopp på nästan
+        // tre gånger. Med taket blir ett hack ca 25 %, och styrplattans små steg påverkas inte.
+        const delta = Math.max(
+          -WHEEL_ZOOM_MAX_DELTA,
+          Math.min(WHEEL_ZOOM_MAX_DELTA, e.deltaY * unit),
+        );
+        zoomSmoothlyBy(Math.exp(-delta * WHEEL_ZOOM_SPEED), {
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top,
+        });
+      } else {
+        cancelViewportAnimation();
+        const vp = useUiStore.getState().viewport;
         useUiStore
           .getState()
-          .setViewport(zoomAt(vp, { x: e.clientX - rect.left, y: e.clientY - rect.top }, factor));
-      } else {
-        useUiStore.getState().setViewport({ ...vp, x: vp.x - e.deltaX, y: vp.y - e.deltaY });
+          .setViewport({ ...vp, x: vp.x - e.deltaX * unit, y: vp.y - e.deltaY * unit });
       }
     };
     svg.addEventListener("wheel", onWheel, { passive: false });
@@ -191,6 +206,8 @@ export function Canvas() {
 
   // ---------- Pekare ----------
   const onPointerDown = (e: ReactPointerEvent<SVGSVGElement>) => {
+    // Ett eget grepp tar över från en pågående glidning (zoom eller "Fit to content").
+    cancelViewportAnimation();
     const ui = useUiStore.getState();
     const docState = useDocumentStore.getState();
     const currentDoc = docState.doc;

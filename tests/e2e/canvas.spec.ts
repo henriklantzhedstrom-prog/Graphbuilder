@@ -134,4 +134,40 @@ test.describe("rityta", () => {
     await page.reload();
     await expect(captionText(page, "Kvar")).toBeVisible();
   });
+
+  test("zoomen glider mjukt: ett hack på mushjulet ger ett lagom steg, inte ett hopp", async ({
+    page,
+  }) => {
+    await freshApp(page);
+    await createNode(page, 400, 300, "Mitten");
+    const level = page.getByTitle("Reset zoom");
+    await expect(level).toHaveText("100 %");
+
+    // Ett hack på ett mushjul (100 px) med Ctrl: förr nästan tre gånger större, nu ca 25 %.
+    await page.mouse.move(400, 400);
+    await page.keyboard.down("Control");
+    await page.mouse.wheel(0, -100);
+    await page.keyboard.up("Control");
+    await expect(level).toHaveText("125 %");
+
+    // Knapparna tar ett steg i taget och landar på jämna nivåer.
+    await level.click();
+    await expect(level).toHaveText("100 %");
+    await page.getByRole("button", { name: "Zoom in" }).click();
+    await expect(level).toHaveText("120 %");
+
+    // Vägen dit går via mellanlägen (glidning), inte i ett enda hopp.
+    const seen = await page.evaluate(async () => {
+      const el = document.querySelector('[title="Reset zoom"]');
+      const values = new Set<string>();
+      const observer = new MutationObserver(() => values.add(el?.textContent ?? ""));
+      if (el) observer.observe(el, { childList: true, characterData: true, subtree: true });
+      (document.querySelector('[aria-label="Zoom in"]') as HTMLButtonElement).click();
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      observer.disconnect();
+      return [...values];
+    });
+    expect(seen.length).toBeGreaterThan(2);
+    await expect(level).toHaveText("144 %");
+  });
 });
