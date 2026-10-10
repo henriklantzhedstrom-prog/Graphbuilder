@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { createNode, dragRelationship, freshApp } from "./helpers";
+import { captionText, createNode, dragRelationship, freshApp } from "./helpers";
 
 test.describe("egenskapspanel", () => {
   test("redigerar rubrik, label, egenskap och färg på en nod", async ({ page }) => {
@@ -67,5 +67,71 @@ test.describe("egenskapspanel", () => {
     await expect(page.getByRole("heading", { name: "Model default style" })).toBeVisible();
     await page.getByLabel("Radius").fill("30");
     await expect(page.locator("[data-ref^='node:'] circle[r='30']")).toHaveCount(2);
+  });
+
+  test("utan markering gäller stiländringen alla synliga noder, även de med egen stil", async ({
+    page,
+  }) => {
+    await freshApp(page);
+    await createNode(page, 250, 300, "A");
+    await page.getByTitle("#ff3b30").click();
+    await createNode(page, 600, 300, "B");
+    await page.getByRole("tab", { name: "Layers" }).click();
+    await page.getByTestId("add-layer").click();
+    await createNode(page, 425, 500, "Dold");
+    await page.getByRole("tab", { name: "Layers" }).click();
+    await page.getByTestId("layer-row").nth(0).getByTestId("layer-visibility").click();
+    await expect(captionText(page, "Dold")).toHaveCount(0);
+
+    await page.keyboard.press("Escape");
+    await page.getByRole("tab", { name: "Style" }).click();
+    await expect(page.getByText("Nothing selected", { exact: true })).toBeVisible();
+    await page.getByTitle("#34c759").click();
+    // Båda synliga noderna blir gröna, även A som hade en egen röd färg.
+    await expect(page.locator("[data-ref^='node:'] > circle[fill='#34c759']")).toHaveCount(2);
+    await expect(page.locator("[data-ref^='node:'] > circle[fill='#ff3b30']")).toHaveCount(0);
+
+    // Den dolda noden är oförändrad (vit) när lagret visas igen.
+    await page.getByRole("tab", { name: "Layers" }).click();
+    await page.getByTestId("layer-row").nth(0).getByTestId("layer-visibility").click();
+    await expect(page.locator("[data-ref^='node:'] > circle[fill='#ffffff']")).toHaveCount(1);
+    await expect(page.locator("[data-ref^='node:'] > circle[fill='#34c759']")).toHaveCount(2);
+  });
+
+  test("sifferfält går att tömma och skriva om, och håller sig inom gränserna", async ({
+    page,
+  }) => {
+    await freshApp(page);
+    await createNode(page, 300, 300, "A");
+    await page.keyboard.press("Escape");
+    const radius = page.getByLabel("Radius");
+    const node = page.locator("[data-ref^='node:'] > circle").last();
+    await expect(node).toHaveAttribute("r", "50");
+
+    // Sudda siffra för siffra och skriv ett nytt värde.
+    await radius.click();
+    await radius.press("End");
+    await radius.press("Backspace");
+    await radius.press("Backspace");
+    await expect(radius).toHaveValue("");
+    await expect(node).toHaveAttribute("r", "50");
+    await radius.pressSequentially("80");
+    await expect(node).toHaveAttribute("r", "80");
+
+    // Noll är för litet: noden ändras inte medan man skriver, och fältet rättas till minsta värdet.
+    await radius.fill("0");
+    await expect(node).toHaveAttribute("r", "80");
+    await radius.press("Enter");
+    await expect(radius).toHaveValue("10");
+    await expect(node).toHaveAttribute("r", "10");
+
+    // Tomt fält som lämnas återgår till det gällande värdet, och modellen går att öppna igen.
+    await radius.fill("");
+    await radius.press("Tab");
+    await expect(radius).toHaveValue("10");
+    await page.waitForTimeout(900);
+    await page.reload();
+    await expect(captionText(page, "A")).toBeVisible();
+    await expect(page.locator("[data-ref^='node:'] > circle").last()).toHaveAttribute("r", "10");
   });
 });

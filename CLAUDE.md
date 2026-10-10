@@ -84,6 +84,15 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   relationer (`showProperties` i `NodeView`/`RelationshipView`). Raderna syns ändå bara för element
   som själva syns. Nodens rubrik påverkas inte. Dolt lager döljer raderna även i SVG/PNG med
   "Visible layers only"; JSON och Cypher innehåller alltid egenskaperna (de är data).
+- **Stil utan markering gäller allt som syns.** `setDocumentStyle` ändrar modellens standardstil OCH
+  tar bort samma nycklar ur egen stil på alla synliga noder/relationer, så att ändringen syns på
+  dem alla. Dolda element som följde standarden får det gamla värdet som egen stil och ser därför
+  likadana ut när de visas igen (`applyToVisible` i `documentStore.ts`). Med markering ändras bara
+  de markerade (`setNodeStyle`/`setRelationshipStyle`).
+- **Sifferfält** (`NumberField`) har egen text medan man skriver: värden utanför `min`/`max`
+  slår inte igenom förrän fältet lämnas, och rättas då till närmaste gräns. Skicka alltid med
+  `min` för storlekar – schemat kräver positiva värden, och en modell med radie eller textstorlek
+  0 går inte att öppna igen. `toHex` klarar alla CSS-färger (namn, rgb(), korta hexkoder).
 - Varje ny funktion levereras med enhetstest (`tests/unit`) och, när den har UI, e2e-test (`tests/e2e`).
 - Commit-meddelanden: en kort rad i imperativ på engelska (`Add layers panel`), sedan valfri brödtext.
 - Importera med alias `@/` för `src/`.

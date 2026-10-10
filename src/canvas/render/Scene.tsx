@@ -75,7 +75,11 @@ export function computeRelationshipGeometry(
         : Math.max(0, toStyle.radius - toStyle.strokeWidth / 2),
     },
     bundle,
-    { arrowSize: style.arrowSize, directed: style.directed },
+    // Pilspetsen är aldrig smalare än linjen, annars sticker en tjock linje ut bredvid spetsen.
+    {
+      arrowSize: style.arrowSize > 0 ? Math.max(style.arrowSize, style.width * 0.75) : 0,
+      directed: style.directed,
+    },
   );
 }
 

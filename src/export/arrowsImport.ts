@@ -1,7 +1,11 @@
 import { z } from "zod";
 import { t } from "@/i18n";
 import { captionKeyFor } from "@/model/caption";
-import { createEmptyDocument } from "@/model/defaults";
+import {
+  createEmptyDocument,
+  DEFAULT_NODE_STYLE,
+  DEFAULT_RELATIONSHIP_STYLE,
+} from "@/model/defaults";
 import { newId } from "@/model/ids";
 import { DocumentParseError } from "@/model/schema";
 import type { GraphDocument, NodeStyle, RelationshipStyle } from "@/model/types";
@@ -56,23 +60,47 @@ const RELATIONSHIP_STYLE_KEYS: Record<string, keyof RelationshipStyle> = {
   "property-font-size": "propertyFontSize",
 };
 
+/**
+ * Gör om ett värde från filen till samma typ som fältet har hos oss. arrows.app sparar ibland tal
+ * som text ("50"); ett tal som text i ett talfält ger fel i alla beräkningar på ritytan.
+ */
+function coerce(
+  value: unknown,
+  like: string | number | boolean,
+): string | number | boolean | undefined {
+  if (typeof like === "number") {
+    const n = typeof value === "string" ? Number.parseFloat(value) : value;
+    return typeof n === "number" && Number.isFinite(n) && n >= 0 ? n : undefined;
+  }
+  if (typeof like === "boolean") {
+    if (typeof value === "boolean") return value;
+    return value === "true" ? true : value === "false" ? false : undefined;
+  }
+  return typeof value === "string" && value !== "" ? value : undefined;
+}
+
 function mapStyle<K extends string>(
   style: Record<string, unknown>,
   keys: Record<string, K>,
+  defaults: Record<K, string | number | boolean>,
 ): Partial<Record<K, string | number | boolean>> {
   const out: Partial<Record<K, string | number | boolean>> = {};
   for (const [arrowsKey, ourKey] of Object.entries(keys)) {
-    const v = style[arrowsKey];
-    if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") out[ourKey] = v;
+    const v = coerce(style[arrowsKey], defaults[ourKey]);
+    if (v !== undefined) out[ourKey] = v;
   }
   return out;
 }
 
 const mapNodeStyle = (style: Record<string, unknown>): Partial<NodeStyle> =>
-  mapStyle(style, NODE_STYLE_KEYS) as Partial<NodeStyle>;
+  mapStyle(style, NODE_STYLE_KEYS, DEFAULT_NODE_STYLE) as Partial<NodeStyle>;
 
 function mapRelationshipStyle(style: Record<string, unknown>): Partial<RelationshipStyle> {
-  const out = mapStyle(style, RELATIONSHIP_STYLE_KEYS) as Partial<RelationshipStyle>;
+  const out = mapStyle(
+    style,
+    RELATIONSHIP_STYLE_KEYS,
+    DEFAULT_RELATIONSHIP_STYLE,
+  ) as Partial<RelationshipStyle>;
   if (style.directionality === "undirected") out.directed = false;
   if (style.directionality === "directed") out.directed = true;
   return out;

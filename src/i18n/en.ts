@@ -47,7 +47,7 @@ export const en = {
   inspector: {
     nothingSelected: "Nothing selected",
     nothingSelectedHint:
-      "Select a node, relationship, note or image to edit it here. With nothing selected, the model's default style is shown.",
+      "Select a node, relationship, note or image to change just that. With nothing selected, changes here apply to all nodes and relationships that are visible, and to new ones.",
     documentStyle: "Model default style",
     selection: (n: number) => (n === 1 ? "1 element selected" : `${n} elements selected`),
     node: "Node",

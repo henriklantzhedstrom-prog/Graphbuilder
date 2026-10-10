@@ -5,6 +5,7 @@ import {
   type ReactNode,
   type SelectHTMLAttributes,
   useId,
+  useState,
 } from "react";
 import { IconChevronDown, IconChevronUp } from "./icons";
 
@@ -166,10 +167,13 @@ export function NumberField({
   step?: number;
   placeholder?: string;
 }) {
+  // Fältet har en egen text medan man skriver, så att det går att tömma och skriva om. Ett värde
+  // slår igenom direkt när det ligger inom gränserna; annars rättas det när man lämnar fältet.
+  const [draft, setDraft] = useState<string | null>(null);
+  const clamp = (v: number) => Math.min(max ?? Infinity, Math.max(min ?? -Infinity, v));
   const nudge = (direction: 1 | -1) => {
-    const next = (value ?? min ?? 0) + direction * step;
-    const clamped = Math.min(max ?? Infinity, Math.max(min ?? -Infinity, next));
-    onChange(Math.round(clamped * 1000) / 1000);
+    setDraft(null);
+    onChange(Math.round(clamp((value ?? min ?? 0) + direction * step) * 1000) / 1000);
   };
   return (
     <Field label={label} inline>
@@ -184,14 +188,25 @@ export function NumberField({
             id={id}
             type="number"
             className="gb-number h-full w-full min-w-0 rounded-lg bg-transparent pr-1 pl-2.5 text-[1em] tabular-nums outline-none"
-            value={value ?? ""}
+            value={draft ?? value ?? ""}
             placeholder={placeholder}
             min={min}
             max={max}
             step={step}
             onChange={(e) => {
+              setDraft(e.target.value);
               const v = Number(e.target.value);
-              if (!Number.isNaN(v) && e.target.value !== "") onChange(v);
+              if (e.target.value !== "" && Number.isFinite(v) && v === clamp(v)) onChange(v);
+            }}
+            onBlur={() => {
+              const v = Number(draft);
+              if (draft !== null && draft !== "" && Number.isFinite(v) && v !== clamp(v)) {
+                onChange(clamp(v));
+              }
+              setDraft(null);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") (e.target as HTMLInputElement).blur();
             }}
           />
           <span className="flex h-full flex-col border-border border-l opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
@@ -398,15 +413,47 @@ export function Divider() {
   return <span className="mx-1.5 h-5 w-px shrink-0 bg-border" aria-hidden />;
 }
 
-/** Normaliserar färg till #rrggbb för <input type="color">. */
+/**
+ * Normaliserar en färg till #rrggbb för <input type="color">. Klarar även färgnamn, rgb(), hsl()
+ * och korta eller genomskinliga hexkoder (t.ex. från importerade modeller) via webbläsaren.
+ */
 export function toHex(color: string | null): string {
   if (!color) return "#000000";
-  if (/^#[0-9a-f]{6}$/i.test(color)) return color.toLowerCase();
-  if (/^#[0-9a-f]{3}$/i.test(color)) {
-    const [, r, g, b] = color;
+  const value = color.trim();
+  if (/^#[0-9a-f]{6}$/i.test(value)) return value.toLowerCase();
+  if (/^#[0-9a-f]{3}$/i.test(value)) {
+    const [, r, g, b] = value;
     return `#${r}${r}${g}${g}${b}${b}`.toLowerCase();
   }
-  return "#000000";
+  if (/^#[0-9a-f]{8}$/i.test(value)) return value.slice(0, 7).toLowerCase();
+  return cssColorToHex(value) ?? "#000000";
+}
+
+let colorProbe: CanvasRenderingContext2D | null | undefined;
+
+function cssColorToHex(color: string): string | null {
+  if (colorProbe === undefined) {
+    try {
+      colorProbe = document.createElement("canvas").getContext("2d");
+    } catch {
+      colorProbe = null;
+    }
+  }
+  if (!colorProbe) return null;
+  // En ogiltig färg lämnar fillStyle orörd; två olika utgångsvärden avslöjar det.
+  colorProbe.fillStyle = "#000000";
+  colorProbe.fillStyle = color;
+  const first = colorProbe.fillStyle;
+  colorProbe.fillStyle = "#ffffff";
+  colorProbe.fillStyle = color;
+  if (first !== colorProbe.fillStyle) return null;
+  if (/^#[0-9a-f]{6}$/i.test(first)) return first.toLowerCase();
+  const rgba = first.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  if (!rgba) return null;
+  return `#${rgba
+    .slice(1, 4)
+    .map((n) => Number(n).toString(16).padStart(2, "0"))
+    .join("")}`;
 }
 
 export { cx };

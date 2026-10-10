@@ -50,12 +50,14 @@ export function NodeView({
   const labelsTotal =
     labelWidths.reduce((a, b) => a + b, 0) + Math.max(0, node.labels.length - 1) * 4;
   let labelX = x - labelsTotal / 2;
-  const labelY = y - r - labelHeight - 6;
+  // Avstånden räknas från kantens ytterkant, så att en tjock kant inte ritas över texten.
+  const outerR = r + style.strokeWidth / 2;
+  const labelY = y - outerR - labelHeight - 4;
 
   // Alla egenskaper listas under noden, även den som också visas som rubrik.
   const props = showProperties ? propertyLines(node.properties) : [];
   const propLineHeight = style.propertyFontSize * LINE_HEIGHT;
-  const propStartY = y + r + 8 + style.propertyFontSize;
+  const propStartY = y + outerR + 6 + style.propertyFontSize;
   const propX = propertyTextX(props, x, style.propertyFontSize);
 
   return (

@@ -260,6 +260,35 @@ describe("egenskapsbakgrund och labelkant", () => {
   });
 });
 
+describe("arrows.app-import: stilvärden får rätt typ", () => {
+  it("tal som text blir tal, ogiltiga värden hoppas över", () => {
+    const doc = importArrowsJson(
+      JSON.stringify({
+        style: { radius: "40", "border-width": "abc", "node-color": "#ffcc00" },
+        nodes: [
+          {
+            id: "n0",
+            position: { x: 0, y: 0 },
+            caption: "A",
+            style: { radius: "25", "border-width": -3, "caption-font-size": "18" },
+          },
+        ],
+        relationships: [],
+      }),
+      "Typer",
+    );
+    expect(doc.style.node.radius).toBe(40);
+    // Ogiltigt värde: standardvärdet behålls.
+    expect(doc.style.node.strokeWidth).toBe(4);
+    const node = Object.values(doc.nodes)[0];
+    expect(node?.style.radius).toBe(25);
+    expect(node?.style.captionFontSize).toBe(18);
+    expect(node?.style).not.toHaveProperty("strokeWidth");
+    // Resultatet är en giltig modell som går att spara och öppna igen.
+    expect(() => parseDocument(JSON.parse(JSON.stringify(doc)))).not.toThrow();
+  });
+});
+
 describe("lagret Properties", () => {
   it("dolt: egenskapsraderna ritas inte, men rubriken och datat finns kvar", () => {
     const doc = { ...sampleDoc(), propertiesVisible: false };

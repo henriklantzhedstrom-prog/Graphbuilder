@@ -9,6 +9,8 @@ import {
   isRelationshipVisible,
   relationshipBundles,
   renderGroups,
+  resolvedNodeStyle,
+  resolvedRelationshipStyle,
   visibleRelationships,
 } from "@/store/selectors";
 
@@ -319,6 +321,43 @@ describe("element", () => {
     store().setDocumentStyle({ node: { radius: 30 }, background: "#eee" });
     expect(store().doc.style.node.radius).toBe(30);
     expect(store().doc.style.background).toBe("#eee");
+  });
+
+  it("stil utan markering gäller allt som syns; dolda element behåller sitt utseende", () => {
+    const shown = firstLayer();
+    const hidden = store().addLayer();
+    const plain = store().addNode(shown, { x: 0, y: 0 });
+    const custom = store().addNode(shown, { x: 100, y: 0 });
+    const hiddenPlain = store().addNode(hidden, { x: 200, y: 0 });
+    const hiddenCustom = store().addNode(hidden, { x: 300, y: 0 });
+    store().setNodeStyle([custom], { fill: "#ff0000", radius: 70 });
+    store().setNodeStyle([hiddenCustom], { fill: "#00ff00" });
+    const visibleRel = store().addRelationship(plain, custom);
+    const hiddenRel = store().addRelationship(plain, hiddenPlain);
+    store().setRelationshipStyle([visibleRel], { color: "#ff0000" });
+    store().setLayerVisible(hidden, false);
+
+    store().setDocumentStyle({ node: { fill: "#0000ff" }, relationship: { color: "#0000ff" } });
+    const doc = store().doc;
+    const fill = (id: string) => {
+      const node = doc.nodes[id];
+      return node ? resolvedNodeStyle(doc, node).fill : undefined;
+    };
+    // Synliga noder får den nya färgen, även den som hade en egen färg …
+    expect(fill(plain)).toBe("#0000ff");
+    expect(fill(custom)).toBe("#0000ff");
+    // … men bara för det som ändrades: dess egen radie finns kvar.
+    expect(doc.nodes[custom]?.style).toEqual({ radius: 70 });
+    // Dolda noder ser ut som förut, och nya noder får den nya färgen.
+    expect(fill(hiddenPlain)).toBe("#ffffff");
+    expect(fill(hiddenCustom)).toBe("#00ff00");
+    expect(doc.style.node.fill).toBe("#0000ff");
+    const color = (id: string) => {
+      const rel = doc.relationships[id];
+      return rel ? resolvedRelationshipStyle(doc, rel).color : undefined;
+    };
+    expect(color(visibleRel)).toBe("#0000ff");
+    expect(color(hiddenRel)).toBe("#000000");
   });
 
   it("parallella relationer grupperas", () => {

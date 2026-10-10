@@ -29,7 +29,7 @@ import type {
   RelationshipStyle,
   Size,
 } from "@/model/types";
-import { elementLayerId, getElement } from "./selectors";
+import { elementLayerId, getElement, isElementVisible, isRelationshipVisible } from "./selectors";
 
 export interface ClipboardContent {
   nodes: GraphNode[];
@@ -125,6 +125,28 @@ const touch = (doc: GraphDocument) => {
 const PASTE_OFFSET: Point = { x: 40, y: 40 };
 
 const present = <T>(value: T | undefined): T[] => (value === undefined ? [] : [value]);
+
+/**
+ * Sätter nya standardvärden och låter alla synliga element följa dem (deras egna värden för
+ * samma nycklar tas bort). Dolda element som följde standarden får det gamla värdet som eget,
+ * så att de ser likadana ut när de visas igen.
+ */
+function applyToVisible<S extends object, E extends { style: Partial<S> }>(
+  elements: E[],
+  defaults: S,
+  patch: Partial<S>,
+  isVisible: (el: E) => boolean,
+): void {
+  const keys = Object.keys(patch) as (keyof S)[];
+  for (const el of elements) {
+    const visible = isVisible(el);
+    for (const key of keys) {
+      if (visible) delete el.style[key];
+      else if (el.style[key] === undefined) el.style[key] = defaults[key];
+    }
+  }
+  Object.assign(defaults, patch);
+}
 
 function removeOrphanAssets(doc: GraphDocument) {
   const used = new Set(Object.values(doc.images).map((im) => im.assetId));
@@ -586,8 +608,21 @@ export const useDocumentStore = create<DocumentState>()(
 
       setDocumentStyle: (patch) =>
         set((s) => {
-          if (patch.node) Object.assign(s.doc.style.node, patch.node);
-          if (patch.relationship) Object.assign(s.doc.style.relationship, patch.relationship);
+          // En ändring utan markering gäller allt som syns just nu, även element med egen stil.
+          // Dolda element behåller sitt utseende: de får sitt nuvarande värde som egen stil.
+          if (patch.node) {
+            applyToVisible(Object.values(s.doc.nodes), s.doc.style.node, patch.node, (n) =>
+              isElementVisible(s.doc, { kind: "node", id: n.id }),
+            );
+          }
+          if (patch.relationship) {
+            applyToVisible(
+              Object.values(s.doc.relationships),
+              s.doc.style.relationship,
+              patch.relationship,
+              (r) => isRelationshipVisible(s.doc, r),
+            );
+          }
           if (patch.background !== undefined) s.doc.style.background = patch.background;
           touch(s.doc);
         }),
