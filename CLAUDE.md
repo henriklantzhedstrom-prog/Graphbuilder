@@ -117,8 +117,10 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
 - **Zoom glider alltid mjukt** (`src/canvas/viewportAnimation.ts`): hjul, knappar, tangenter och
   "Fit to content" sätter ett mål och vyn tonas dit (logaritmiskt, tidsbaserat, ankarpunkten ligger
   still). Sätt aldrig zoomen direkt med `setViewport`; använd `zoomBy`/`resetZoom`/`fitToContent`
-  eller `zoomSmoothlyBy`. Hjulrörelsen per händelse har ett tak (`WHEEL_ZOOM_MAX_DELTA`) så att ett
-  hack på ett mushjul ger ca 25 %. Vid "minskad rörelse" i datorn hoppar zoomen direkt.
+  eller `zoomSmoothlyBy`. **Hjulet zoomar alltid, utan tangent** (kunden vill inte panorera med
+  hjulet; ytan flyttas genom att dra i den). Hjulrörelsen per händelse har ett tak
+  (`WHEEL_ZOOM_MAX_DELTA`) så att ett hack på ett mushjul ger ca 25 %; nypning på styrplatta har
+  egen hastighet (`PINCH_ZOOM_*`). Vid "minskad rörelse" i datorn hoppar zoomen direkt.
 - **Medan vyn rör sig ritas innehållet inte om.** `Canvas.tsx` håller en "landad" vy (`committed`,
   `useSettledValue`) som den inre gruppen ritas med; under zoom/panorering flyttas och skalas hela
   svg-elementet med CSS-transform (`glide`) och landar ca 120 ms efter sista rörelsen. Ändra aldrig

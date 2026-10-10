@@ -143,8 +143,25 @@ test.describe("rityta", () => {
     const level = page.getByTitle("Reset zoom");
     await expect(level).toHaveText("100 %");
 
-    // Ett hack på ett mushjul (100 px) med Ctrl: förr nästan tre gånger större, nu ca 25 %.
+    // Hjulet zoomar direkt, utan någon tangent. Ett hack (100 px) ger ca 25 %.
     await page.mouse.move(400, 400);
+    await page.mouse.wheel(0, -100);
+    await expect(level).toHaveText("125 %");
+    // Ett snabbsnurrande hjul (många hack i en händelse) ger ändå bara ett steg.
+    await level.click();
+    await expect(level).toHaveText("100 %");
+    await page.mouse.move(400, 400);
+    await page.mouse.wheel(0, -900);
+    await expect(level).toHaveText("125 %");
+    // Hjulet flyttar inte ytan i sidled: zoomnivån är det enda som ändras av sidrullning.
+    await level.click();
+    await expect(level).toHaveText("100 %");
+    await page.mouse.move(400, 400);
+    await page.mouse.wheel(300, 0);
+    await page.waitForTimeout(300);
+    await expect(level).toHaveText("100 %");
+    await expect(captionText(page, "Mitten")).toBeInViewport();
+    // Ctrl+hjul (och nypning på styrplatta) zoomar också.
     await page.keyboard.down("Control");
     await page.mouse.wheel(0, -100);
     await page.keyboard.up("Control");
@@ -183,9 +200,7 @@ test.describe("rityta", () => {
     // Zooma in med pekaren på noden och klicka direkt, mitt i glidningen: noden ligger kvar
     // under pekaren och går att markera.
     await page.mouse.move(box.x + 400, box.y + 300);
-    await page.keyboard.down("Control");
     await page.mouse.wheel(0, -100);
-    await page.keyboard.up("Control");
     await page.mouse.click(box.x + 400, box.y + 300);
     await expect(page.getByTestId("inspector")).toContainText("1 element selected");
     // När vyn landat är ytan tillbaka på plats och innehållet ritat i den nya skalan.

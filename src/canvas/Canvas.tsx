@@ -113,8 +113,11 @@ function resizeBox(start: Box, handle: Handle, delta: Point, aspect: number | nu
 }
 
 /** Zoomhastighet per pixel hjulrörelse, och största rörelse som räknas per hjulhändelse. */
-const WHEEL_ZOOM_SPEED = 0.01;
-const WHEEL_ZOOM_MAX_DELTA = 22;
+const WHEEL_ZOOM_SPEED = 0.0022;
+const WHEEL_ZOOM_MAX_DELTA = 100;
+/** Samma för nypning på styrplatta, som rapporteras i mycket mindre steg. */
+const PINCH_ZOOM_SPEED = 0.01;
+const PINCH_ZOOM_MAX_DELTA = 22;
 /** Så länge ska vyn ha stått still innan innehållet ritas om i den nya skalan. */
 const VIEW_SETTLE_MS = 120;
 
@@ -158,7 +161,8 @@ export function Canvas() {
     });
   }, []);
 
-  // ---------- Hjul: zoom (ctrl/cmd) eller panorering ----------
+  // ---------- Hjul: zoom ----------
+  // Hjulet zoomar alltid, utan att någon tangent hålls nere. Ytan flyttas genom att dra i den.
   useEffect(() => {
     // Lyssnar på behållaren: svg-elementet täcker inte hela ytan medan en utzoomning glider.
     const svg = containerRef.current;
@@ -168,24 +172,17 @@ export function Canvas() {
       const rect = svg.getBoundingClientRect();
       // Mushjul kan rapportera rader eller sidor i stället för pixlar.
       const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? rect.height : 1;
-      if (e.ctrlKey || e.metaKey) {
-        // Ett hack på ett mushjul ger ca 100 px på en gång; utan tak blir det ett hopp på nästan
-        // tre gånger. Med taket blir ett hack ca 25 %, och styrplattans små steg påverkas inte.
-        const delta = Math.max(
-          -WHEEL_ZOOM_MAX_DELTA,
-          Math.min(WHEEL_ZOOM_MAX_DELTA, e.deltaY * unit),
-        );
-        zoomSmoothlyBy(Math.exp(-delta * WHEEL_ZOOM_SPEED), {
-          x: e.clientX - rect.left,
-          y: e.clientY - rect.top,
-        });
-      } else {
-        cancelViewportAnimation();
-        const vp = useUiStore.getState().viewport;
-        useUiStore
-          .getState()
-          .setViewport({ ...vp, x: vp.x - e.deltaX * unit, y: vp.y - e.deltaY * unit });
-      }
+      // Nypning på styrplatta (och Ctrl+hjul) rapporteras med Ctrl nedtryckt och i mycket små
+      // steg; vanlig hjulrörelse kommer i stora steg (ett hack ≈ 100 px). Båda ger ca 25 % per
+      // hack respektive tydlig nypning, och taket hindrar ett snabbsnurrande hjul från att hoppa.
+      const pinch = e.ctrlKey || e.metaKey;
+      const speed = pinch ? PINCH_ZOOM_SPEED : WHEEL_ZOOM_SPEED;
+      const limit = pinch ? PINCH_ZOOM_MAX_DELTA : WHEEL_ZOOM_MAX_DELTA;
+      const delta = Math.max(-limit, Math.min(limit, e.deltaY * unit));
+      zoomSmoothlyBy(Math.exp(-delta * speed), {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      });
     };
     svg.addEventListener("wheel", onWheel, { passive: false });
     return () => svg.removeEventListener("wheel", onWheel);

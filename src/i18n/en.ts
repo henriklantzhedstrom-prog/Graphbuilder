@@ -245,7 +245,7 @@ export const en = {
       multi: ["Shift+click", "Add to / remove from selection"],
       deselect: ["Esc", "Deselect / cancel"],
       pan: ["Drag empty space / Space+drag", "Move the whole canvas"],
-      zoom: ["Ctrl+scroll / pinch", "Zoom"],
+      zoom: ["Scroll wheel / pinch", "Zoom"],
       zoomKeys: ["+ / −", "Zoom in/out"],
       fit: ["0", "Fit to content"],
       layersPanel: ["L", "Toggle the layers panel"],
