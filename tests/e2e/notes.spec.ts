@@ -15,8 +15,8 @@ test.describe("anteckningar", () => {
 
     // Markera och byt färg i panelen
     await page.locator("[data-ref^='note:'] > rect").first().click();
-    await page.getByTitle("#cfd8e0").click();
-    await expect(page.locator("[data-ref^='note:'] rect[fill='#cfd8e0']")).toHaveCount(1);
+    await page.getByTitle("#0a84ff").click();
+    await expect(page.locator("[data-ref^='note:'] rect[fill='#0a84ff']")).toHaveCount(1);
 
     // Ändra storlek med sydöstra handtaget
     const handle = page.locator("[data-part='handle'][data-handle='se']");

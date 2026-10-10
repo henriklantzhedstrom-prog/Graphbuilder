@@ -29,7 +29,7 @@ test("skärmdump: egenskapspanel och lagerpanel", async ({ page }) => {
   await page.getByPlaceholder("Key").fill("name");
   await page.getByPlaceholder("Key").press("Enter");
   await page.getByLabel("Value").fill("Alice");
-  await page.getByTitle("#c5ced8").click();
+  await page.getByTitle("#0a84ff").click();
   await page.screenshot({ path: `${SCREENSHOT_DIR}/inspector-node.png`, ...SHOT });
   await page.getByRole("tab", { name: "Layers" }).click();
   await page.getByTestId("add-layer").click();
@@ -66,7 +66,7 @@ test("skärmdump: anteckning och bakgrundsbild i lager", async ({ page }) => {
   await page.getByTestId("inline-editor").fill("Att göra: lägg till adress på Company");
   await page.getByTestId("canvas").click({ position: { x: 800, y: 650 } });
   await page.locator("[data-ref^='note:'] > rect").click();
-  await page.getByTitle("#e9e2d3").click();
+  await page.getByTitle("#ff9500").click();
   await page.getByRole("tab", { name: "Layers" }).click();
   await page.screenshot({ path: `${SCREENSHOT_DIR}/notes-and-image.png`, ...SHOT });
 });

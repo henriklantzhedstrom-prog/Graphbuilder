@@ -47,28 +47,29 @@ export const DEFAULT_DIAGRAM_STYLE: DiagramStyle = {
   background: "#ffffff",
 };
 
-// Neutral, dämpad skala (sand, lera, salvia, skiffer, grått) i stället för klara pastellfärger.
+// Klara grundfärger med stor skillnad sinsemellan, alla ljusa nog för svart text
+// (utom den svarta, som är till för ljus text).
 export const NOTE_COLORS = [
-  "#f4f1ea",
-  "#e9e2d3",
-  "#e3d2c8",
-  "#d5d9cd",
-  "#cfd8e0",
-  "#dedee2",
-  "#b9bec7",
+  "#ffd60a",
+  "#ff9500",
+  "#ff3b30",
+  "#af52de",
+  "#0a84ff",
+  "#34c759",
+  "#8e8e93",
   "#ffffff",
 ] as const;
 
 export const NODE_PALETTE = [
   "#ffffff",
-  "#f3f1ec",
-  "#e4dfd5",
-  "#d8c9bd",
-  "#cdd3c6",
-  "#c5ced8",
-  "#d4d4d8",
-  "#9ca3af",
-  "#1b1f27",
+  "#ff3b30",
+  "#ff9500",
+  "#ffd60a",
+  "#34c759",
+  "#0a84ff",
+  "#af52de",
+  "#8e8e93",
+  "#000000",
 ] as const;
 
 export const DEFAULT_NOTE: Omit<Note, "id" | "layerId" | "position"> = {

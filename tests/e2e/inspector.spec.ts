@@ -35,8 +35,8 @@ test.describe("egenskapspanel", () => {
     await expect(page.locator("svg text", { hasText: "ålder: 42" })).toBeVisible();
     await page.getByLabel("Use “name” as caption").check();
 
-    await page.getByTitle("#f3f1ec").click();
-    await expect(page.locator("[data-ref^='node:'] circle[fill='#f3f1ec']")).toHaveCount(1);
+    await page.getByTitle("#ff3b30").click();
+    await expect(page.locator("[data-ref^='node:'] circle[fill='#ff3b30']")).toHaveCount(1);
     await page.getByRole("button", { name: "Reset to model style" }).click();
     await expect(page.locator("[data-ref^='node:'] circle[fill='#ffffff']")).toHaveCount(1);
   });

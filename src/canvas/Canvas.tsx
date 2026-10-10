@@ -576,7 +576,7 @@ function DragOverlay({ drag, zoom, visible }: { drag: DragState; zoom: number; v
         y={box.y}
         width={box.w}
         height={box.h}
-        fill={drag.kind === "note" ? "rgba(233,226,211,0.6)" : "var(--color-accent)"}
+        fill={drag.kind === "note" ? "rgba(255,214,10,0.5)" : "var(--color-accent)"}
         fillOpacity={drag.kind === "note" ? 1 : 0.08}
         stroke="var(--color-accent)"
         strokeWidth={1 / zoom}
