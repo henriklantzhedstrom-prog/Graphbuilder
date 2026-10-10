@@ -14,7 +14,7 @@ import {
 } from "@/components/ui";
 import { t } from "@/i18n";
 import { nodeDisplayName } from "@/model/caption";
-import { NOTE_COLORS } from "@/model/defaults";
+import { NOTE_COLORS, NOTE_FONT_MAX, NOTE_FONT_MIN } from "@/model/defaults";
 import type { GraphDocument, Note } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
 import { useUiStore } from "@/store/uiStore";
@@ -147,8 +147,8 @@ export function NoteSection({ notes }: { notes: Note[] }) {
         label={t.inspector.fontSize}
         value={fontSize ?? 6}
         mixed={fontSize === null}
-        min={6}
-        max={80}
+        min={NOTE_FONT_MIN}
+        max={NOTE_FONT_MAX}
         step={1}
         onChange={(value) => setAll({ fontSize: value })}
       />

@@ -369,6 +369,37 @@ test.describe("anteckningar", () => {
     );
   });
 
+  test("textstorleken ändras i den lilla menyn vid anteckningen", async ({ page }) => {
+    await freshApp(page);
+    await page.getByTestId("add-note").click();
+    const editor = page.getByTestId("inline-editor");
+    await page.keyboard.type("Större text");
+    const size = page.getByTestId("canvas-note-size");
+    await expect(size).toHaveText("14");
+    // Klicka + tre gånger: texten i rutan växer direkt, och markören står kvar i den.
+    for (let i = 0; i < 3; i++) await page.getByTestId("canvas-note-larger").click();
+    await expect(size).toHaveText("17");
+    await expect(editor).toHaveCSS("font-size", "17px");
+    await expect(editor).toBeFocused();
+    await page.keyboard.type(" här");
+    await page.getByTestId("canvas-note-smaller").click();
+    await expect(size).toHaveText("16");
+    // Samma värde som Text size i sidopanelen.
+    await expect(page.getByLabel("Text size")).toHaveValue("16");
+    await page.getByTestId("canvas").click({ position: { x: 80, y: 620 } });
+    const text = page.locator("[data-ref^='note:'] text");
+    await expect(text).toHaveAttribute("font-size", "16");
+    await expect(text).toHaveText("Större text här");
+
+    // Gränserna: minsta storleken gråar ut minus.
+    await page.locator("[data-ref^='note:'] > rect").first().click();
+    await page.getByLabel("Text size").fill("6");
+    await page.locator("[data-ref^='note:'] > rect").first().dblclick();
+    await expect(page.getByTestId("canvas-note-size")).toHaveText("6");
+    await expect(page.getByTestId("canvas-note-smaller")).toBeDisabled();
+    await expect(page.getByTestId("canvas-note-larger")).toBeEnabled();
+  });
+
   test("flera rader i en anteckning skrivs med Shift+Enter och sparas som rader", async ({
     page,
   }) => {

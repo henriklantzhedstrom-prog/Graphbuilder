@@ -100,6 +100,8 @@ export const en = {
     textPlaceholder: "Write your note…",
     bold: "Bold",
     italic: "Italic",
+    textSmaller: "Smaller text",
+    textLarger: "Larger text",
     boldHint: "Bold (Ctrl+B)",
     italicHint: "Italic (Ctrl+I)",
     textStyleHint: "Select part of the text and press B or I – here or directly in the note.",

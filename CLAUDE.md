@@ -96,6 +96,7 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   (`src/components/RichTextEditor.tsx`, ett redigerbart fält som visar stilen direkt; översättning
   i `richText.ts`), både på ritytan (`InlineEditor`) och i panelen. Markerad text görs fet eller
   kursiv med B och I vid rutan (`NoteFormatBar`), med knapparna i panelen eller Ctrl/Cmd+B/I.
+  Samma lilla meny har − / + för anteckningens textstorlek (hela anteckningen, 6–80).
   Knapparna får aldrig ta fokus från fältet (`onMouseDown` med `preventDefault`). Ny rad i en
   anteckning är Shift+Enter; Enter sparar. Visa aldrig stjärnorna för användaren.
 - **Anteckningar har ett eget fast lager, "Notes"** (`doc.notesVisible`, `NotesRow` i

@@ -72,6 +72,10 @@ export const NODE_PALETTE = [
   "#000000",
 ] as const;
 
+/** Minsta och största textstorlek i en anteckning. */
+export const NOTE_FONT_MIN = 6;
+export const NOTE_FONT_MAX = 80;
+
 export const DEFAULT_NOTE: Omit<Note, "id" | "position" | "attachedTo"> = {
   size: { w: 200, h: 120 },
   text: "",
