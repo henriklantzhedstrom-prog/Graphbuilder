@@ -151,4 +151,36 @@ test.describe("egenskapspanel", () => {
     await page.getByTitle("#ffd60a").click();
     await expect(caption).toHaveAttribute("fill", "#000000");
   });
+
+  test("av/på-val visar mellanläge när de markerade relationerna har olika värden", async ({
+    page,
+  }) => {
+    await freshApp(page);
+    await createNode(page, 200, 250, "A");
+    await createNode(page, 600, 250, "B");
+    await createNode(page, 400, 520, "C");
+    await dragRelationship(page, { x: 200, y: 250 }, { x: 600, y: 250 }, "ONE");
+    await page.getByLabel("Dashed line").check();
+    await dragRelationship(page, { x: 200, y: 250 }, { x: 400, y: 520 }, "TWO");
+    const dashed = page.getByLabel("Dashed line");
+    await expect(dashed).not.toBeChecked();
+
+    // Markera båda relationerna: den ena streckad, den andra inte.
+    await page.keyboard.press("Escape");
+    await page.getByTestId("canvas").click({ position: { x: 400, y: 250 } });
+    await page.keyboard.down("Shift");
+    await page.getByTestId("canvas").click({ position: { x: 300, y: 385 } });
+    await page.keyboard.up("Shift");
+    await expect(page.getByTestId("inspector")).toContainText("2 elements selected");
+    await expect(dashed).toHaveJSProperty("indeterminate", true);
+    await expect(dashed).toHaveAttribute("aria-checked", "mixed");
+    // Samma värde för båda: inget mellanläge.
+    await expect(page.getByLabel("Directed")).toHaveJSProperty("indeterminate", false);
+
+    // Ett klick slår på valet för alla markerade.
+    await dashed.click();
+    await expect(dashed).toBeChecked();
+    await expect(dashed).toHaveJSProperty("indeterminate", false);
+    await expect(page.locator("[data-ref^='relationship:'] path[stroke-dasharray]")).toHaveCount(2);
+  });
 });

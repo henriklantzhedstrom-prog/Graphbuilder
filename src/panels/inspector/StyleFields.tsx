@@ -51,6 +51,7 @@ export function StyleFields<K extends string, S extends Record<K, string | numbe
                 key={field.key}
                 label={labels[field.key]}
                 checked={common === true}
+                mixed={common === null}
                 onChange={(v) => onChange(field.key, v)}
               />
             );

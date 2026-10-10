@@ -198,6 +198,21 @@ body,
   transform: translateX(14px);
 }
 
+/* Mellanläge: de markerade elementen har olika värden. */
+.gb-switch:indeterminate {
+  background: color-mix(in srgb, var(--color-accent) 45%, var(--color-border-strong));
+}
+.gb-switch:indeterminate::after {
+  transform: translateX(7px);
+}
+.gb-check:indeterminate {
+  border-color: var(--color-accent);
+  background:
+    var(--color-accent)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round'%3E%3Cpath d='M6 12h12'/%3E%3C/svg%3E")
+    center / 13px no-repeat;
+}
+
 .gb-check:focus-visible,
 .gb-switch:focus-visible,
 .gb-range:focus-visible {

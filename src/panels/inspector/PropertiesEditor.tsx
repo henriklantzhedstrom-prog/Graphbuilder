@@ -42,6 +42,8 @@ export function PropertiesEditor({
       {keys.map((key) => {
         const common = commonValue(propertySets.map((p) => p[key] ?? ""));
         const isCaption = caption ? caption.keys.every((k) => k === key) : false;
+        // Rubrik för några av de markerade noderna men inte alla: visa mellanläge.
+        const partlyCaption = !isCaption && (caption?.keys.some((k) => k === key) ?? false);
         return (
           <div key={key} className="flex items-center gap-1.5">
             {caption && (
@@ -52,6 +54,10 @@ export function PropertiesEditor({
                   aria-label={t.inspector.captionToggleLabel(key)}
                   title={t.inspector.captionToggleLabel(key)}
                   className="gb-check"
+                  ref={(el) => {
+                    if (el) el.indeterminate = partlyCaption;
+                  }}
+                  aria-checked={partlyCaption ? "mixed" : undefined}
                   checked={isCaption}
                   onChange={(e) => caption.onToggle(key, e.target.checked)}
                 />

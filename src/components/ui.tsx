@@ -7,6 +7,7 @@ import {
   useId,
   useState,
 } from "react";
+import { t } from "@/i18n";
 import { IconChevronDown, IconChevronUp } from "./icons";
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(" ");
@@ -313,6 +314,7 @@ export function SliderField({
   max = 1,
   step = 0.01,
   format = (v: number) => `${Math.round(v * 100)} %`,
+  mixed = false,
 }: {
   label: string;
   value: number;
@@ -321,6 +323,8 @@ export function SliderField({
   max?: number;
   step?: number;
   format?: (v: number) => string;
+  /** De markerade elementen har olika värden: visa det i stället för ett tal. */
+  mixed?: boolean;
 }) {
   return (
     <Field label={label}>
@@ -337,7 +341,7 @@ export function SliderField({
             className="gb-range w-full"
           />
           <span className="w-14 text-right text-[0.88em] tabular-nums text-text-muted">
-            {format(value)}
+            {mixed ? t.inspector.mixed : format(value)}
           </span>
         </span>
       )}
@@ -345,23 +349,35 @@ export function SliderField({
   );
 }
 
-/** Av/på-val. `variant="check"` ger en kryssruta med texten till höger (för dialogrutor). */
+/**
+ * Av/på-val. `variant="check"` ger en kryssruta med texten till höger (för dialogrutor).
+ * `mixed` visar ett mellanläge när de markerade elementen har olika värden; ett klick slår då
+ * på valet för alla.
+ */
 export function CheckboxField({
   label,
   checked,
   onChange,
   variant = "switch",
+  mixed = false,
 }: {
   label: string;
   checked: boolean;
   onChange: (v: boolean) => void;
   variant?: "switch" | "check";
+  mixed?: boolean;
 }) {
   const id = useId();
   const input = (
     <input
       id={id}
       type="checkbox"
+      ref={(el) => {
+        // Mellanläget finns bara som egenskap på elementet, inte som attribut.
+        if (el) el.indeterminate = mixed;
+      }}
+      aria-checked={mixed ? "mixed" : undefined}
+      title={mixed ? t.inspector.mixed : undefined}
       checked={checked}
       onChange={(e) => onChange(e.target.checked)}
       className={variant === "switch" ? "gb-switch" : "gb-check"}

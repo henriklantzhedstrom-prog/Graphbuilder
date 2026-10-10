@@ -15,18 +15,21 @@ export function ImageSection({ images }: { images: BackgroundImage[] }) {
     for (const im of images) updateImage(im.id, patch);
   };
   const single = images.length === 1 ? images[0] : undefined;
+  const opacity = commonValue(images.map((im) => im.opacity));
   const asset = single ? doc.assets[single.assetId] : undefined;
 
   return (
     <Section title={images.length === 1 ? t.inspector.image : t.inspector.images(images.length)}>
       <SliderField
         label={t.inspector.opacity}
-        value={commonValue(images.map((im) => im.opacity)) ?? 1}
-        onChange={(opacity) => setAll({ opacity })}
+        value={opacity ?? 1}
+        mixed={opacity === null}
+        onChange={(value) => setAll({ opacity: value })}
       />
       <CheckboxField
         label={t.inspector.lockImage}
         checked={images.every((im) => im.locked)}
+        mixed={commonValue(images.map((im) => im.locked)) === null}
         onChange={(locked) => {
           setAll({ locked });
           if (locked) clearSelection();

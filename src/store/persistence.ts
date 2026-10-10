@@ -2,6 +2,7 @@ import { createStore, del, get, keys, set } from "idb-keyval";
 import { t } from "@/i18n";
 import { DocumentParseError, parseDocument } from "@/model/schema";
 import type { GraphDocument, Id } from "@/model/types";
+import { clearHistory, useDocumentStore } from "./documentStore";
 
 const store = createStore("graphbuilder", "documents");
 
@@ -98,7 +99,6 @@ export async function listDocumentsLocally(): Promise<DocumentSummary[]> {
 
 /** Skapar en ny modell, sparar den och markerar den som senast öppnad. Returnerar dess id. */
 export async function createAndOpenNewDocument(name?: string): Promise<Id> {
-  const { useDocumentStore, clearHistory } = await import("./documentStore");
   useDocumentStore.getState().newDocument(name);
   clearHistory();
   // Läs dokumentet EFTER mutationen – en tidigare getState()-ögonblicksbild är inaktuell.
