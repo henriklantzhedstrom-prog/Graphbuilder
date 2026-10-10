@@ -64,7 +64,7 @@ describe("parseDocument", () => {
       relationships: { r1: { id: "r1", layerId: "gammalt-lager", fromId: "a", toId: "b" } },
     };
     const doc = parseDocument(raw);
-    expect(doc.version).toBe(4);
+    expect(doc.version).toBe(5);
     expect(doc.relationships.r1).toBeDefined();
     expect(doc.relationships.r1).not.toHaveProperty("layerId");
   });
@@ -90,6 +90,19 @@ describe("parseDocument", () => {
     expect(doc.relationships.r3).not.toHaveProperty("layerId");
     // Version 3 (före valfria lager) läses oförändrad.
     expect(parseDocument({ ...raw, version: 3 }).relationships.r3).toBeDefined();
+  });
+
+  it("äldre modeller med labelkantens gamla standardvärde får det nya", () => {
+    const old = JSON.parse(JSON.stringify(createEmptyDocument("Old")));
+    old.version = 4;
+    old.style.node.labelBorderWidth = 1;
+    expect(parseDocument(old).style.node.labelBorderWidth).toBe(4);
+    // Ett eget valt värde behålls, och nya modeller rörs inte.
+    old.style.node.labelBorderWidth = 2;
+    expect(parseDocument(old).style.node.labelBorderWidth).toBe(2);
+    const current = JSON.parse(JSON.stringify(createEmptyDocument("New")));
+    current.style.node.labelBorderWidth = 1;
+    expect(parseDocument(current).style.node.labelBorderWidth).toBe(1);
   });
 
   it("läser äldre modeller med opacitet på lager och tar bort fältet", () => {
@@ -120,7 +133,7 @@ describe("parseDocument", () => {
       },
     };
     const doc = parseDocument(raw);
-    expect(doc.version).toBe(4);
+    expect(doc.version).toBe(5);
     expect(doc.nodes.a?.properties).toEqual({ name: "Alice" });
     expect(doc.nodes.a?.captionKey).toBe("name");
     expect(doc.nodes.b?.properties).toEqual({ name: "X", caption: "Bob" });

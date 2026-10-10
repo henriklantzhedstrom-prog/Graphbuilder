@@ -109,6 +109,15 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
 - **Rubriken ska alltid gå att läsa.** När fyllningen ändras i panelen byts rubrikfärgen till
   svart eller vitt om kontrasten blir under 3 (`captionColorFor`, `src/model/color.ts`).
 - **Kortkommandon** skrivs med "Ctrl+" i `i18n` och visas via `shortcutLabel` (⌘ på Mac).
+- **Labels** placeras av `labelLayout` (`src/canvas/render/labels.ts`), som både `NodeView` och
+  `bounds.ts` använder. Labelns inre yta är texten plus luft (`LABEL_PADDING_X` 12 px i sidled,
+  höjd 1,8 × textstorleken); kanten ritas UTANFÖR den ytan, så en tjockare kant växer utåt och
+  tar aldrig plats från texten. Standardkant 4 px.
+- **Egenskaper och labels i panelen sparas med Enter.** Nyckel + Enter skapar egenskapen och
+  flyttar markören till värdet; Enter i värdet går till nästa nyckel; "nyckel: värde" sparar båda.
+  Fälten sparar också när de lämnas, och ett klick på ritytan lämnar det aktiva fältet först
+  (`onPointerDown` i `Canvas.tsx`). Namn som redan finns eller bara är siffror stoppas med ett
+  meddelande (`propertyKeyProblem`).
 - Varje ny funktion levereras med enhetstest (`tests/unit`) och, när den har UI, e2e-test (`tests/e2e`).
 - Commit-meddelanden: en kort rad i imperativ på engelska (`Add layers panel`), sedan valfri brödtext.
 - Importera med alias `@/` för `src/`.
@@ -123,7 +132,7 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   rubrik (kryssruta i egenskapslistan). Rubrikegenskapen visas både i noden och, som alla andra
   egenskaper, i listan under noden. Läs rubriken med `nodeCaption()` i `src/model/caption.ts`;
   skriv den med `setCaption`/`setCaptionKey` i `documentStore`. Rubrik skriven direkt på ritytan
-  sparas i egenskapen `name`. Dokumentversion 4 (valfritt `layerId` på relationer); version 1 (eget `caption`-fält) och version 2 (tvingande `layerId` på relationer, rensas bort) migreras vid
+  sparas i egenskapen `name`. Dokumentversion 5 (version 4: valfritt `layerId` på relationer; version 5: labelkantens standard 4 px); version 1 (eget `caption`-fält) och version 2 (tvingande `layerId` på relationer, rensas bort) migreras vid
   inläsning i `src/model/schema.ts`.
 - **Unika labels:** två noder får inte ha samma label eller labelkombination (ordningsoberoende,
   exakt stavning; noder utan labels undantas). Regeln ligger i `src/model/labels.ts` och spärren i

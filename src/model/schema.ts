@@ -2,7 +2,13 @@ import { z } from "zod";
 import { t } from "@/i18n";
 import { captionKeyFor } from "./caption";
 import { createLayer, DEFAULT_DIAGRAM_STYLE } from "./defaults";
-import { DOCUMENT_VERSION, type GraphDocument, type GraphNode, type Relationship } from "./types";
+import {
+  DOCUMENT_VERSION,
+  type GraphDocument,
+  type GraphNode,
+  type NodeStyle,
+  type Relationship,
+} from "./types";
 
 const point = z.object({ x: z.number(), y: z.number() });
 const size = z.object({ w: z.number().positive(), h: z.number().positive() });
@@ -109,7 +115,7 @@ const diagramStyle = z.object({
 });
 
 export const documentSchemaV1 = z.object({
-  version: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
+  version: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)]),
   id: z.string().min(1),
   name: z.string().default(t.app.untitled),
   createdAt: z.string(),
@@ -145,7 +151,7 @@ export function parseDocument(input: unknown): GraphDocument {
     throw new DocumentParseError(t.errors.notAModel);
   }
   const version = (input as { version?: unknown }).version;
-  if (version !== 1 && version !== 2 && version !== 3 && version !== DOCUMENT_VERSION) {
+  if (typeof version !== "number" || !SUPPORTED_VERSIONS.includes(version)) {
     throw new DocumentParseError(t.errors.wrongVersion(String(version), DOCUMENT_VERSION));
   }
   const result = documentSchemaV1.safeParse(input);
@@ -154,6 +160,16 @@ export function parseDocument(input: unknown): GraphDocument {
     throw new DocumentParseError(t.errors.invalidFormat, issues);
   }
   return repairDocument(result.data);
+}
+
+const SUPPORTED_VERSIONS: readonly number[] = [1, 2, 3, 4, DOCUMENT_VERSION];
+
+/**
+ * Före version 5 var labelns kant 1 px som standard; nu är den 4 px. Modeller som fortfarande har
+ * det gamla standardvärdet följer med till det nya.
+ */
+function migrateNodeDefaults(version: number, style: NodeStyle): NodeStyle {
+  return version < 5 && style.labelBorderWidth === 1 ? { ...style, labelBorderWidth: 4 } : style;
 }
 
 type ParsedNode = z.infer<typeof graphNode>;
@@ -220,7 +236,10 @@ function repairDocument(doc: z.infer<typeof documentSchemaV1>): GraphDocument {
     images,
     assets,
     style: {
-      node: { ...DEFAULT_DIAGRAM_STYLE.node, ...doc.style.node },
+      node: migrateNodeDefaults(doc.version, {
+        ...DEFAULT_DIAGRAM_STYLE.node,
+        ...doc.style.node,
+      }),
       relationship: { ...DEFAULT_DIAGRAM_STYLE.relationship, ...doc.style.relationship },
       background: doc.style.background,
     },

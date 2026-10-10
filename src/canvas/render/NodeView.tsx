@@ -1,7 +1,8 @@
 import { nodeCaption } from "@/model/caption";
 import type { GraphNode, NodeStyle, Point } from "@/model/types";
+import { labelLayout } from "./labels";
 import { PropertyBackground, propertyTextX } from "./PropertyBackground";
-import { LABEL_PADDING_X, LINE_HEIGHT, measureTextWidth, propertyLines, wrapToWidth } from "./text";
+import { LINE_HEIGHT, propertyLines, wrapToWidth } from "./text";
 
 export const HALO_WIDTH = 14;
 
@@ -43,16 +44,10 @@ export function NodeView({
   const captionLineHeight = style.captionFontSize * LINE_HEIGHT;
   const captionStartY = y - ((captionLines.length - 1) * captionLineHeight) / 2;
 
-  const labelHeight = style.labelFontSize * 1.5;
-  const labelWidths = node.labels.map(
-    (l) => measureTextWidth(l, style.labelFontSize) + LABEL_PADDING_X * 2,
-  );
-  const labelsTotal =
-    labelWidths.reduce((a, b) => a + b, 0) + Math.max(0, node.labels.length - 1) * 4;
-  let labelX = x - labelsTotal / 2;
   // Avstånden räknas från kantens ytterkant, så att en tjock kant inte ritas över texten.
   const outerR = r + style.strokeWidth / 2;
-  const labelY = y - outerR - labelHeight - 4;
+  const labels = labelLayout(node.labels, style, x, y - outerR).boxes;
+  const labelBorder = style.labelBorderWidth;
 
   // Alla egenskaper listas under noden, även den som också visas som rubrik.
   const props = showProperties ? propertyLines(node.properties) : [];
@@ -131,37 +126,34 @@ export function NodeView({
           ))}
         </text>
       )}
-      {node.labels.map((label, i) => {
-        const w = labelWidths[i] ?? 0;
-        const lx = labelX;
-        labelX += w + 4;
-        return (
-          <g key={`${label}-${i}`} style={{ pointerEvents: "none" }}>
-            <rect
-              x={lx}
-              y={labelY}
-              width={w}
-              height={labelHeight}
-              rx={labelHeight / 2}
-              fill={style.labelBackground}
-              stroke={style.labelBorderColor}
-              strokeWidth={style.labelBorderWidth}
-            />
-            <text
-              x={lx + w / 2}
-              y={labelY + labelHeight / 2}
-              textAnchor="middle"
-              dominantBaseline="central"
-              fontSize={style.labelFontSize}
-              fill={style.labelColor}
-              fontFamily="system-ui, sans-serif"
-              style={{ userSelect: "none" }}
-            >
-              {label}
-            </text>
-          </g>
-        );
-      })}
+      {labels.map(({ label, inner }, i) => (
+        <g key={`${label}-${i}`} style={{ pointerEvents: "none" }}>
+          {/* Kanten ligger utanför labelns inre yta: linjens mitt är en halv kantbredd utanför. */}
+          <rect
+            data-part="label-box"
+            x={inner.x - labelBorder / 2}
+            y={inner.y - labelBorder / 2}
+            width={inner.w + labelBorder}
+            height={inner.h + labelBorder}
+            rx={(inner.h + labelBorder) / 2}
+            fill={style.labelBackground}
+            stroke={style.labelBorderColor}
+            strokeWidth={labelBorder}
+          />
+          <text
+            x={inner.x + inner.w / 2}
+            y={inner.y + inner.h / 2}
+            textAnchor="middle"
+            dominantBaseline="central"
+            fontSize={style.labelFontSize}
+            fill={style.labelColor}
+            fontFamily="system-ui, sans-serif"
+            style={{ userSelect: "none" }}
+          >
+            {label}
+          </text>
+        </g>
+      ))}
       <PropertyBackground
         lines={props}
         centerX={x}

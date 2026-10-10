@@ -223,6 +223,10 @@ export function Canvas() {
   const onPointerDown = (e: ReactPointerEvent<SVGSVGElement>) => {
     // Ett eget grepp tar över från en pågående glidning till en hel vy ("Fit to content").
     cancelViewportAnimation();
+    // Ett klick på ritytan flyttar inte markören ur ett fält i sidopanelen av sig självt. Lämna
+    // fältet först, så att det som står där sparas innan markeringen ändras.
+    const active = document.activeElement;
+    if (active instanceof HTMLElement && !containerRef.current?.contains(active)) active.blur();
     const ui = useUiStore.getState();
     const docState = useDocumentStore.getState();
     const currentDoc = docState.doc;

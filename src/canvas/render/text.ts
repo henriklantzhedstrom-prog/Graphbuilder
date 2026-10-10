@@ -44,7 +44,7 @@ export function measureTextWidth(text: string, fontSize: number): number {
 }
 
 /** Marginal mellan text och kant i rutor runt labels, relationstyper och egenskaper. */
-export const LABEL_PADDING_X = 8;
+export const LABEL_PADDING_X = 12;
 export const TYPE_PADDING_X = 5;
 
 export function wrapToWidth(text: string, maxWidth: number, fontSize: number): string[] {

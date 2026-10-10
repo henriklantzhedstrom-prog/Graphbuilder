@@ -95,6 +95,8 @@ export function NodeSection({ nodes }: { nodes: GraphNode[] }) {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") addLabel();
                   }}
+                  // Det som står i fältet sparas även när man klickar någon annanstans.
+                  onBlur={addLabel}
                 />
                 <Button
                   onClick={addLabel}

@@ -183,4 +183,76 @@ test.describe("egenskapspanel", () => {
     await expect(dashed).toHaveJSProperty("indeterminate", false);
     await expect(page.locator("[data-ref^='relationship:'] path[stroke-dasharray]")).toHaveCount(2);
   });
+
+  test("Enter sparar labels och egenskaper och flyttar markören till nästa fält", async ({
+    page,
+  }) => {
+    await freshApp(page);
+    await createNode(page, 300, 300, "A");
+    const canvas = page.getByTestId("canvas");
+
+    // Label: skriv, Enter, skriv nästa direkt.
+    await page.getByPlaceholder("New label").click();
+    await page.keyboard.type("Person");
+    await page.keyboard.press("Enter");
+    await page.keyboard.type("Employee");
+    await page.keyboard.press("Enter");
+    await expect(canvas.locator("text").filter({ hasText: /^Person$/ })).toHaveCount(1);
+    await expect(canvas.locator("text").filter({ hasText: /^Employee$/ })).toHaveCount(1);
+
+    // Egenskap: nyckel, Enter, värde, Enter, nästa nyckel – utan att röra musen.
+    await page.getByPlaceholder("Key").click();
+    await page.keyboard.type("age");
+    await page.keyboard.press("Enter");
+    await page.keyboard.type("42");
+    await page.keyboard.press("Enter");
+    await page.keyboard.type("city");
+    await page.keyboard.press("Enter");
+    await page.keyboard.type("Lund");
+    await page.keyboard.press("Enter");
+    const properties = canvas.locator("[data-part='property-text'] tspan");
+    await expect(properties).toHaveText(["name: A", "age: 42", "city: Lund"]);
+    await expect(page.getByPlaceholder("Key")).toBeFocused();
+
+    // "nyckel: värde" på en rad sparar båda på en gång.
+    await page.keyboard.type("role: Head of design");
+    await page.keyboard.press("Enter");
+    await expect(properties).toHaveText([
+      "name: A",
+      "age: 42",
+      "city: Lund",
+      "role: Head of design",
+    ]);
+
+    // En nyckel som redan finns töms inte; markören går till dess värde.
+    await page.keyboard.type("age");
+    await page.keyboard.press("Enter");
+    await expect(properties.nth(1)).toHaveText("age: 42");
+    await expect(page.locator("[data-property-value='age']")).toBeFocused();
+
+    // Bara siffror som namn stoppas med en förklaring.
+    await page.getByPlaceholder("Key").fill("2024");
+    await page.getByPlaceholder("Key").press("Enter");
+    await expect(page.getByTestId("property-error")).toContainText("only digits");
+    await expect(properties).toHaveCount(4);
+    await page.getByPlaceholder("Key").fill("");
+
+    // Det som står kvar i ett fält sparas också när man klickar någon annanstans.
+    await page.getByPlaceholder("Key").fill("team: Blue");
+    await page.getByPlaceholder("New label").fill("Manager");
+    await canvas.click({ position: { x: 700, y: 550 } });
+    await canvas.click({ position: { x: 300, y: 300 } });
+    await expect(properties).toHaveCount(5);
+    await expect(properties.nth(4)).toHaveText("team: Blue");
+    await expect(canvas.locator("text").filter({ hasText: /^Manager$/ })).toHaveCount(1);
+
+    // Byta namn till ett som redan används skriver inte över den andra egenskapen.
+    const cityKey = page.getByLabel("Key", { exact: true }).nth(2);
+    await expect(cityKey).toHaveValue("city");
+    await cityKey.fill("age");
+    await cityKey.press("Enter");
+    await expect(page.getByTestId("property-error")).toContainText("already a property");
+    await expect(properties).toHaveCount(5);
+    await expect(properties.nth(2)).toHaveText("city: Lund");
+  });
 });

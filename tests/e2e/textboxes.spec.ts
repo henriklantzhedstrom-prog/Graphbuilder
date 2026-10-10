@@ -26,8 +26,9 @@ test("rutan runt labels och relationstyper har samma marginal oavsett text", asy
   for (const label of labels) {
     const m = await margins(page, label);
     expect(m, label).not.toBeNull();
-    expect(Math.abs((m?.left ?? 0) - 8), `${label} vänster`).toBeLessThan(1.5);
-    expect(Math.abs((m?.right ?? 0) - 8), `${label} höger`).toBeLessThan(1.5);
+    // 12 px luft runt texten, plus halva kanten (4 px bred) som ligger utanför den luften.
+    expect(Math.abs((m?.left ?? 0) - 14), `${label} vänster`).toBeLessThan(1.5);
+    expect(Math.abs((m?.right ?? 0) - 14), `${label} höger`).toBeLessThan(1.5);
   }
   await createNode(page, 450, 550, "Other");
   await dragRelationship(page, { x: 450, y: 300 }, { x: 450, y: 550 }, "WORKS_WITH_MANY");

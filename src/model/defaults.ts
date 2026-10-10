@@ -20,7 +20,7 @@ export const DEFAULT_NODE_STYLE: NodeStyle = {
   labelColor: "#000000",
   labelBackground: "#ffffff",
   labelBorderColor: "#000000",
-  labelBorderWidth: 1,
+  labelBorderWidth: 4,
   labelFontSize: 14,
   propertyColor: "#000000",
   propertyBackground: "#ffffff",

@@ -123,7 +123,7 @@ export interface Asset {
   height: number;
 }
 
-export const DOCUMENT_VERSION = 4;
+export const DOCUMENT_VERSION = 5;
 
 export interface GraphDocument {
   version: typeof DOCUMENT_VERSION;

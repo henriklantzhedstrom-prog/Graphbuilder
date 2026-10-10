@@ -256,7 +256,7 @@ describe("egenskapsbakgrund och labelkant", () => {
     delete raw.style.node.labelBorderWidth;
     const doc = parseDocument(raw);
     expect(doc.style.node.propertyBackground).toBe("#ffffff");
-    expect(doc.style.node.labelBorderWidth).toBe(1);
+    expect(doc.style.node.labelBorderWidth).toBe(4);
   });
 });
 

@@ -8,15 +8,10 @@ import {
   resolvedNodeStyle,
   resolvedRelationshipStyle,
 } from "@/store/selectors";
+import { labelLayout } from "./labels";
 import { PROPERTY_PADDING_X, PROPERTY_PADDING_Y, propertyTextWidth } from "./PropertyBackground";
 import { computeRelationshipGeometry } from "./Scene";
-import {
-  LABEL_PADDING_X,
-  LINE_HEIGHT,
-  measureTextWidth,
-  propertyLines,
-  TYPE_PADDING_X,
-} from "./text";
+import { LINE_HEIGHT, measureTextWidth, propertyLines, TYPE_PADDING_X } from "./text";
 
 /** Allt som ritas för en nod: cirkeln med kant, labels ovanför och egenskapsrutan under. */
 export function drawnNodeBoxes(doc: GraphDocument, node: GraphNode): Box[] {
@@ -24,22 +19,8 @@ export function drawnNodeBoxes(doc: GraphDocument, node: GraphNode): Box[] {
   const { x, y } = node.position;
   const outerR = style.radius + style.strokeWidth / 2;
   const boxes: Box[] = [{ x: x - outerR, y: y - outerR, w: outerR * 2, h: outerR * 2 }];
-  if (node.labels.length > 0) {
-    const height = style.labelFontSize * 1.5;
-    const width =
-      node.labels.reduce(
-        (sum, l) => sum + measureTextWidth(l, style.labelFontSize) + LABEL_PADDING_X * 2,
-        0,
-      ) +
-      (node.labels.length - 1) * 4;
-    const border = style.labelBorderWidth / 2;
-    boxes.push({
-      x: x - width / 2 - border,
-      y: y - outerR - height - 4 - border,
-      w: width + border * 2,
-      h: height + border * 2,
-    });
-  }
+  const labels = labelLayout(node.labels, style, x, y - outerR).outer;
+  if (labels) boxes.push(labels);
   const lines = doc.propertiesVisible ? propertyLines(node.properties) : [];
   if (lines.length > 0) {
     const fontSize = style.propertyFontSize;

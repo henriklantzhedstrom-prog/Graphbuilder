@@ -1,7 +1,7 @@
 import {
   type ButtonHTMLAttributes,
+  type ComponentProps,
   type HTMLAttributes,
-  type InputHTMLAttributes,
   type ReactNode,
   type SelectHTMLAttributes,
   useId,
@@ -75,7 +75,7 @@ export function IconButton({
   );
 }
 
-export function TextInput({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
+export function TextInput({ className, ...props }: ComponentProps<"input">) {
   return (
     <input
       className={cx(

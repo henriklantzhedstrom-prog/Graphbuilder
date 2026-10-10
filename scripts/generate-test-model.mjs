@@ -236,7 +236,7 @@ for (const [a, b] of pairs.values()) {
 }
 
 const doc = {
-  version: 4,
+  version: 5,
   id: "d_testmodel200",
   name: "Test model – 200 nodes",
   createdAt: now,
