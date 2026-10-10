@@ -93,6 +93,14 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   slår inte igenom förrän fältet lämnas, och rättas då till närmaste gräns. Skicka alltid med
   `min` för storlekar – schemat kräver positiva värden, och en modell med radie eller textstorlek
   0 går inte att öppna igen. `toHex` klarar alla CSS-färger (namn, rgb(), korta hexkoder).
+- **Mått för export och "Fit to content"** räknas med `drawnBounds` (`src/canvas/render/bounds.ts`):
+  allt som faktiskt ritas, inklusive kant, labels, egenskapslistor och relationernas texter.
+  `contentBounds` i selectors räknar bara nodernas cirklar och ska inte användas för bilder.
+  Ändras var labels eller egenskaper ritas i `NodeView`/`RelationshipView` ska samma mått ändras
+  i `bounds.ts`.
+- **Rubriken ska alltid gå att läsa.** När fyllningen ändras i panelen byts rubrikfärgen till
+  svart eller vitt om kontrasten blir under 3 (`captionColorFor`, `src/model/color.ts`).
+- **Kortkommandon** skrivs med "Ctrl+" i `i18n` och visas via `shortcutLabel` (⌘ på Mac).
 - Varje ny funktion levereras med enhetstest (`tests/unit`) och, när den har UI, e2e-test (`tests/e2e`).
 - Commit-meddelanden: en kort rad i imperativ på engelska (`Add layers panel`), sedan valfri brödtext.
 - Importera med alias `@/` för `src/`.

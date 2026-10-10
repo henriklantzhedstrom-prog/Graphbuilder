@@ -134,4 +134,21 @@ test.describe("egenskapspanel", () => {
     await expect(captionText(page, "A")).toBeVisible();
     await expect(page.locator("[data-ref^='node:'] > circle").last()).toHaveAttribute("r", "10");
   });
+
+  test("rubriken går att läsa när noden får mörk fyllning", async ({ page }) => {
+    await freshApp(page);
+    await createNode(page, 300, 300, "Mörk");
+    const caption = captionText(page, "Mörk");
+    await expect(caption).toHaveAttribute("fill", "#000000");
+    // Svart fyllning med svart rubrik syns inte: rubriken blir vit.
+    await page.getByTitle("#000000").click();
+    await expect(page.locator("[data-ref^='node:'] > circle[fill='#000000']")).toHaveCount(1);
+    await expect(caption).toHaveAttribute("fill", "#ffffff");
+    // Tillbaka till vit fyllning: rubriken blir svart igen.
+    await page.getByTitle("#ffffff").click();
+    await expect(caption).toHaveAttribute("fill", "#000000");
+    // En klar färg går att läsa med svart text och ändrar inte rubriken.
+    await page.getByTitle("#ffd60a").click();
+    await expect(caption).toHaveAttribute("fill", "#000000");
+  });
 });

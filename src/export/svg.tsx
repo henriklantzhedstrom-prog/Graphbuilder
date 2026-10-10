@@ -1,8 +1,8 @@
 import { renderToStaticMarkup } from "react-dom/server";
+import { drawnBounds } from "@/canvas/render/bounds";
 import { Scene } from "@/canvas/render/Scene";
 import { inflate } from "@/model/geometry";
 import type { Box, GraphDocument } from "@/model/types";
-import { contentBounds } from "@/store/selectors";
 import { selectDocument } from "./filter";
 
 export interface SvgExportOptions {
@@ -18,14 +18,14 @@ export interface SvgExport {
   box: Box;
 }
 
-/** Marginal som täcker labels ovanför och egenskaper under noder. */
-export const EXPORT_PADDING = 60;
+/** Luft runt det ritade innehållet (som mäts exakt, inklusive labels och egenskaper). */
+export const EXPORT_PADDING = 32;
 
 export function exportSvg(doc: GraphDocument, options: SvgExportOptions): SvgExport | null {
   // Utan "bara synliga lager" ska även ett dolt Properties-lager komma med i bilden.
   const selected = selectDocument(doc, options.onlyVisible);
   const d = options.onlyVisible ? selected : { ...selected, propertiesVisible: true };
-  const bounds = contentBounds(d, false);
+  const bounds = drawnBounds(d, false);
   if (!bounds) return null;
   const box = inflate(bounds, options.padding ?? EXPORT_PADDING);
   const width = Math.ceil(box.w);

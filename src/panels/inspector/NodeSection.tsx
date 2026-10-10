@@ -7,7 +7,7 @@ import { conflictingNodeIds, type LabelConflict } from "@/model/labels";
 import type { GraphNode } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
 import { resolvedNodeStyle } from "@/store/selectors";
-import { NODE_STYLE_FIELDS } from "./common";
+import { captionColorFor, NODE_STYLE_FIELDS } from "./common";
 import { PropertiesEditor } from "./PropertiesEditor";
 import { StyleFields } from "./StyleFields";
 
@@ -141,7 +141,15 @@ export function NodeSection({ nodes }: { nodes: GraphNode[] }) {
           fields={NODE_STYLE_FIELDS}
           labels={t.inspector.styleNode}
           values={nodes.map((n) => resolvedNodeStyle(doc, n))}
-          onChange={(key, value) => setNodeStyle(ids, { [key]: value })}
+          onChange={(key, value) => {
+            setNodeStyle(ids, { [key]: value });
+            if (key !== "fill" || typeof value !== "string") return;
+            // Mörk fyllning med mörk rubrik (eller ljus med ljus) går inte att läsa: byt rubrikfärg.
+            for (const node of nodes) {
+              const caption = captionColorFor(value, resolvedNodeStyle(doc, node).captionColor);
+              if (caption) setNodeStyle([node.id], { captionColor: caption });
+            }
+          }}
         />
         {hasCustomStyle && (
           <Button className="mt-2" onClick={() => resetElementStyle(refs)}>

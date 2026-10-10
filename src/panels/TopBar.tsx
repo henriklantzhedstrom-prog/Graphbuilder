@@ -16,12 +16,13 @@ import {
 } from "@/components/icons";
 import { Button, cx, Divider, IconButton } from "@/components/ui";
 import { t } from "@/i18n";
+import { isMac } from "@/model/shortcutLabel";
 import { redo, undo, useDocumentStore, useTemporal } from "@/store/documentStore";
 import { useThemeStore } from "@/store/theme";
 import { useUiStore } from "@/store/uiStore";
 
 /** Tangenten för kortkommandon skrivs som på användarens dator. */
-const MOD = /Mac|iPhone|iPad/.test(navigator.platform) ? t.keys.modMac : t.keys.modOther;
+const MOD = isMac() ? t.keys.modMac : t.keys.modOther;
 
 interface MenuEntry {
   label: string;

@@ -4,7 +4,6 @@ import type { Box, ElementRef, Id, Point, Size } from "@/model/types";
 import { useDocumentStore } from "@/store/documentStore";
 import {
   allElementRefs,
-  contentBounds,
   elementLayerId,
   getElement,
   isElementLocked,
@@ -12,6 +11,7 @@ import {
   layerById,
 } from "@/store/selectors";
 import { useUiStore } from "@/store/uiStore";
+import { drawnBounds } from "./render/bounds";
 import { moveViewportSmoothlyTo, zoomSmoothlyBy, zoomSmoothlyTo } from "./viewportAnimation";
 
 const docState = () => useDocumentStore.getState();
@@ -157,7 +157,7 @@ export function startEditingSelection(): void {
 }
 
 export function fitToContent(viewportSize: Size): void {
-  const bounds = contentBounds(docState().doc) ?? { x: 0, y: 0, w: 0, h: 0 };
+  const bounds = drawnBounds(docState().doc) ?? { x: 0, y: 0, w: 0, h: 0 };
   moveViewportSmoothlyTo(fitBoxInViewport(bounds, viewportSize, 60));
 }
 

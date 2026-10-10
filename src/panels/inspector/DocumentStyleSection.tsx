@@ -1,7 +1,7 @@
 import { ColorField, Section } from "@/components/ui";
 import { t } from "@/i18n";
 import { useDocumentStore } from "@/store/documentStore";
-import { NODE_STYLE_FIELDS, RELATIONSHIP_STYLE_FIELDS } from "./common";
+import { captionColorFor, NODE_STYLE_FIELDS, RELATIONSHIP_STYLE_FIELDS } from "./common";
 import { StyleFields } from "./StyleFields";
 
 export function DocumentStyleSection() {
@@ -27,7 +27,16 @@ export function DocumentStyleSection() {
           fields={NODE_STYLE_FIELDS}
           labels={t.inspector.styleNode}
           values={[style.node]}
-          onChange={(key, value) => setDocumentStyle({ node: { [key]: value } })}
+          onChange={(key, value) => {
+            const caption =
+              key === "fill" && typeof value === "string"
+                ? captionColorFor(value, style.node.captionColor)
+                : null;
+            // Mörk fyllning med mörk rubrik går inte att läsa: byt rubrikfärg samtidigt.
+            setDocumentStyle({
+              node: caption ? { fill: value as string, captionColor: caption } : { [key]: value },
+            });
+          }}
         />
       </Section>
       <Section title={t.inspector.relationshipDefaults}>

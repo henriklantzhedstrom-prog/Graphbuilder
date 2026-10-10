@@ -1,3 +1,16 @@
+import { toHex } from "@/components/ui";
+import { readableTextColor } from "@/model/color";
+
+/**
+ * När en nods fyllning ändras ska rubriken fortfarande gå att läsa. Ger den rubrikfärg som ska
+ * sättas tillsammans med fyllningen, eller null om den nuvarande redan syns tydligt.
+ */
+export function captionColorFor(fill: string, captionColor: string): string | null {
+  const current = toHex(captionColor);
+  const readable = readableTextColor(toHex(fill), current);
+  return readable === current ? null : readable;
+}
+
 /** Gemensamt värde om alla är lika, annars null ("olika"). */
 export function commonValue<T>(values: T[]): T | null {
   const first = values[0];
