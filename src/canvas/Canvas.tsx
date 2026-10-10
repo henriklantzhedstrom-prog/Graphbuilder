@@ -29,6 +29,7 @@ import {
   isElementLocked,
   isElementVisible,
   isSelectable,
+  nodeOuterRadius,
   noteBox,
   parseRefKey,
   refKey,
@@ -444,7 +445,11 @@ export function Canvas() {
           const ref: ElementRef = { kind: "node", id: node.id };
           if (
             isSelectable(currentDoc, ref) &&
-            circleIntersectsBox(node.position, resolvedNodeStyle(currentDoc, node).radius, box)
+            circleIntersectsBox(
+              node.position,
+              nodeOuterRadius(resolvedNodeStyle(currentDoc, node)),
+              box,
+            )
           )
             hits.push(ref);
         }

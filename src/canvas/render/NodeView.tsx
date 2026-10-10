@@ -1,5 +1,6 @@
 import { nodeCaption } from "@/model/caption";
 import type { GraphNode, NodeStyle, Point } from "@/model/types";
+import { nodeOuterRadius } from "@/store/selectors";
 import { labelLayout } from "./labels";
 import { PropertyBackground, propertyTextX } from "./PropertyBackground";
 import { LINE_HEIGHT, propertyLines, wrapToWidth } from "./text";
@@ -44,8 +45,9 @@ export function NodeView({
   const captionLineHeight = style.captionFontSize * LINE_HEIGHT;
   const captionStartY = y - ((captionLines.length - 1) * captionLineHeight) / 2;
 
-  // Avstånden räknas från kantens ytterkant, så att en tjock kant inte ritas över texten.
-  const outerR = r + style.strokeWidth / 2;
+  // `r` är den fyllda ytans radie. Kanten ligger utanför den och växer utåt; allt runt noden
+  // (labels, egenskaper, markeringsringar) räknas från kantens ytterkant.
+  const outerR = nodeOuterRadius(style);
   const labels = labelLayout(node.labels, style, x, y - outerR).boxes;
   const labelBorder = style.labelBorderWidth;
 
@@ -66,7 +68,7 @@ export function NodeView({
           data-testid="label-conflict-ring"
           cx={x}
           cy={y}
-          r={r + style.strokeWidth / 2 + 9 / zoom}
+          r={outerR + 9 / zoom}
           fill="none"
           stroke="var(--color-danger)"
           strokeWidth={2.5 / zoom}
@@ -78,7 +80,7 @@ export function NodeView({
         <circle
           cx={x}
           cy={y}
-          r={r + style.strokeWidth / 2 + 4 / zoom}
+          r={outerR + 4 / zoom}
           fill="none"
           stroke="var(--color-accent)"
           strokeWidth={(highlighted ? 4 : 2) / zoom}
@@ -91,7 +93,7 @@ export function NodeView({
           className="gb-halo"
           cx={x}
           cy={y}
-          r={r + HALO_WIDTH / 2 + style.strokeWidth / 2}
+          r={outerR + HALO_WIDTH / 2}
           fill="none"
           stroke="var(--color-accent)"
           strokeOpacity={0}
@@ -103,7 +105,10 @@ export function NodeView({
       <circle
         cx={x}
         cy={y}
-        r={r}
+        data-part="node-circle"
+        data-radius={r}
+        // Linjens mitt ligger en halv kantbredd utanför den fyllda ytan.
+        r={r + style.strokeWidth / 2}
         fill={style.fill}
         stroke={style.stroke}
         strokeWidth={style.strokeWidth}

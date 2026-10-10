@@ -133,8 +133,15 @@ export const resolvedRelationshipStyle = (
 
 // ---------- Boxar ----------
 
+/**
+ * Nodens ytterradie. `radius` är den fyllda ytans radie; kanten ritas utanför den, så en
+ * tjockare kant växer utåt och tar aldrig plats från rubriken.
+ */
+export const nodeOuterRadius = (style: Pick<NodeStyle, "radius" | "strokeWidth">): number =>
+  style.radius + style.strokeWidth;
+
 export const nodeBox = (doc: GraphDocument, node: GraphNode): Box =>
-  circleBox(node.position, resolvedNodeStyle(doc, node).radius);
+  circleBox(node.position, nodeOuterRadius(resolvedNodeStyle(doc, node)));
 
 export const noteBox = (note: Note): Box => rectBox(note.position, note.size);
 export const imageBox = (image: BackgroundImage): Box => rectBox(image.position, image.size);

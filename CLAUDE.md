@@ -109,6 +109,10 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
 - **Rubriken ska alltid gå att läsa.** När fyllningen ändras i panelen byts rubrikfärgen till
   svart eller vitt om kontrasten blir under 3 (`captionColorFor`, `src/model/color.ts`).
 - **Kortkommandon** skrivs med "Ctrl+" i `i18n` och visas via `shortcutLabel` (⌘ på Mac).
+- **Nodens kant växer utåt.** `radius` är den fyllda ytans radie; kanten ritas utanför den
+  (cirkelns linje har radien `radius + strokeWidth / 2`). Använd `nodeOuterRadius(style)`
+  (= `radius + strokeWidth`) för allt som ska ligga utanför noden: labels, egenskaper, ringar,
+  pilspetsar, markering och mått. Relationer börjar vid `radius`, under kanten.
 - **Labels** placeras av `labelLayout` (`src/canvas/render/labels.ts`), som både `NodeView` och
   `bounds.ts` använder. Labelns inre yta är texten plus luft (`LABEL_PADDING_X` 12 px i sidled,
   höjd 1,8 × textstorleken); kanten ritas UTANFÖR den ytan, så en tjockare kant växer utåt och
@@ -140,7 +144,7 @@ Chromium för Playwright finns i `/opt/pw-browsers`; kör aldrig `playwright ins
   labels). Äldre filer med krockar laddas oförändrade men markeras med röd ring och en varning.
 - **Ritordning** (`Scene.tsx`): alla bilder, sedan alla relationer, sedan alla noder, sedan alla
   anteckningar; lagerordningen gäller inom bilder, noder och anteckningar (relationer ritas alltid bakom noderna, oavsett lager). Relationer börjar under nodens kant och
-  pilspetsen slutar precis utanför den. Parallella relationer: `PARALLEL_SPACING` i `geometry.ts`.
+  pilspetsen slutar precis utanför den (se `nodeOuterRadius`). Parallella relationer: `PARALLEL_SPACING` i `geometry.ts`.
   Egenskapsrader har en bakgrundsruta (`PropertyBackground.tsx`, stil `propertyBackground`, standard
   vit) som relationer passerar bakom och som är klickbar som en del av elementet. Raderna är
   vänsterställda i rutan (`propertyTextX`); rutan är centrerad under noden resp. relationstypen. Labels har

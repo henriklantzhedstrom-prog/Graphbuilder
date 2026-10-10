@@ -66,7 +66,7 @@ test.describe("egenskapspanel", () => {
     await page.keyboard.press("Escape");
     await expect(page.getByRole("heading", { name: "Model default style" })).toBeVisible();
     await page.getByLabel("Radius").fill("30");
-    await expect(page.locator("[data-ref^='node:'] circle[r='30']")).toHaveCount(2);
+    await expect(page.locator("[data-ref^='node:'] circle[data-radius='30']")).toHaveCount(2);
   });
 
   test("utan markering gäller stiländringen alla synliga noder, även de med egen stil", async ({
@@ -105,8 +105,8 @@ test.describe("egenskapspanel", () => {
     await createNode(page, 300, 300, "A");
     await page.keyboard.press("Escape");
     const radius = page.getByLabel("Radius");
-    const node = page.locator("[data-ref^='node:'] > circle").last();
-    await expect(node).toHaveAttribute("r", "50");
+    const node = page.locator("[data-part='node-circle']");
+    await expect(node).toHaveAttribute("data-radius", "50");
 
     // Sudda siffra för siffra och skriv ett nytt värde.
     await radius.click();
@@ -114,16 +114,16 @@ test.describe("egenskapspanel", () => {
     await radius.press("Backspace");
     await radius.press("Backspace");
     await expect(radius).toHaveValue("");
-    await expect(node).toHaveAttribute("r", "50");
+    await expect(node).toHaveAttribute("data-radius", "50");
     await radius.pressSequentially("80");
-    await expect(node).toHaveAttribute("r", "80");
+    await expect(node).toHaveAttribute("data-radius", "80");
 
     // Noll är för litet: noden ändras inte medan man skriver, och fältet rättas till minsta värdet.
     await radius.fill("0");
-    await expect(node).toHaveAttribute("r", "80");
+    await expect(node).toHaveAttribute("data-radius", "80");
     await radius.press("Enter");
     await expect(radius).toHaveValue("10");
-    await expect(node).toHaveAttribute("r", "10");
+    await expect(node).toHaveAttribute("data-radius", "10");
 
     // Tomt fält som lämnas återgår till det gällande värdet, och modellen går att öppna igen.
     await radius.fill("");
@@ -132,7 +132,7 @@ test.describe("egenskapspanel", () => {
     await page.waitForTimeout(900);
     await page.reload();
     await expect(captionText(page, "A")).toBeVisible();
-    await expect(page.locator("[data-ref^='node:'] > circle").last()).toHaveAttribute("r", "10");
+    await expect(page.locator("[data-part='node-circle']")).toHaveAttribute("data-radius", "10");
   });
 
   test("rubriken går att läsa när noden får mörk fyllning", async ({ page }) => {
@@ -254,5 +254,27 @@ test.describe("egenskapspanel", () => {
     await expect(page.getByTestId("property-error")).toContainText("already a property");
     await expect(properties).toHaveCount(5);
     await expect(properties.nth(2)).toHaveText("city: Lund");
+  });
+
+  test("nodens kant växer utåt: den fyllda ytan behåller sin storlek", async ({ page }) => {
+    await freshApp(page);
+    await createNode(page, 400, 300, "Kant");
+    await page.getByPlaceholder("New label").fill("Label");
+    await page.getByPlaceholder("New label").press("Enter");
+    const circle = page.locator("[data-part='node-circle']");
+    const label = page.locator("[data-part='label-box']");
+    // Standard: radie 50 och kant 4. Fyllningen når 50 px ut, kantens ytterkant 54 px.
+    await expect(circle).toHaveAttribute("r", "52");
+    const before = await label.boundingBox();
+
+    await page.getByLabel("Border width", { exact: true }).fill("20");
+    // Fyllningen är fortfarande 50 px i radie; kanten ligger utanför (50–70 px).
+    await expect(circle).toHaveAttribute("data-radius", "50");
+    await expect(circle).toHaveAttribute("r", "60");
+    await expect(circle).toHaveAttribute("stroke-width", "20");
+    // Labeln flyttar upp lika mycket som kanten vuxit (16 px), så den täcks inte.
+    const after = await label.boundingBox();
+    if (!before || !after) throw new Error("label saknas");
+    expect(before.y - after.y).toBeCloseTo(16, 0);
   });
 });

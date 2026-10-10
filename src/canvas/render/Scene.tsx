@@ -4,6 +4,7 @@ import { conflictingNodeIds } from "@/model/labels";
 import type { Box, ElementRef, GraphDocument, Id, Point, Relationship } from "@/model/types";
 import {
   imageBox,
+  nodeOuterRadius,
   noteBox,
   refKey,
   relationshipBundles,
@@ -67,12 +68,10 @@ export function computeRelationshipGeometry(
     {
       from: nodePositionWithOverrides(doc, rel.fromId, overrides) ?? from.position,
       // Linjen börjar under nodens kant (noden ritas ovanpå) så att ingen linje syns över kanten…
-      fromRadius: Math.max(0, fromStyle.radius - fromStyle.strokeWidth / 2),
+      fromRadius: fromStyle.radius,
       to: nodePositionWithOverrides(doc, rel.toId, overrides) ?? to.position,
       // …och pilspetsen slutar precis utanför kanten så att den syns helt.
-      toRadius: style.directed
-        ? toStyle.radius + toStyle.strokeWidth / 2
-        : Math.max(0, toStyle.radius - toStyle.strokeWidth / 2),
+      toRadius: style.directed ? nodeOuterRadius(toStyle) : toStyle.radius,
     },
     bundle,
     // Pilspetsen är aldrig smalare än linjen, annars sticker en tjock linje ut bredvid spetsen.

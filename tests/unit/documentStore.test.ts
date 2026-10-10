@@ -379,7 +379,8 @@ describe("element", () => {
     store().addNode(l2, { x: 1000, y: 0 });
     expect(contentBounds(store().doc)?.w).toBeGreaterThan(1000);
     store().setLayerVisible(l2, false);
-    expect(contentBounds(store().doc)?.w).toBe(100);
+    // Radie 50 plus kanten (4 px) som ligger utanför den fyllda ytan.
+    expect(contentBounds(store().doc)?.w).toBe(108);
     expect(contentBounds(store().doc, false)?.w).toBeGreaterThan(1000);
   });
 });

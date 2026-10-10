@@ -80,12 +80,12 @@ describe("ritade mått", () => {
     expect(svg?.height).toBeGreaterThan(withText.h);
     expect(svg?.svg).toContain("key39: value");
 
-    // Tjock kant flyttar labels och egenskaper utåt med halva kantbredden.
+    // Kanten växer utåt: från 4 till 30 px flyttar labels och egenskaper 26 px utåt.
     const thin = drawnBounds(doc);
     a.style = { strokeWidth: 30 };
     const thick = drawnBounds(doc);
     if (!thin || !thick) throw new Error("mått saknas");
-    expect(thin.y - thick.y).toBeCloseTo(13, 5);
+    expect(thin.y - thick.y).toBeCloseTo(26, 5);
   });
 
   it("labelns kant växer utåt och tar aldrig plats från texten", () => {

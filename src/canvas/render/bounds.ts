@@ -3,6 +3,7 @@ import type { Box, GraphDocument, GraphNode, Relationship } from "@/model/types"
 import {
   imageBox,
   isElementVisible,
+  nodeOuterRadius,
   noteBox,
   relationshipBundles,
   resolvedNodeStyle,
@@ -17,7 +18,7 @@ import { LINE_HEIGHT, measureTextWidth, propertyLines, TYPE_PADDING_X } from "./
 export function drawnNodeBoxes(doc: GraphDocument, node: GraphNode): Box[] {
   const style = resolvedNodeStyle(doc, node);
   const { x, y } = node.position;
-  const outerR = style.radius + style.strokeWidth / 2;
+  const outerR = nodeOuterRadius(style);
   const boxes: Box[] = [{ x: x - outerR, y: y - outerR, w: outerR * 2, h: outerR * 2 }];
   const labels = labelLayout(node.labels, style, x, y - outerR).outer;
   if (labels) boxes.push(labels);
